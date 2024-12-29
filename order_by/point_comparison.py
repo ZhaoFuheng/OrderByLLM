@@ -45,6 +45,7 @@ import json
 def bulk_sort(data, client, prompt_template, modelname):
     api_call = 0 
     prompt = prompt_template.format(keys = str(data))
+    best_effort = None
     while api_call < 3:
         api_call += 1
         try:
@@ -59,13 +60,20 @@ def bulk_sort(data, client, prompt_template, modelname):
             )
             response = [choice.message.content.strip() for choice in response.choices][0]
             json_data = json.loads(response)  # Safely decode JSON response
+            print(json_data)
             assert len(json_data.keys()) == 1
             for key, val in json_data.items():
-                return val, api_call
+                best_effort = val
+                if len(val) == len(data):
+                    return val, api_call
+                else:
+                    continue
         except json.JSONDecodeError as jde:
             print(f"[ERROR] Attempt {api_call}: Failed to decode JSON: {jde}")
         except Exception as e:
             print(f"[ERROR] Attempt {api_call}: {e}")
+    if best_effort:
+        return best_effort, api_call
     return data, api_call
 
 from openai import OpenAI
