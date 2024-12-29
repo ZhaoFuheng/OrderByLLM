@@ -196,6 +196,46 @@ def external_merge_sort(data, sortfunc, k, client, prompt_template, modelname):
     return chunks[0], total_api_calls
 
 
+
+def external_bubble_sort(data, sortfunc, k, client, prompt_template, modelname):
+    total_api_calls = 0
+    n = len(data)
+    for pass_end in range(n, 0, -k // 2):  # Shrink the range in each pass
+        if pass_end < k // 2:
+            sorted_chunk, num = sortfunc(data[:pass_end], client, prompt_template, modelname)
+            total_api_calls += num
+            data[:pass_end] = sorted_chunk
+            break
+        for start in range(0, pass_end - k // 2, k // 2):
+            end = min(start + k, n)
+            chunk = data[start:end]
+            sorted_chunk, num = sortfunc(chunk, client, prompt_template, modelname)
+            total_api_calls += num
+            data[start:end] = sorted_chunk
+
+    return data, total_api_calls
+
+
+def external_pointwise_sort(data, sortfunc, k, client, prompt_template, modelname, output_type):
+    total_api_calls = 0
+    n = len(data)
+    key_and_value = {}
+    start = 0
+    while start < len(data):
+        chunk = data[start : start+k]
+        start += k
+        chunk_vals, num = sortfunc(chunk, client, prompt_template, modelname)
+        total_api_calls += num
+        for k, v in zip(chunk, chunk_vals):
+            try:
+                key_and_value[k] = output_type(v)
+            except Exception as e:
+                 key_and_value[k] = v
+    sorted_data = sorted(key_and_value, key=lambda k: key_and_value[k])
+    return sorted_data, total_api_calls
+    
+
+
 from openai import OpenAI
 import os
 if __name__ == "__main__":
@@ -205,9 +245,13 @@ if __name__ == "__main__":
     )
     modelname = 'gpt-4o'
 
-    # prompt_template = "In scale 1-100, how friendly is {key}? Output an int without explanation.\n"
-    # sorted_data, num = pointwise_sort(['cat', 'tiger', 'dolphin'], client, prompt_template, modelname, int)
-    # print(sorted_data, num)
+    prompt_template = "In scale 1-100, how friendly is {key}?\n Output an int without explanation.\n"
+    sorted_data, num = pointwise_sort(['cat', 'tiger', 'dolphin'], client, prompt_template, modelname, int)
+    print(sorted_data, num)
+
+    prompt_template = "In scale 1-100, how friendly are {keys}?\n Output a single json array of integers, where each index corresponds to the respective key in the provided list, without explanation.\n"
+    sorted_data, num = external_pointwise_sort(['cat', 'tiger', 'dolphin'], bulk_sort, 4, client, prompt_template, modelname, int)
+    print(sorted_data, num)
 
     prompt_template = "Which is greater {key1} or {key2}? Output the greater one with no explanation.\n"
     sorted_data, num = bubble_sort([34, 87, 12, 59, 3, 71, 45, 90, 28, 64], client, prompt_template, modelname)
