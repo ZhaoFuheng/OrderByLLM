@@ -1,5 +1,6 @@
-from pointwise import Pointwise_Key
-from point_comparison import Point_Comparison_Key, bulk_sort
+from .pointwise import Pointwise_Key, external_values
+from .pair_comparison import Pair_Comparison_Key, external_comparisons
+import collections
 
 def pointwise_sort(data, client, prompt_template, modelname, output_type):
     total_api_calls = 0
@@ -10,7 +11,10 @@ def pointwise_sort(data, client, prompt_template, modelname, output_type):
         total_api_calls += api_calls
         return value
     
-    sorted_data = sorted(data, key=lambda item: sort_key(Pointwise_Key(item)))
+    sorted_data = sorted(
+        data,
+        key=lambda item: (sort_key(Pointwise_Key(item)), item)
+        )
     return sorted_data, total_api_calls
     
 
@@ -18,7 +22,7 @@ def bubble_sort(data, client, prompt_template, modelname):
     n = len(data)
     total_api_calls = 0
 
-    wrapped_data = [Point_Comparison_Key(item) for item in data]
+    wrapped_data = [Pair_Comparison_Key(item) for item in data]
 
     for i in range(n):
         for j in range(0, n - i - 1):
@@ -38,13 +42,13 @@ def quick_sort(data, client, prompt_template, modelname):
         return data, 0
     total_api_calls = 0
 
-    # Wrap pivot and data items in Point_Comparison_Key
-    pivot = Point_Comparison_Key(data[0])
+    # Wrap pivot and data items in Pair_Comparison_Key
+    pivot = Pair_Comparison_Key(data[0])
     less = []
     greater = []
 
     for item in data[1:]:
-        wrapped_item = Point_Comparison_Key(item)
+        wrapped_item = Pair_Comparison_Key(item)
 
         comparison_result, api_calls = wrapped_item.compare(
             pivot, client, prompt_template, modelname
@@ -93,7 +97,7 @@ def heap_sort(data, client, prompt_template, modelname):
     n = len(data)
     total_api_calls = 0
 
-    wrapped_data = [Point_Comparison_Key(item) for item in data]
+    wrapped_data = [Pair_Comparison_Key(item) for item in data]
     for i in range(n // 2 - 1, -1, -1):
         total_api_calls += heapify(wrapped_data, n, i)
 
@@ -130,39 +134,68 @@ def external_merge_sort(data, sortfunc, k, client, prompt_template, modelname):
         i, j = 0, 0
         merged = []
         buffer = []
+        membership = collections.defaultdict(list)
+        buffer_metadata = {'l1':0, 'l2':0}
         total_api_calls = 0
+        half = max((k - len(buffer)) // 2, 1)
         while i < len(l1) or j < len(l2):
-            last_items = set()
-            if j >= len(l2):
-                half = k - len(buffer)
-            else:
-                half = (k - len(buffer)) // 2
+            if i >= len(l1):
+                half = k
+                if buffer_metadata['l1'] == 0:
+                    merged.extend(buffer)
+                    buffer = []
+                    merged.extend(l2[j:])
+                    break
 
-            last_item = None
-            for _ in range(half):
+            if j >= len(l2):
+                half = k
+                if buffer_metadata['l2'] == 0:
+                    merged.extend(buffer)
+                    buffer = []
+                    merged.extend(l1[i:])
+                    break
+
+            count = 0
+            for _ in range(half - buffer_metadata['l1']):
                 if i < len(l1):
-                    last_item = l1[i]
                     buffer.append(l1[i])
+                    membership[l1[i]].append('l1')
                     i += 1
-            if last_item is not None:
-                last_items.add(last_item)
-            
-            last_item = None
-            for _ in range(k - len(buffer)):
+                    count += 1
+                else:
+                    break
+            buffer_metadata['l1'] += count
+
+
+            count = 0
+            for _ in range(half - buffer_metadata['l2']):
                 if j < len(l2):
-                    last_item = l2[j]
                     buffer.append(l2[j])
+                    membership[l2[j]].append('l2')
                     j += 1
-            if last_item is not None:
-                last_items.add(last_item)
+                    count += 1
+                else:
+                    break
+            buffer_metadata['l2'] += count
+
+            assert len(buffer) == sum(buffer_metadata.values()), print(buffer, buffer_metadata, membership)
 
             buffer, num =  sortfunc(buffer, client, prompt_template, modelname)
+            # print(buffer, buffer_metadata, membership)
             total_api_calls += num
             items_taken = 0
             for key in buffer:
                 merged.append(key)
                 items_taken += 1
-                if key in last_items:
+                key_from_list = membership[key]
+                source = key_from_list.pop(-1)
+                buffer_metadata[source] -= 1
+
+                if len(key_from_list) == 0:
+                    del membership[key]
+                else:
+                    membership[key] = key_from_list
+                if buffer_metadata[source] == 0:
                     break
             assert items_taken > 0
             buffer = buffer[items_taken:]
@@ -180,7 +213,7 @@ def external_merge_sort(data, sortfunc, k, client, prompt_template, modelname):
         chunks.append(sorted_chunk)
     
     while len(chunks) > 1:
-        print(chunks)
+        # print(chunks)
         merged_chunks = []
         # 2-way merge
         for i in range(0, len(chunks), 2):
@@ -216,24 +249,26 @@ def external_bubble_sort(data, sortfunc, k, client, prompt_template, modelname):
     return data, total_api_calls
 
 
-def external_pointwise_sort(data, sortfunc, k, client, prompt_template, modelname, output_type):
+def external_pointwise_sort(data, sortfunc, m, client, prompt_template, modelname, output_type):
     total_api_calls = 0
     n = len(data)
     key_and_value = {}
     start = 0
     while start < len(data):
-        chunk = data[start : start+k]
-        start += k
-        chunk_vals, num = sortfunc(chunk, client, prompt_template, modelname)
+        chunk = data[start : start+m]
+        start += m
+        chunk_vals, num = sortfunc(chunk, client, prompt_template, modelname, output_type)
         total_api_calls += num
         for k, v in zip(chunk, chunk_vals):
             try:
                 key_and_value[k] = output_type(v)
             except Exception as e:
                  key_and_value[k] = v
-    sorted_data = sorted(key_and_value, key=lambda k: key_and_value[k])
+    sorted_data = sorted(
+        key_and_value,
+        key=lambda k: (key_and_value[k], k)
+        )
     return sorted_data, total_api_calls
-    
 
 
 from openai import OpenAI
@@ -245,25 +280,26 @@ if __name__ == "__main__":
     )
     modelname = 'gpt-4o'
 
-    prompt_template = "In scale 1-100, how friendly is {key}?\n Output an int without explanation.\n"
+    prompt_template = "In scale 1-100, how friendly is {key}?\n Output an int.\n"
     sorted_data, num = pointwise_sort(['cat', 'tiger', 'dolphin'], client, prompt_template, modelname, int)
     print(sorted_data, num)
 
-    prompt_template = "In scale 1-100, how friendly are {keys}?\n Output a single json array of integers, where each index corresponds to the respective key in the provided list, without explanation.\n"
-    sorted_data, num = external_pointwise_sort(['cat', 'tiger', 'dolphin'], bulk_sort, 4, client, prompt_template, modelname, int)
+    prompt_template = "In scale 1-100, how friendly are {keys}?\n Output a json array of integers, where each index corresponds to the respective key in the provided list.\n"
+    sorted_data, num = external_pointwise_sort(['cat', 'tiger', 'dolphin'], external_values, 4, client, prompt_template, modelname, int)
     print(sorted_data, num)
 
-    prompt_template = "Which is greater {key1} or {key2}? Output the greater one with no explanation.\n"
-    sorted_data, num = bubble_sort([34, 87, 12, 59, 3, 71, 45, 90, 28, 64], client, prompt_template, modelname)
-    print("bubble sort: ", sorted_data, num)
+    prompt_template = "Which is greater {key1} or {key2}? Output the greater key.\n"
+    # ignore bubble sort as it requries too many api calls when list is long.
+    # sorted_data, num = bubble_sort([34, 87, 12, 59, 3, 71, 45, 90, 28, 64], client, prompt_template, modelname)
+    # print("bubble sort: ", sorted_data, num)
     sorted_data, num = quick_sort([34, 87, 12, 59, 3, 71, 45, 90, 28, 64], client, prompt_template, modelname)
     print("quick sort: ", sorted_data, num)
     sorted_data, num = heap_sort([34, 87, 12, 59, 3, 71, 45, 90, 28, 64], client, prompt_template, modelname)
     print("heap sort: ", sorted_data, num)
 
 
-    prompt_template = "Given a list of keys: {keys}\nOutput a sorted json array in ascending order with no explanation.\n"
-    sorted_data, num = external_bubble_sort([34, 87, 12, 59, 3, 71, 45, 90, 28, 64], bulk_sort, 4, client, prompt_template, modelname)
+    prompt_template = "Given a list of keys: {keys}\nSort the keys in ascending order.\n"
+    sorted_data, num = external_bubble_sort([34, 87, 12, 59, 3, 71, 45, 90, 28, 64], external_comparisons, 4, client, prompt_template, modelname)
     print("external bubble sort: ", sorted_data, num)
-    sorted_data, num = external_merge_sort([34, 87, 12, 59, 3, 71, 45, 90, 28, 64], bulk_sort, 4, client, prompt_template, modelname)
+    sorted_data, num = external_merge_sort([34, 87, 12, 59, 3, 71, 45, 90, 28, 64], external_comparisons, 4, client, prompt_template, modelname)
     print("external merge sort ", sorted_data, num)
