@@ -1,3 +1,16 @@
+import tiktoken
+
+def count_tokens(text, model="gpt-3.5-turbo"):
+    try:
+        # Load the appropriate tokenizer for the model
+        encoding = tiktoken.encoding_for_model(model)
+        tokens = encoding.encode(text)
+        return len(tokens)
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
+
+
 def num_inversions(gold, predict):
     gold_positions = {value: idx for idx, value in enumerate(gold)}
     mapped_predict = [gold_positions[item] for item in predict if item in gold_positions]
@@ -44,3 +57,7 @@ def num_out_of_place(gold: list, predict: list) -> int:
             out_of_place_count += 1
     return out_of_place_count
     
+if __name__ == "__main__":
+    sample_text = "This is a sample text to calculate token count."
+    token_count = count_tokens(sample_text)
+    print(f"Number of tokens: {token_count}")

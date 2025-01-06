@@ -1,5 +1,8 @@
 import json
 from pydantic import BaseModel
+from .utils import count_tokens
+
+
 
 class Step(BaseModel):
     explanation: str
@@ -19,6 +22,7 @@ class Pair_Comparison_Key:
     
     def get_greater(self, client, prompt, modelname, possibles):
         api_call = 0 
+        total_tokens = 0
         while api_call < 3:
             api_call += 1
             # response = client.chat.completions.create(
@@ -34,27 +38,28 @@ class Pair_Comparison_Key:
             )
             try:
                 response = [choice.message.content.strip() for choice in response.choices][0]
+                total_tokens += count_tokens(response)
                 # print(response)
                 json_data = json.loads(response)
                 if json_data['key'] in possibles or  self.datatype(json_data['key']) in possibles:
-                    return  self.datatype(json_data['key']), api_call
+                    return  self.datatype(json_data['key']), api_call, total_tokens
                 else:
                     print("output is not contained in [key1, key2]; try again\n")
             except Exception as e:
                 print(f"[ERROR] Attempt {api_call}: {e}")
         # return a random item
-        return possibles.pop(), api_call
+        return possibles.pop(), api_call, total_tokens
 
     def compare(self, other, client, prompt_template, modelname):
         if self.key == other.key:
             return 0, 0
         possibles = {str(self.key), str(other.key)}
         prompt = prompt_template.format(key1=str(self.key), key2=str(other.key))
-        greater_key, num = self.get_greater(client, prompt, modelname, possibles)
+        greater_key, num, tokens = self.get_greater(client, prompt, modelname, possibles)
 
-        if greater_key == str(self.key):
-            return 1, num
-        return -1, num
+        if greater_key == self.key or greater_key == str(self.key):
+            return 1, num, tokens
+        return -1, num, tokens
 
     
     def __repr__(self):
@@ -69,9 +74,10 @@ def create_comparator(client, prompt_template, modelname):
 
 def external_comparisons(data, client, prompt_template, modelname):
     if len(data) == 0:
-        return
+        return data, 0, 0
     datatype = type(data[0])
     api_call = 0 
+    total_tokens = 0
     prompt = prompt_template.format(keys = str(data))
     best_effort = None
     
@@ -91,12 +97,13 @@ def external_comparisons(data, client, prompt_template, modelname):
                 response_format=ExternalComparisonReasoning
             )
             response = [choice.message.content.strip() for choice in response.choices][0]
+            total_tokens += count_tokens(response)
             # print(response)
             json_data = json.loads(response)  # Safely decode JSON response
             assert len(json_data.keys()) == 2, print(json_data)
             val = json_data['sorted_list']
             if len(val) == len(data):
-                return [datatype(v) for v in val], api_call
+                return [datatype(v) for v in val], api_call, total_tokens
             else:
                 print(f'ISSUE: not the same length as input; try again\n')
                 continue
@@ -105,8 +112,8 @@ def external_comparisons(data, client, prompt_template, modelname):
         except Exception as e:
             print(f"[ERROR] Attempt {api_call}: {e}")
     if best_effort and len(best_effort) == len(data):
-        return best_effort, api_call
-    return data, api_call
+        return best_effort, api_call, total_tokens
+    return data, api_call, total_tokens
 
 from openai import OpenAI
 import os
