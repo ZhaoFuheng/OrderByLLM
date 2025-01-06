@@ -1,7 +1,8 @@
 import json
 from pydantic import BaseModel
 from typing import Generic, TypeVar
-from pydantic.generics import GenericModel
+# from pydantic.generics import GenericModel
+from .utils import count_tokens
 
 T = TypeVar("T")
 
@@ -29,6 +30,7 @@ class Pointwise_Key:
         self.key = key
     def value(self, client, prompt, modelname, output_type):
         api_calls = 0
+        total_tokens = 0
         while api_calls < 3:
             api_calls += 1
             try:
@@ -44,16 +46,18 @@ class Pointwise_Key:
                     response_format=PointwiseReasoning
                 )
                 response = [choice.message.content.strip() for choice in response.choices][0]
+                total_tokens += count_tokens(response)
                 # print(response)
                 json_data = json.loads(response)
-                return output_type(json_data['value']), api_calls
+                return output_type(json_data['value']), api_calls, total_tokens
             except Exception as e:
                 print(e)
-        return None, api_calls 
+        return None, api_calls, total_tokens 
 
 
 def external_values(data, client, prompt_template, modelname, output_type):
     api_call = 0 
+    total_tokens = 0
     prompt = prompt_template.format(keys = str(data))
     best_effort = None
     while api_call < 3:
@@ -72,12 +76,13 @@ def external_values(data, client, prompt_template, modelname, output_type):
                 response_format=ExternalPointwiseReasoning
             )
             response = [choice.message.content.strip() for choice in response.choices][0]
+            total_tokens += count_tokens(response)
             # print(response)
             json_data = json.loads(response)  # Safely decode JSON response
             assert len(json_data.keys()) == 2, print(json_data)
             val = json_data['values']
             if len(val) == len(data):
-                return [output_type(v) for v in val], api_call
+                return [output_type(v) for v in val], api_call, total_tokens
             else:
                 print(f'ISSUE: not the same length as input; try again\n')
                 continue
@@ -86,5 +91,5 @@ def external_values(data, client, prompt_template, modelname, output_type):
         except Exception as e:
             print(f"[ERROR] Attempt {api_call}: {e}")
     if best_effort and len(best_effort) == len(data):
-        return best_effort, api_call
-    return data, api_call
+        return best_effort, api_call, total_tokens
+    return data, api_call, total_tokens
