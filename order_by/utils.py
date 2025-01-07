@@ -55,6 +55,8 @@ def num_out_of_place(gold: list, predict: list) -> int:
     for i, item in enumerate(predict):
         if i < len(gold) and gold[i] != predict[i]:
             out_of_place_count += 1
+        else:
+            out_of_place_count += 1
     return out_of_place_count
     
 if __name__ == "__main__":
