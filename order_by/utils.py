@@ -53,8 +53,9 @@ def num_inversions(gold, predict):
 def num_out_of_place(gold: list, predict: list) -> int:
     out_of_place_count = 0
     for i, item in enumerate(predict):
-        if i < len(gold) and gold[i] != predict[i]:
-            out_of_place_count += 1
+        if i < len(gold):
+            if gold[i] != predict[i]:
+                out_of_place_count += 1
         else:
             out_of_place_count += 1
     return out_of_place_count
