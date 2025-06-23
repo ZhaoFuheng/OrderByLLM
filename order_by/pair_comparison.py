@@ -12,6 +12,7 @@ class ComparisonReasoning(BaseModel):
     key: str
 
 class ExternalComparisonReasoning(BaseModel):
+    keys: list[str]
     steps: list[Step]
     sorted_list: list[str]
 
@@ -20,7 +21,7 @@ class Pair_Comparison_Key:
         self.key = key
         self.datatype = type(key)
     
-    def get_greater(self, client, prompt, modelname, possibles):
+    async def get_greater(self, client, prompt, modelname, possibles):
         api_call = 0 
         total_tokens = 0
         while api_call < 3:
@@ -46,12 +47,12 @@ class Pair_Comparison_Key:
         # return a random item
         return possibles.pop(), api_call, total_tokens
 
-    def compare(self, other, client, prompt_template, modelname):
+    async def compare(self, other, client, prompt_template, modelname):
         if self.key == other.key:
             return 0, 0
         possibles = {str(self.key), str(other.key)}
         prompt = prompt_template.format(key1=str(self.key), key2=str(other.key))
-        greater_key, num, tokens = self.get_greater(client, prompt, modelname, possibles)
+        greater_key, num, tokens = await self.get_greater(client, prompt, modelname, possibles)
 
         if greater_key == self.key or greater_key == str(self.key):
             return 1, num, tokens
@@ -68,7 +69,7 @@ def create_comparator(client, prompt_template, modelname):
     return comparator
         
 
-def external_comparisons(data, client, prompt_template, modelname):
+async def external_comparisons(data, client, prompt_template, modelname):
     if len(data) == 0:
         return data, 0, 0
     datatype = type(data[0])
