@@ -35,21 +35,20 @@ class Pointwise_Key:
             api_calls += 1
             try:
                 # response = client.chat.completions.create(
-                response = client.beta.chat.completions.parse(
+                #response = client.beta.chat.completions.parse(
+                response = client.responses.parse(
                     model=modelname,
-                    messages=[
-                        {"role": "system", "content": "You are a helpful agent. Help the user derive the value of the given key step by step."},
+                    input=[
+                        {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
                         {"role": "user", "content": prompt}],
-                    n = 1,
                     temperature=0.0,
-                    max_tokens=4096,
-                    response_format=PointwiseReasoning
+                    text_format=PointwiseReasoning
                 )
-                response = [choice.message.content.strip() for choice in response.choices][0]
-                total_tokens += count_tokens(response)
                 # print(response)
-                json_data = json.loads(response)
-                return output_type(json_data['value']), api_calls, total_tokens
+                #response = [choice.message.content.strip() for choice in response.choices][0]
+                parsed = response.output[0].content[0].parsed
+                total_tokens += response.usage.total_tokens
+                return output_type(parsed.value), api_calls, total_tokens, parsed.confidence
             except Exception as e:
                 print(e)
         return None, api_calls, total_tokens 
@@ -65,29 +64,25 @@ def external_values(data, client, prompt_template, modelname, output_type):
         try:
             # Make the API call with "type": "json_object"
             # response = client.chat.completions.create(
-            response = client.beta.chat.completions.parse(
+            # response = client.beta.chat.completions.parse(
+            response = client.responses.parse(
                 model=modelname,
-                messages=[
-                    {"role": "system", "content": "You are a helpful agent. Help the user derive the values of the given keys step by step."},
+                input=[
+                    {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
                     {"role": "user", "content": prompt}],
-                n=1,
                 temperature=0.0,
-                max_tokens=4096,
-                response_format=ExternalPointwiseReasoning
+                text_format=ExternalPointwiseReasoning
             )
-            response = [choice.message.content.strip() for choice in response.choices][0]
-            total_tokens += count_tokens(response)
+            parsed = response.output[0].content[0].parsed
+            total_tokens += response.usage.total_tokens
             # print(response)
-            json_data = json.loads(response)  # Safely decode JSON response
-            assert len(json_data.keys()) == 2, print(json_data)
-            val = json_data['values']
-            if len(val) == len(data):
-                return [output_type(v) for v in val], api_call, total_tokens
+            vals = parsed.values
+            best_effort = vals
+            if len(vals) == len(data):
+                return [output_type(v) for v in vals], api_call, total_tokens, parsed.confidences
             else:
                 print(f'ISSUE: not the same length as input; try again\n')
                 continue
-        except json.JSONDecodeError as jde:
-            print(f"[ERROR] Attempt {api_call}: Failed to decode JSON: {jde}")
         except Exception as e:
             print(f"[ERROR] Attempt {api_call}: {e}")
     if best_effort and len(best_effort) == len(data):

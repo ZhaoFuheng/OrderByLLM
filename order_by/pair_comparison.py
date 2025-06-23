@@ -26,25 +26,21 @@ class Pair_Comparison_Key:
         while api_call < 3:
             api_call += 1
             # response = client.chat.completions.create(
-            response = client.beta.chat.completions.parse(
+            response = client.responses.parse(
                 model=modelname,
-                messages=[
-                    {"role": "system", "content": "You are a helpful agent. Help the user compare the given two keys step by step."},
+                input=[
+                    {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
                     {"role": "user", "content": prompt}],
-                n = 1,
                 temperature=0.0,
-                max_tokens=4096,
-                response_format=ComparisonReasoning
+                text_format=ComparisonReasoning
             )
             try:
-                response = [choice.message.content.strip() for choice in response.choices][0]
-                total_tokens += count_tokens(response)
-                # print(response)
-                json_data = json.loads(response)
-                if json_data['key'] in possibles or  self.datatype(json_data['key']) in possibles:
-                    return  self.datatype(json_data['key']), api_call, total_tokens
+                parsed = response.output[0].content[0].parsed
+                total_tokens += response.usage.total_tokens
+                if parsed.key in possibles:
+                    return  self.datatype(parsed.key), api_call, total_tokens
                 else:
-                    print("output is not contained in [key1, key2]; try again\n")
+                    print(f"output:{parsed} is not contained in [key1, key2]; try again\n")
             except Exception as e:
                 print(f"[ERROR] Attempt {api_call}: {e}")
         # return a random item
@@ -86,24 +82,19 @@ def external_comparisons(data, client, prompt_template, modelname):
         try:
             # Make the API call with "type": "json_object"
             # response = client.chat.completions.create(
-            response = client.beta.chat.completions.parse(
+            response = client.responses.parse(
                 model=modelname,
-                messages=[
-                    {"role": "system", "content": "You are a helpful sorting agent. Help the user sort the input list step by step."},
+                input=[
+                    {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
                     {"role": "user", "content": prompt}],
-                n=1,
                 temperature=0.0,
-                max_tokens=4096,
-                response_format=ExternalComparisonReasoning
+                text_format=ExternalComparisonReasoning
             )
-            response = [choice.message.content.strip() for choice in response.choices][0]
-            total_tokens += count_tokens(response)
-            # print(response)
-            json_data = json.loads(response)  # Safely decode JSON response
-            assert len(json_data.keys()) == 2, print(json_data)
-            val = json_data['sorted_list']
-            if len(val) == len(data):
-                return [datatype(v) for v in val], api_call, total_tokens
+            parsed = response.output[0].content[0].parsed
+            total_tokens += response.usage.total_tokens
+            vals = parsed.sorted_list
+            if len(vals) == len(data):
+                return [datatype(v) for v in vals], api_call, total_tokens
             else:
                 print(f'ISSUE: not the same length as input; try again\n')
                 continue
@@ -111,24 +102,4 @@ def external_comparisons(data, client, prompt_template, modelname):
             print(f"[ERROR] Attempt {api_call}: Failed to decode JSON: {jde}")
         except Exception as e:
             print(f"[ERROR] Attempt {api_call}: {e}")
-    if best_effort and len(best_effort) == len(data):
-        return best_effort, api_call, total_tokens
     return data, api_call, total_tokens
-
-from openai import OpenAI
-import os
-from functools import cmp_to_key
-
-if __name__ == "__main__":
-    client = OpenAI(
-        # defaults to os.environ.get("OPENAI_API_KEY")
-        api_key=os.getenv("OPENAI_API_KEY"),
-    )
-    prompt_template = "Which number is greater: {key1} or {key2}?"
-    modelname = 'gpt-4o'
-    comparator = create_comparator(client, prompt_template, modelname)
-
-    keys = [Pair_Comparison_Key(10), Pair_Comparison_Key(15), Pair_Comparison_Key(1)]
-    sorted_keys = sorted(keys, key=cmp_to_key(comparator))
-
-    print("Sorted Keys:", sorted_keys)
