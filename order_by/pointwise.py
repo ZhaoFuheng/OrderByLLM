@@ -18,12 +18,16 @@ class Step(BaseModel):
 #     values: list[T]
 
 class PointwiseReasoning(BaseModel):
+    key: str
     steps: list[Step]
-    value: str
+    value: float
+    confidence: int
 
 class ExternalPointwiseReasoning(BaseModel):
+    keys: list[str]
     steps: list[Step]
-    values: list[str]
+    values: list[float]
+    confidences: list[int]
 
 class Pointwise_Key:
     def __init__(self, key):
