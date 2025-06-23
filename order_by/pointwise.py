@@ -32,7 +32,7 @@ class ExternalPointwiseReasoning(BaseModel):
 class Pointwise_Key:
     def __init__(self, key):
         self.key = key
-    def value(self, client, prompt, modelname, output_type):
+    async def value(self, client, prompt, modelname, output_type):
         api_calls = 0
         total_tokens = 0
         while api_calls < 3:
@@ -55,10 +55,10 @@ class Pointwise_Key:
                 return output_type(parsed.value), api_calls, total_tokens, parsed.confidence
             except Exception as e:
                 print(e)
-        return None, api_calls, total_tokens 
+        return None, api_calls, total_tokens, 0
 
 
-def external_values(data, client, prompt_template, modelname, output_type):
+async def external_values(data, client, prompt_template, modelname, output_type):
     api_call = 0 
     total_tokens = 0
     prompt = prompt_template.format(keys = str(data))
@@ -91,4 +91,4 @@ def external_values(data, client, prompt_template, modelname, output_type):
             print(f"[ERROR] Attempt {api_call}: {e}")
     if best_effort and len(best_effort) == len(data):
         return best_effort, api_call, total_tokens
-    return data, api_call, total_tokens
+    return data, api_call, total_tokens, 0
