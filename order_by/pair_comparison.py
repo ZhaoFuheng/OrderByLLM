@@ -27,15 +27,15 @@ class Pair_Comparison_Key:
         while api_call < 3:
             api_call += 1
             # response = client.chat.completions.create(
-            response = client.responses.parse(
-                model=modelname,
-                input=[
-                    {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
-                    {"role": "user", "content": prompt}],
-                temperature=0.0,
-                text_format=ComparisonReasoning
-            )
             try:
+                response = client.responses.parse(
+                    model=modelname,
+                    input=[
+                        {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
+                        {"role": "user", "content": prompt}],
+                    temperature=0.0,
+                    text_format=ComparisonReasoning
+                )
                 parsed = response.output[0].content[0].parsed
                 total_tokens += response.usage.total_tokens
                 if parsed.key in possibles:
