@@ -49,7 +49,7 @@ class Pair_Comparison_Key:
 
     async def compare(self, other, client, prompt_template, modelname):
         if self.key == other.key:
-            return 0, 0， 0
+            return 0, 0, 0
         possibles = {str(self.key), str(other.key)}
         prompt = prompt_template.format(key1=str(self.key), key2=str(other.key))
         greater_key, num, tokens = await self.get_greater(client, prompt, modelname, possibles)
