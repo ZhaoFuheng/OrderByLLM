@@ -1,4 +1,8 @@
 import tiktoken
+import hashlib
+
+def hash_prompt(prompt: str, modelname: str) -> str:
+    return hashlib.sha256(f"{modelname}:{prompt}".encode()).hexdigest()
 
 def count_tokens(text, model="gpt-3.5-turbo"):
     try:

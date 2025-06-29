@@ -1,8 +1,10 @@
 import json
 from pydantic import BaseModel
-from .utils import count_tokens
+from .utils import count_tokens, hash_prompt
+from diskcache import Cache
+import json
 
-
+cache = Cache('./sort_cache')
 
 class Step(BaseModel):
     explanation: str
@@ -22,6 +24,14 @@ class Pair_Comparison_Key:
         self.datatype = type(key)
     
     async def get_greater(self, client, prompt, modelname, possibles):
+        key_hash = hash_prompt(prompt, modelname)
+
+        if key_hash in cache:
+            cached = cache[key_hash]
+            parsed = ComparisonReasoning(**cached['parsed'])
+            if parsed.key in possibles:
+                return self.datatype(parsed.key), 0, cached['tokens']
+            
         api_call = 0 
         total_tokens = 0
         while api_call < 3:
@@ -38,6 +48,11 @@ class Pair_Comparison_Key:
                 )
                 parsed = response.output[0].content[0].parsed
                 total_tokens += response.usage.total_tokens
+
+                cache[key_hash] = {
+                    'parsed': parsed.dict(),
+                    'tokens': total_tokens}
+
                 if parsed.key in possibles:
                     return  self.datatype(parsed.key), api_call, total_tokens
                 else:
@@ -72,11 +87,20 @@ def create_comparator(client, prompt_template, modelname):
 async def external_comparisons(data, client, prompt_template, modelname):
     if len(data) == 0:
         return data, 0, 0
+    
     datatype = type(data[0])
     api_call = 0 
     total_tokens = 0
     prompt = prompt_template.format(keys = str(data))
     best_effort = None
+
+    key_hash = hash_prompt(prompt, modelname)
+    if key_hash in cache:
+        cached = cache[key_hash]
+        parsed = ExternalComparisonReasoning(**cached['parsed'])
+        vals = parsed.sorted_list
+        if len(vals) == len(data):
+            return [datatype(v) for v in vals], 0, cached['tokens']
     
     while api_call < 3:
         api_call += 1
@@ -94,6 +118,9 @@ async def external_comparisons(data, client, prompt_template, modelname):
             parsed = response.output[0].content[0].parsed
             total_tokens += response.usage.total_tokens
             vals = parsed.sorted_list
+            cache[key_hash] = {
+                'parsed': parsed.dict(),
+                'tokens': total_tokens}
             if len(vals) == len(data):
                 return [datatype(v) for v in vals], api_call, total_tokens
             else:
