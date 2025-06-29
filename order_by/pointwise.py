@@ -2,7 +2,11 @@ import json
 from pydantic import BaseModel
 from typing import Generic, TypeVar
 # from pydantic.generics import GenericModel
-from .utils import count_tokens
+from .utils import count_tokens, hash_prompt
+from diskcache import Cache
+import json
+
+cache = Cache('./sort_cache')
 
 T = TypeVar("T")
 
@@ -35,6 +39,13 @@ class Pointwise_Key:
     async def value(self, client, prompt, modelname, output_type):
         api_calls = 0
         total_tokens = 0
+        key_hash = hash_prompt(prompt, modelname)
+
+        if key_hash in cache:
+            cached = cache[key_hash]
+            parsed = cached['parsed']
+            return output_type(parsed['value']), 0, cached['tokens'], parsed['confidence']
+
         while api_calls < 3:
             api_calls += 1
             try:
@@ -52,6 +63,9 @@ class Pointwise_Key:
                 #response = [choice.message.content.strip() for choice in response.choices][0]
                 parsed = response.output[0].content[0].parsed
                 total_tokens += response.usage.total_tokens
+                cache[key_hash] = {
+                    'parsed': parsed.dict(),
+                    'tokens': total_tokens}
                 return output_type(parsed.value), api_calls, total_tokens, parsed.confidence
             except Exception as e:
                 print(e)
@@ -63,6 +77,15 @@ async def external_values(data, client, prompt_template, modelname, output_type)
     total_tokens = 0
     prompt = prompt_template.format(keys = str(data))
     best_effort = None
+    key_hash = hash_prompt(prompt, modelname)
+
+    if key_hash in cache:
+        cached = cache[key_hash]
+        parsed = cached['parsed']
+        vals = parsed['values']
+        if len(vals) == len(data):
+            return [output_type(v) for v in vals], 0, cached['tokens'], parsed['confidences']
+
     while api_call < 3:
         api_call += 1
         try:
@@ -82,6 +105,11 @@ async def external_values(data, client, prompt_template, modelname, output_type)
             # print(response)
             vals = parsed.values
             best_effort = vals
+
+            cache[key_hash] = {
+                'parsed': parsed.dict(),
+                'tokens': total_tokens
+            }
             if len(vals) == len(data):
                 return [output_type(v) for v in vals], api_call, total_tokens, parsed.confidences
             else:
