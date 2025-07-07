@@ -104,6 +104,7 @@ async def external_comparisons(data, client, prompt_template, modelname):
     
     while api_call < 3:
         api_call += 1
+        prefix = ''
         try:
             # Make the API call with "type": "json_object"
             # response = client.chat.completions.create(
@@ -111,7 +112,7 @@ async def external_comparisons(data, client, prompt_template, modelname):
                 model=modelname,
                 input=[
                     {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
-                    {"role": "user", "content": prompt}],
+                    {"role": "user", "content": prefix + prompt}],
                 temperature=0.0,
                 text_format=ExternalComparisonReasoning
             )
@@ -124,7 +125,8 @@ async def external_comparisons(data, client, prompt_template, modelname):
             if len(vals) == len(data):
                 return [datatype(v) for v in vals], api_call, total_tokens
             else:
-                print(f'ISSUE: not the same length as input; try again\n')
+                print(f'api call: {api_call}: ISSUE: not the same length as input; try again\n')
+                prefix = "Make sure the output sorted_list and list of keys have the same length"
                 continue
         except json.JSONDecodeError as jde:
             print(f"[ERROR] Attempt {api_call}: Failed to decode JSON: {jde}")
