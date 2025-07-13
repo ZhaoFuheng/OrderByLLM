@@ -113,7 +113,7 @@ async def external_values(data, client, prompt_template, modelname, output_type)
             if len(vals) == len(data):
                 return [output_type(v) for v in vals], api_call, total_tokens, parsed.confidences
             else:
-                print(f'ISSUE: not the same length as input; try again\n')
+                print(f'api call: {api_call}: ISSUE: not the same length as input; try again\n')
                 continue
         except Exception as e:
             print(f"[ERROR] Attempt {api_call}: {e}")
