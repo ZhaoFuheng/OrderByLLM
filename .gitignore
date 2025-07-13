@@ -172,3 +172,9 @@ cython_debug/
 
 .DS_Store
 __pycache__/
+
+# API keys
+.open_ai_api_key
+
+# tmp files
+tmp_*
