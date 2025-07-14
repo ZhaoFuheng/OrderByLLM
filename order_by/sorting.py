@@ -9,9 +9,8 @@ async def pointwise_sort(data, client, prompt_template, modelname, output_type):
     data_confidence = []
 
     async def compute_sort_key(item):
-        key_obj = Pointwise_Key(item)
-        prompt = prompt_template.format(key=str(key_obj.key))
-        value, api_calls, tokens, confidence = await key_obj.value(client, prompt, modelname, output_type)
+        key_obj = Pointwise_Key(item, prompt_template)
+        value, api_calls, tokens, confidence = await key_obj.value(client, modelname, output_type)
         return (value, item, api_calls, tokens, confidence)
 
     tasks = [compute_sort_key(item) for item in data]
@@ -25,7 +24,7 @@ async def pointwise_sort(data, client, prompt_template, modelname, output_type):
     total_tokens = sum(tokens for _, _, _, tokens, _ in results)
 
     return sorted_data, total_api_calls, total_tokens, data_confidence
-    
+
 
 async def bubble_sort(data, client, prompt_template, modelname):
     n = len(data)

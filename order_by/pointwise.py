@@ -34,11 +34,14 @@ class ExternalPointwiseReasoning(BaseModel):
     confidences: list[int]
 
 class Pointwise_Key:
-    def __init__(self, key):
+    def __init__(self, key, prompt_template):
         self.key = key
-    async def value(self, client, prompt, modelname, output_type):
+        self.prompt_template = prompt_template
+
+    async def value(self, client, modelname, output_type):
         api_calls = 0
         total_tokens = 0
+        prompt = self.prompt_template.format(key=str(self.key))
         key_hash = hash_prompt(prompt, modelname)
 
         if key_hash in cache:
@@ -69,6 +72,48 @@ class Pointwise_Key:
                 return output_type(parsed.value), api_calls, total_tokens, parsed.confidence
             except Exception as e:
                 print(e)
+        return None, api_calls, total_tokens, 0
+
+class PointwiseRelevanceKey:
+    """ Used for relevance tasks, does not generate a confidence score.
+    """
+    def __init__(self, question, passage, prompt_template):
+        self.question = question
+        self.passage = passage
+        self.prompt_template = prompt_template
+
+    async def value(self, client, modelname, output_type):
+        api_calls = 0
+        total_tokens = 0
+        prompt = self.prompt_template.format(question=self.question, passage=self.passage)
+        key_hash = hash_prompt(prompt, modelname)
+        # print(prompt)
+
+        if key_hash in cache:
+            cached = cache[key_hash]
+            parsed = cached['parsed']
+            return output_type(parsed['value']), 0, cached['tokens'], parsed['confidence']
+
+        while api_calls < 3:
+            api_calls += 1
+            try:
+                response = client.responses.parse(
+                    model=modelname,
+                    input=[
+                        {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
+                        {"role": "user", "content": prompt}],
+                    temperature=0.0,
+                    text_format=PointwiseReasoning
+                )
+                # print(response)
+                parsed = response.output[0].content[0].parsed
+                total_tokens += response.usage.total_tokens
+                cache[key_hash] = {
+                    'parsed': parsed.dict(),
+                    'tokens': total_tokens}
+                return output_type(parsed.value), api_calls, total_tokens, 0
+            except Exception as e:
+                print(f'exception={e}')
         return None, api_calls, total_tokens, 0
 
 

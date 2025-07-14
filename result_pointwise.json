@@ -1,0 +1,6078 @@
+{
+  "gpt-4o-mini": {
+    "0": {
+      "pointwise_sort": {
+        "rank_indices": [
+          4,
+          5,
+          6,
+          7,
+          1,
+          2,
+          3
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2833,
+        "raw_scores": [
+          3.0,
+          3.0,
+          3.0,
+          5.0,
+          5.0,
+          4.0,
+          4.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "1": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          4,
+          5,
+          6,
+          3
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2027,
+        "raw_scores": [
+          5.0,
+          5.0,
+          4.0,
+          5.0,
+          5.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "2": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          8,
+          4,
+          7,
+          2,
+          3,
+          5,
+          6
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3548,
+        "raw_scores": [
+          4.0,
+          2.5,
+          2.0,
+          3.0,
+          1.0,
+          1.0,
+          3.0,
+          4.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "3": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          3,
+          4,
+          6,
+          1,
+          5
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 1977,
+        "raw_scores": [
+          1.0,
+          5.0,
+          5.0,
+          5.0,
+          1.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "4": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          8,
+          7,
+          5,
+          6,
+          3,
+          4
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2684,
+        "raw_scores": [
+          5.0,
+          5.0,
+          1.0,
+          1.0,
+          3.0,
+          2.0,
+          4.5,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "5": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          3,
+          5,
+          6,
+          7,
+          4,
+          1
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2538,
+        "raw_scores": [
+          2.0,
+          5.0,
+          5.0,
+          4.5,
+          5.0,
+          5.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "8": {
+      "pointwise_sort": {
+        "rank_indices": [
+          5,
+          6,
+          1,
+          3,
+          4,
+          7,
+          2
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2404,
+        "raw_scores": [
+          3.5,
+          2.0,
+          3.0,
+          3.0,
+          4.5,
+          4.0,
+          3.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "9": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          4,
+          3,
+          6,
+          7,
+          5
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2617,
+        "raw_scores": [
+          4.5,
+          4.0,
+          3.0,
+          4.0,
+          1.0,
+          2.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "10": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          3,
+          5,
+          1,
+          6,
+          7,
+          4,
+          8
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3029,
+        "raw_scores": [
+          4.0,
+          5.0,
+          5.0,
+          3.5,
+          5.0,
+          4.0,
+          4.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "12": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          8,
+          2,
+          1,
+          4,
+          5,
+          6,
+          7
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3153,
+        "raw_scores": [
+          2.0,
+          2.5,
+          4.0,
+          1.0,
+          1.0,
+          1.0,
+          0.0,
+          4.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "13": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          3,
+          5,
+          6,
+          1,
+          4,
+          7
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2608,
+        "raw_scores": [
+          2.0,
+          4.0,
+          4.0,
+          2.0,
+          4.0,
+          4.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "14": {
+      "pointwise_sort": {
+        "rank_indices": [
+          5,
+          8,
+          3,
+          7,
+          2,
+          6,
+          1,
+          4
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2835,
+        "raw_scores": [
+          2.0,
+          4.0,
+          4.5,
+          1.0,
+          5.0,
+          4.0,
+          4.5,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "15": {
+      "pointwise_sort": {
+        "rank_indices": [
+          4,
+          6,
+          7,
+          3,
+          5,
+          2,
+          1
+        ],
+        "precision": 0.6666666666666666,
+        "api_calls": 0,
+        "tokens": 2467,
+        "raw_scores": [
+          1.0,
+          3.5,
+          4.0,
+          5.0,
+          4.0,
+          5.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "16": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          4,
+          6,
+          7,
+          1,
+          5,
+          8,
+          2,
+          9
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3389,
+        "raw_scores": [
+          2.0,
+          1.0,
+          5.0,
+          5.0,
+          2.0,
+          3.5,
+          3.5,
+          2.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "17": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          1,
+          2,
+          4,
+          5,
+          6,
+          7
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2729,
+        "raw_scores": [
+          1.0,
+          1.0,
+          2.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "18": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          4,
+          1,
+          5,
+          6,
+          3,
+          7,
+          8,
+          9
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3665,
+        "raw_scores": [
+          4.0,
+          5.0,
+          3.0,
+          5.0,
+          4.0,
+          4.0,
+          3.0,
+          1.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "19": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          4,
+          5,
+          3,
+          6
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2101,
+        "raw_scores": [
+          5.0,
+          5.0,
+          3.5,
+          5.0,
+          5.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "20": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          7
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2794,
+        "raw_scores": [
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          1.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "21": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          4,
+          6,
+          7,
+          8,
+          1,
+          5,
+          9,
+          10,
+          3
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 3676,
+        "raw_scores": [
+          3.0,
+          5.0,
+          1.0,
+          5.0,
+          3.0,
+          5.0,
+          5.0,
+          4.5,
+          3.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "22": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          5,
+          6,
+          8,
+          1,
+          3,
+          4,
+          7
+        ],
+        "precision": 0.5,
+        "api_calls": 0,
+        "tokens": 3311,
+        "raw_scores": [
+          4.5,
+          5.0,
+          4.5,
+          4.5,
+          5.0,
+          5.0,
+          4.5,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "23": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          3,
+          4,
+          5,
+          6,
+          9,
+          2,
+          7,
+          8
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3384,
+        "raw_scores": [
+          5.0,
+          4.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          1.0,
+          1.0,
+          4.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "24": {
+      "pointwise_sort": {
+        "rank_indices": [
+          4,
+          5,
+          8,
+          1,
+          6,
+          7,
+          3,
+          2,
+          10,
+          9
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3765,
+        "raw_scores": [
+          4.5,
+          2.0,
+          3.0,
+          5.0,
+          5.0,
+          4.5,
+          4.0,
+          5.0,
+          1.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "25": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          4,
+          5,
+          1,
+          3,
+          7,
+          6,
+          8
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2917,
+        "raw_scores": [
+          1.0,
+          5.0,
+          1.0,
+          5.0,
+          5.0,
+          0.0,
+          1.0,
+          0.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "26": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          4,
+          8,
+          2,
+          3,
+          5,
+          7,
+          9,
+          10,
+          6
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 4370,
+        "raw_scores": [
+          5.0,
+          4.0,
+          4.0,
+          5.0,
+          4.0,
+          2.0,
+          4.0,
+          5.0,
+          4.0,
+          4.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "27": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          1
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2185,
+        "raw_scores": [
+          1.0,
+          5.0,
+          5.0,
+          4.0,
+          4.0,
+          4.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "28": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2719,
+        "raw_scores": [
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "29": {
+      "pointwise_sort": {
+        "rank_indices": [
+          5,
+          9,
+          7,
+          1,
+          2,
+          3,
+          4,
+          6,
+          8
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3435,
+        "raw_scores": [
+          3.0,
+          3.0,
+          1.0,
+          1.0,
+          5.0,
+          1.0,
+          3.5,
+          1.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "30": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          4,
+          7,
+          8,
+          1,
+          3,
+          5,
+          6,
+          9
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 3567,
+        "raw_scores": [
+          1.0,
+          4.5,
+          1.0,
+          3.0,
+          1.0,
+          1.0,
+          3.0,
+          2.0,
+          0.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "31": {
+      "pointwise_sort": {
+        "rank_indices": [
+          5,
+          2,
+          6,
+          1,
+          3,
+          4,
+          7,
+          8
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3202,
+        "raw_scores": [
+          1.0,
+          2.0,
+          1.0,
+          1.0,
+          3.0,
+          2.0,
+          1.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "32": {
+      "pointwise_sort": {
+        "rank_indices": [
+          4,
+          5,
+          6,
+          1,
+          2,
+          3
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2029,
+        "raw_scores": [
+          1.0,
+          1.0,
+          0.0,
+          5.0,
+          3.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "33": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          3,
+          4,
+          1
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 1505,
+        "raw_scores": [
+          2.5,
+          4.0,
+          4.0,
+          3.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "34": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          1,
+          4,
+          5,
+          6,
+          2,
+          7
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2682,
+        "raw_scores": [
+          3.0,
+          1.0,
+          3.5,
+          2.0,
+          2.0,
+          2.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "35": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          3,
+          6,
+          7,
+          1,
+          4,
+          5
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2778,
+        "raw_scores": [
+          0.0,
+          2.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "36": {
+      "pointwise_sort": {
+        "rank_indices": [
+          7,
+          4,
+          1,
+          3,
+          6,
+          8,
+          5,
+          2
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3192,
+        "raw_scores": [
+          3.0,
+          1.0,
+          3.0,
+          3.5,
+          2.0,
+          3.0,
+          4.0,
+          2.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "37": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          5,
+          1,
+          2,
+          4,
+          6
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2033,
+        "raw_scores": [
+          4.5,
+          3.0,
+          5.0,
+          3.0,
+          5.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "38": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          5,
+          4,
+          6,
+          2,
+          3
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2187,
+        "raw_scores": [
+          5.0,
+          1.0,
+          1.0,
+          2.0,
+          4.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "39": {
+      "pointwise_sort": {
+        "rank_indices": [
+          6,
+          1,
+          2,
+          8,
+          3,
+          10,
+          4,
+          5,
+          7,
+          9
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 3881,
+        "raw_scores": [
+          4.0,
+          4.0,
+          3.5,
+          2.0,
+          2.0,
+          5.0,
+          1.0,
+          4.0,
+          1.0,
+          3.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "40": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          4,
+          6,
+          1,
+          2,
+          5
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2136,
+        "raw_scores": [
+          2.0,
+          1.0,
+          5.0,
+          5.0,
+          0.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "41": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          4,
+          5,
+          8,
+          6,
+          3,
+          7
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3157,
+        "raw_scores": [
+          5.0,
+          5.0,
+          3.0,
+          5.0,
+          5.0,
+          4.0,
+          1.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "42": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          5,
+          6,
+          7,
+          3,
+          4,
+          8,
+          9,
+          10,
+          1
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 3719,
+        "raw_scores": [
+          1.0,
+          5.0,
+          2.0,
+          2.0,
+          5.0,
+          5.0,
+          4.0,
+          2.0,
+          2.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "43": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          3,
+          4,
+          6,
+          8,
+          7,
+          5
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3111,
+        "raw_scores": [
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          1.0,
+          5.0,
+          4.5,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "44": {
+      "pointwise_sort": {
+        "rank_indices": [
+          4,
+          6,
+          9,
+          1,
+          3,
+          5,
+          7,
+          2,
+          8
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3484,
+        "raw_scores": [
+          4.0,
+          1.0,
+          3.5,
+          5.0,
+          3.0,
+          5.0,
+          2.5,
+          1.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "45": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          9,
+          6,
+          5,
+          3,
+          4,
+          1,
+          8,
+          7
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3498,
+        "raw_scores": [
+          1.0,
+          5.0,
+          2.0,
+          2.0,
+          3.5,
+          4.0,
+          0.0,
+          1.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "46": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          6,
+          5,
+          3,
+          4
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2316,
+        "raw_scores": [
+          5.0,
+          5.0,
+          1.0,
+          1.0,
+          3.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "47": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          4,
+          5,
+          2,
+          3,
+          6
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2190,
+        "raw_scores": [
+          3.0,
+          1.0,
+          1.0,
+          2.0,
+          2.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "48": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          3,
+          4,
+          6,
+          2,
+          8,
+          5,
+          7
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3195,
+        "raw_scores": [
+          5.0,
+          2.0,
+          5.0,
+          5.0,
+          1.0,
+          5.0,
+          1.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "49": {
+      "pointwise_sort": {
+        "rank_indices": [
+          4,
+          2,
+          3,
+          5,
+          6,
+          7,
+          1,
+          8,
+          9,
+          10
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3741,
+        "raw_scores": [
+          4.0,
+          4.5,
+          4.5,
+          5.0,
+          4.5,
+          4.5,
+          4.5,
+          4.0,
+          4.0,
+          4.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "50": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          3,
+          5,
+          9,
+          8,
+          6,
+          4,
+          7
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3359,
+        "raw_scores": [
+          5.0,
+          5.0,
+          5.0,
+          2.0,
+          5.0,
+          4.0,
+          0.0,
+          4.5,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "51": {
+      "pointwise_sort": {
+        "rank_indices": [
+          4,
+          3,
+          7,
+          1,
+          5,
+          6,
+          8,
+          9,
+          10,
+          2
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3996,
+        "raw_scores": [
+          2.0,
+          1.0,
+          3.5,
+          4.5,
+          2.0,
+          2.0,
+          3.0,
+          2.0,
+          2.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "52": {
+      "pointwise_sort": {
+        "rank_indices": [
+          9,
+          2,
+          5,
+          6,
+          8,
+          1,
+          3,
+          4,
+          7
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3409,
+        "raw_scores": [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          1.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "53": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          4,
+          5,
+          6,
+          7,
+          1,
+          8,
+          3
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2709,
+        "raw_scores": [
+          3.0,
+          5.0,
+          1.0,
+          5.0,
+          5.0,
+          5.0,
+          4.0,
+          3.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "54": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          5,
+          6,
+          7,
+          8,
+          9,
+          1,
+          2,
+          4
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3050,
+        "raw_scores": [
+          2.0,
+          2.0,
+          4.5,
+          2.0,
+          4.0,
+          4.0,
+          3.0,
+          3.0,
+          2.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "55": {
+      "pointwise_sort": {
+        "rank_indices": [
+          4,
+          1,
+          3,
+          7,
+          6,
+          2,
+          5
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2731,
+        "raw_scores": [
+          4.0,
+          1.0,
+          3.0,
+          5.0,
+          1.0,
+          2.0,
+          3.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "56": {
+      "pointwise_sort": {
+        "rank_indices": [
+          6,
+          3,
+          8,
+          2,
+          4,
+          5,
+          1,
+          7
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 3046,
+        "raw_scores": [
+          0.0,
+          1.0,
+          3.0,
+          1.0,
+          1.0,
+          5.0,
+          0.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "57": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          4,
+          5,
+          6,
+          2,
+          7,
+          3
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2982,
+        "raw_scores": [
+          5.0,
+          4.0,
+          2.0,
+          5.0,
+          5.0,
+          5.0,
+          4.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "58": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          5,
+          6,
+          8,
+          1,
+          3,
+          7,
+          9,
+          4
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 4003,
+        "raw_scores": [
+          4.0,
+          5.0,
+          4.0,
+          3.5,
+          5.0,
+          4.5,
+          4.0,
+          4.5,
+          4.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "59": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          4,
+          6,
+          8,
+          3,
+          7,
+          5
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3208,
+        "raw_scores": [
+          5.0,
+          5.0,
+          3.5,
+          5.0,
+          0.389,
+          5.0,
+          1.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "60": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          3,
+          5,
+          6,
+          2,
+          4
+        ],
+        "precision": 0.5,
+        "api_calls": 0,
+        "tokens": 2068,
+        "raw_scores": [
+          5.0,
+          4.0,
+          5.0,
+          4.0,
+          5.0,
+          4.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "61": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          7,
+          8,
+          3,
+          4,
+          6,
+          2,
+          5
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 3166,
+        "raw_scores": [
+          3.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          1.0,
+          2.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "62": {
+      "pointwise_sort": {
+        "rank_indices": [
+          6,
+          8,
+          1,
+          2,
+          4,
+          7,
+          3,
+          5,
+          9
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3676,
+        "raw_scores": [
+          4.0,
+          4.0,
+          2.0,
+          4.0,
+          2.0,
+          5.0,
+          3.0,
+          5.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "63": {
+      "pointwise_sort": {
+        "rank_indices": [
+          5,
+          6,
+          2,
+          3,
+          4,
+          7,
+          8,
+          1
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 3203,
+        "raw_scores": [
+          0.0,
+          4.0,
+          4.0,
+          1.0,
+          5.0,
+          5.0,
+          1.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "64": {
+      "pointwise_sort": {
+        "rank_indices": [
+          7,
+          2,
+          4,
+          5,
+          8,
+          1,
+          3,
+          6,
+          9
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3380,
+        "raw_scores": [
+          2.0,
+          4.0,
+          2.0,
+          4.0,
+          4.0,
+          2.0,
+          5.0,
+          4.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "65": {
+      "pointwise_sort": {
+        "rank_indices": [
+          4,
+          5,
+          7,
+          8,
+          2,
+          3,
+          1,
+          6
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2823,
+        "raw_scores": [
+          3.5,
+          4.0,
+          4.0,
+          5.0,
+          5.0,
+          3.0,
+          5.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "66": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          4,
+          1,
+          3,
+          5
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 1846,
+        "raw_scores": [
+          4.5,
+          5.0,
+          4.0,
+          5.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "68": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          6,
+          10,
+          4,
+          8,
+          7,
+          1,
+          2,
+          5,
+          9
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 3873,
+        "raw_scores": [
+          2.0,
+          2.0,
+          4.0,
+          3.0,
+          2.0,
+          4.0,
+          2.5,
+          3.0,
+          2.0,
+          3.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "69": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2133,
+        "raw_scores": [
+          3.0,
+          3.0,
+          2.0,
+          2.0,
+          2.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "70": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          6,
+          3,
+          5,
+          2,
+          7,
+          4,
+          8,
+          9
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3564,
+        "raw_scores": [
+          5.0,
+          2.0,
+          3.0,
+          1.0,
+          3.0,
+          4.0,
+          2.0,
+          1.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "71": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          6,
+          8,
+          1,
+          5,
+          3,
+          4,
+          7,
+          9
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3622,
+        "raw_scores": [
+          3.0,
+          4.5,
+          2.0,
+          2.0,
+          3.0,
+          4.5,
+          2.0,
+          4.5,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "72": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          4,
+          6,
+          7,
+          1,
+          3,
+          5,
+          8,
+          9
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3546,
+        "raw_scores": [
+          1.0,
+          2.0,
+          1.0,
+          2.0,
+          1.0,
+          2.0,
+          2.0,
+          1.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "73": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          5,
+          2,
+          4,
+          3,
+          6,
+          9,
+          8,
+          7
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3797,
+        "raw_scores": [
+          5.0,
+          4.0,
+          3.0,
+          3.5,
+          5.0,
+          3.0,
+          2.0,
+          2.5,
+          3.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "74": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          2,
+          4,
+          5,
+          1
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 1791,
+        "raw_scores": [
+          1.0,
+          3.0,
+          4.0,
+          3.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "75": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          5,
+          3,
+          6,
+          8,
+          4,
+          2,
+          9,
+          7
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3609,
+        "raw_scores": [
+          4.0,
+          2.5,
+          3.5,
+          3.0,
+          4.0,
+          3.5,
+          2.0,
+          3.5,
+          2.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "76": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          1,
+          9,
+          8
+        ],
+        "precision": 0.6666666666666666,
+        "api_calls": 0,
+        "tokens": 3239,
+        "raw_scores": [
+          4.5,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          3.5,
+          4.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "77": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          6,
+          3,
+          5,
+          4,
+          7
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2858,
+        "raw_scores": [
+          5.0,
+          5.0,
+          4.0,
+          2.5,
+          3.0,
+          5.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "78": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          3,
+          6,
+          4,
+          5,
+          7,
+          2
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2654,
+        "raw_scores": [
+          5.0,
+          1.0,
+          5.0,
+          4.0,
+          2.0,
+          5.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "79": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          4,
+          6,
+          8,
+          5,
+          2,
+          3,
+          7
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3066,
+        "raw_scores": [
+          5.0,
+          2.0,
+          1.0,
+          5.0,
+          4.0,
+          5.0,
+          1.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "80": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          4,
+          6,
+          7,
+          8,
+          3,
+          5,
+          9
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3459,
+        "raw_scores": [
+          5.0,
+          5.0,
+          4.0,
+          5.0,
+          4.0,
+          5.0,
+          5.0,
+          5.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "81": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          4,
+          5,
+          6,
+          2,
+          7,
+          1,
+          8
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3007,
+        "raw_scores": [
+          1.0,
+          2.0,
+          3.0,
+          3.0,
+          3.0,
+          3.0,
+          2.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "82": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          5,
+          8,
+          1,
+          4,
+          7,
+          9,
+          3,
+          6
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3655,
+        "raw_scores": [
+          4.0,
+          5.0,
+          3.0,
+          4.0,
+          5.0,
+          3.0,
+          4.0,
+          4.5,
+          4.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "83": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          4,
+          5,
+          6,
+          7,
+          8,
+          3,
+          9
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3555,
+        "raw_scores": [
+          5.0,
+          5.0,
+          4.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "84": {
+      "pointwise_sort": {
+        "rank_indices": [
+          6,
+          3,
+          7,
+          1,
+          2,
+          4,
+          5
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2396,
+        "raw_scores": [
+          1.0,
+          1.0,
+          2.0,
+          1.0,
+          1.0,
+          3.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "85": {
+      "pointwise_sort": {
+        "rank_indices": [
+          5,
+          7,
+          2,
+          3,
+          4,
+          8,
+          9,
+          1,
+          6
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3424,
+        "raw_scores": [
+          1.0,
+          2.0,
+          2.0,
+          2.0,
+          3.0,
+          1.0,
+          3.0,
+          2.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "86": {
+      "pointwise_sort": {
+        "rank_indices": [
+          4,
+          1,
+          3,
+          5,
+          7,
+          8,
+          2,
+          6
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2876,
+        "raw_scores": [
+          3.0,
+          1.0,
+          2.5,
+          5.0,
+          2.0,
+          1.0,
+          2.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "87": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          7,
+          4,
+          5,
+          6,
+          1,
+          2
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2600,
+        "raw_scores": [
+          3.0,
+          1.0,
+          5.0,
+          4.0,
+          4.0,
+          3.5,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "88": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          9,
+          5,
+          2,
+          7,
+          8,
+          1,
+          6,
+          4
+        ],
+        "precision": 0.5,
+        "api_calls": 0,
+        "tokens": 3778,
+        "raw_scores": [
+          3.0,
+          4.0,
+          5.0,
+          2.0,
+          4.5,
+          3.0,
+          4.0,
+          4.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "89": {
+      "pointwise_sort": {
+        "rank_indices": [
+          5,
+          6,
+          7,
+          2,
+          3,
+          4,
+          8,
+          1
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3048,
+        "raw_scores": [
+          0.0,
+          3.5,
+          3.0,
+          1.0,
+          5.0,
+          5.0,
+          4.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "90": {
+      "pointwise_sort": {
+        "rank_indices": [
+          9,
+          1,
+          5,
+          6,
+          8,
+          3,
+          2,
+          4,
+          7
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3251,
+        "raw_scores": [
+          4.0,
+          2.0,
+          3.5,
+          2.0,
+          4.0,
+          4.0,
+          1.0,
+          4.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "91": {
+      "pointwise_sort": {
+        "rank_indices": [
+          5,
+          2,
+          10,
+          3,
+          4,
+          6,
+          9,
+          1,
+          7,
+          8
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 3904,
+        "raw_scores": [
+          0.0,
+          2.0,
+          1.0,
+          1.0,
+          4.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "92": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          5,
+          6,
+          7,
+          9,
+          10,
+          4,
+          8,
+          1,
+          2
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3877,
+        "raw_scores": [
+          4.0,
+          3.0,
+          5.0,
+          4.5,
+          5.0,
+          5.0,
+          5.0,
+          4.5,
+          5.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "93": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          6,
+          7,
+          8,
+          9,
+          1,
+          4,
+          5,
+          2
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3531,
+        "raw_scores": [
+          4.0,
+          1.0,
+          5.0,
+          4.0,
+          4.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "94": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          4,
+          6,
+          5,
+          1,
+          3
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2034,
+        "raw_scores": [
+          2.0,
+          5.0,
+          2.0,
+          5.0,
+          3.0,
+          4.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "95": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          2,
+          1,
+          6,
+          4,
+          5,
+          7,
+          8
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2973,
+        "raw_scores": [
+          2.0,
+          3.0,
+          3.5,
+          1.0,
+          1.0,
+          2.0,
+          1.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "96": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          7,
+          4,
+          2,
+          1,
+          8,
+          5,
+          6
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2829,
+        "raw_scores": [
+          1.0,
+          2.0,
+          5.0,
+          3.0,
+          0.0,
+          0.0,
+          5.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "98": {
+      "pointwise_sort": {
+        "rank_indices": [
+          5,
+          1,
+          4,
+          9,
+          10,
+          2,
+          7,
+          3,
+          6,
+          8
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3985,
+        "raw_scores": [
+          4.0,
+          3.5,
+          3.0,
+          4.0,
+          5.0,
+          3.0,
+          3.5,
+          2.0,
+          4.0,
+          4.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "99": {
+      "pointwise_sort": {
+        "rank_indices": [
+          8,
+          1,
+          2,
+          4,
+          6,
+          7,
+          3,
+          5,
+          9
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 3480,
+        "raw_scores": [
+          2.5,
+          2.0,
+          1.0,
+          2.0,
+          1.0,
+          2.0,
+          2.0,
+          4.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    }
+  },
+  "gpt-4o": {
+    "0": {
+      "pointwise_sort": {
+        "rank_indices": [
+          4,
+          7,
+          6,
+          1,
+          2,
+          5,
+          3
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2992,
+        "raw_scores": [
+          3.0,
+          3.0,
+          2.0,
+          4.5,
+          3.0,
+          4.0,
+          4.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "1": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          4,
+          5,
+          6,
+          3
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 1992,
+        "raw_scores": [
+          5.0,
+          5.0,
+          4.5,
+          5.0,
+          5.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "2": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          8,
+          2,
+          3,
+          4,
+          5,
+          7,
+          6
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3570,
+        "raw_scores": [
+          4.5,
+          2.5,
+          2.5,
+          2.5,
+          2.5,
+          1.0,
+          2.5,
+          4.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "3": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          3,
+          4,
+          6,
+          1,
+          5
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2184,
+        "raw_scores": [
+          1.0,
+          5.0,
+          5.0,
+          5.0,
+          0.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "4": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          7,
+          8,
+          2,
+          6,
+          5,
+          4,
+          3
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2734,
+        "raw_scores": [
+          5.0,
+          3.5,
+          0.0,
+          1.0,
+          2.0,
+          3.0,
+          5.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "5": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          1
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2843,
+        "raw_scores": [
+          2.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          4.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "8": {
+      "pointwise_sort": {
+        "rank_indices": [
+          5,
+          6,
+          7,
+          1,
+          3,
+          2,
+          4
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2562,
+        "raw_scores": [
+          3.0,
+          2.5,
+          3.0,
+          2.5,
+          4.5,
+          3.5,
+          3.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "9": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          3,
+          4,
+          7,
+          1,
+          5,
+          6
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2762,
+        "raw_scores": [
+          2.5,
+          4.0,
+          4.0,
+          4.0,
+          1.0,
+          0.0,
+          3.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "10": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          8,
+          4
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3154,
+        "raw_scores": [
+          5.0,
+          5.0,
+          5.0,
+          2.0,
+          5.0,
+          5.0,
+          4.0,
+          3.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "12": {
+      "pointwise_sort": {
+        "rank_indices": [
+          8,
+          2,
+          3,
+          1,
+          5,
+          6,
+          4,
+          7
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 3388,
+        "raw_scores": [
+          2.0,
+          4.0,
+          3.5,
+          1.0,
+          2.0,
+          2.0,
+          0.0,
+          4.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "13": {
+      "pointwise_sort": {
+        "rank_indices": [
+          5,
+          6,
+          2,
+          3,
+          1,
+          4,
+          7
+        ],
+        "precision": 0.5,
+        "api_calls": 0,
+        "tokens": 2775,
+        "raw_scores": [
+          1.0,
+          2.0,
+          2.0,
+          1.0,
+          3.0,
+          3.0,
+          0.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "14": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          8,
+          2,
+          5,
+          7,
+          6,
+          1,
+          4
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2850,
+        "raw_scores": [
+          1.0,
+          4.0,
+          5.0,
+          0.0,
+          3.0,
+          2.0,
+          3.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "15": {
+      "pointwise_sort": {
+        "rank_indices": [
+          4,
+          6,
+          3,
+          5,
+          2,
+          7,
+          1
+        ],
+        "precision": 0.6666666666666666,
+        "api_calls": 0,
+        "tokens": 2590,
+        "raw_scores": [
+          2.0,
+          3.0,
+          4.0,
+          5.0,
+          4.0,
+          5.0,
+          3.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "16": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          4,
+          8,
+          9,
+          7,
+          5,
+          6,
+          1,
+          2
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3572,
+        "raw_scores": [
+          1.0,
+          1.0,
+          5.0,
+          4.5,
+          2.0,
+          2.0,
+          2.5,
+          4.5,
+          4.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "17": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          3,
+          7,
+          4,
+          5,
+          6
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2874,
+        "raw_scores": [
+          3.0,
+          2.0,
+          2.0,
+          1.0,
+          1.0,
+          1.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "18": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          3,
+          4,
+          1,
+          5,
+          6,
+          7,
+          8,
+          9
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3876,
+        "raw_scores": [
+          4.5,
+          5.0,
+          5.0,
+          5.0,
+          4.5,
+          4.5,
+          4.5,
+          3.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "19": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          5,
+          4,
+          3,
+          6
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2154,
+        "raw_scores": [
+          5.0,
+          5.0,
+          3.0,
+          4.5,
+          5.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "20": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          7
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2915,
+        "raw_scores": [
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          1.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "21": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          4,
+          6,
+          8,
+          1,
+          5,
+          7,
+          10,
+          9,
+          3
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 4057,
+        "raw_scores": [
+          3.0,
+          5.0,
+          1.0,
+          5.0,
+          3.0,
+          5.0,
+          3.0,
+          5.0,
+          2.5,
+          3.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "22": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          5,
+          6,
+          8,
+          1,
+          2,
+          4,
+          7
+        ],
+        "precision": 0.5,
+        "api_calls": 0,
+        "tokens": 3349,
+        "raw_scores": [
+          4.5,
+          4.5,
+          5.0,
+          4.5,
+          5.0,
+          5.0,
+          3.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "23": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          9,
+          7,
+          8
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3577,
+        "raw_scores": [
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          4.5,
+          4.5,
+          1.0,
+          1.0,
+          4.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "24": {
+      "pointwise_sort": {
+        "rank_indices": [
+          4,
+          5,
+          6,
+          8,
+          7,
+          1,
+          3,
+          2,
+          9,
+          10
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3965,
+        "raw_scores": [
+          3.0,
+          1.0,
+          3.0,
+          5.0,
+          5.0,
+          5.0,
+          4.0,
+          5.0,
+          1.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "25": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          4,
+          5,
+          1,
+          7,
+          3,
+          6,
+          8
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3274,
+        "raw_scores": [
+          1.0,
+          5.0,
+          0.0,
+          5.0,
+          5.0,
+          0.0,
+          1.0,
+          0.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "26": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          7,
+          8,
+          9,
+          10,
+          6
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 4427,
+        "raw_scores": [
+          5.0,
+          5.0,
+          4.5,
+          4.5,
+          4.5,
+          2.0,
+          4.5,
+          4.5,
+          4.5,
+          4.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "27": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          5,
+          3,
+          6,
+          4,
+          1
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2354,
+        "raw_scores": [
+          1.0,
+          5.0,
+          4.5,
+          3.0,
+          5.0,
+          3.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "28": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          3,
+          5,
+          6,
+          7,
+          4,
+          8
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 3261,
+        "raw_scores": [
+          5.0,
+          5.0,
+          5.0,
+          4.5,
+          5.0,
+          5.0,
+          5.0,
+          4.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "29": {
+      "pointwise_sort": {
+        "rank_indices": [
+          5,
+          9,
+          2,
+          1,
+          7,
+          3,
+          4,
+          6,
+          8
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3663,
+        "raw_scores": [
+          3.5,
+          4.0,
+          0.0,
+          0.0,
+          5.0,
+          0.0,
+          3.0,
+          0.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "30": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          1,
+          5,
+          7,
+          8,
+          3,
+          4,
+          6,
+          9
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 3489,
+        "raw_scores": [
+          2.0,
+          4.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "31": {
+      "pointwise_sort": {
+        "rank_indices": [
+          5,
+          1,
+          2,
+          3,
+          4,
+          6,
+          7,
+          8
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3392,
+        "raw_scores": [
+          2.0,
+          2.0,
+          2.0,
+          2.0,
+          5.0,
+          2.0,
+          2.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "32": {
+      "pointwise_sort": {
+        "rank_indices": [
+          4,
+          5,
+          1,
+          6,
+          2,
+          3
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2152,
+        "raw_scores": [
+          2.0,
+          0.0,
+          0.0,
+          4.5,
+          3.5,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "33": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          1,
+          3,
+          4
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 1634,
+        "raw_scores": [
+          3.5,
+          5.0,
+          0.0,
+          0.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "34": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          4,
+          1,
+          5,
+          6,
+          2,
+          7
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2978,
+        "raw_scores": [
+          3.0,
+          1.0,
+          3.5,
+          3.5,
+          2.0,
+          2.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "35": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          3,
+          6,
+          7,
+          1,
+          4,
+          5
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2803,
+        "raw_scores": [
+          0.0,
+          2.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "36": {
+      "pointwise_sort": {
+        "rank_indices": [
+          7,
+          4,
+          1,
+          3,
+          6,
+          8,
+          2,
+          5
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3395,
+        "raw_scores": [
+          3.0,
+          2.0,
+          3.0,
+          4.0,
+          2.0,
+          2.5,
+          5.0,
+          2.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "37": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          5,
+          1,
+          2,
+          4,
+          6
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2256,
+        "raw_scores": [
+          4.0,
+          4.0,
+          4.5,
+          4.0,
+          4.5,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "38": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          5,
+          3,
+          4,
+          6,
+          2
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2034,
+        "raw_scores": [
+          5.0,
+          0.0,
+          1.0,
+          1.0,
+          5.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "39": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          3,
+          6,
+          2,
+          8,
+          10,
+          5,
+          4,
+          7,
+          9
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 4074,
+        "raw_scores": [
+          5.0,
+          4.5,
+          5.0,
+          1.0,
+          3.0,
+          5.0,
+          1.0,
+          4.5,
+          1.0,
+          4.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "40": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          4,
+          6,
+          1,
+          2,
+          5
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2313,
+        "raw_scores": [
+          2.0,
+          1.0,
+          5.0,
+          5.0,
+          0.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "41": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          4,
+          5,
+          8,
+          6,
+          3,
+          7
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3402,
+        "raw_scores": [
+          5.0,
+          5.0,
+          3.0,
+          5.0,
+          5.0,
+          4.5,
+          1.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "42": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          5,
+          6,
+          7,
+          3,
+          8,
+          9,
+          10,
+          1,
+          4
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 3891,
+        "raw_scores": [
+          0.0,
+          5.0,
+          1.0,
+          0.0,
+          5.0,
+          5.0,
+          4.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "43": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          3,
+          6,
+          8,
+          7,
+          4,
+          5
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3225,
+        "raw_scores": [
+          5.0,
+          5.0,
+          5.0,
+          4.0,
+          1.0,
+          5.0,
+          4.5,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "44": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          3,
+          4,
+          5,
+          6,
+          7,
+          9,
+          2,
+          8
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 3518,
+        "raw_scores": [
+          5.0,
+          2.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          1.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "45": {
+      "pointwise_sort": {
+        "rank_indices": [
+          6,
+          9,
+          2,
+          5,
+          1,
+          3,
+          4,
+          7,
+          8
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3564,
+        "raw_scores": [
+          3.0,
+          4.5,
+          3.0,
+          3.0,
+          4.5,
+          5.0,
+          0.0,
+          0.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "46": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          6,
+          2,
+          5,
+          3,
+          4
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2406,
+        "raw_scores": [
+          5.0,
+          4.5,
+          0.0,
+          0.0,
+          3.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "47": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          4,
+          5,
+          2,
+          3,
+          6
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2165,
+        "raw_scores": [
+          2.0,
+          1.0,
+          1.0,
+          2.0,
+          2.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "48": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          3,
+          4,
+          6,
+          8,
+          2,
+          5,
+          7
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3353,
+        "raw_scores": [
+          5.0,
+          1.0,
+          5.0,
+          5.0,
+          1.0,
+          5.0,
+          1.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "49": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          9,
+          8,
+          10
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 4074,
+        "raw_scores": [
+          4.5,
+          4.5,
+          4.5,
+          4.5,
+          4.5,
+          4.5,
+          4.5,
+          4.0,
+          4.5,
+          3.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "50": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          3,
+          5,
+          6,
+          8,
+          9,
+          4,
+          7
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3532,
+        "raw_scores": [
+          5.0,
+          5.0,
+          5.0,
+          2.0,
+          5.0,
+          5.0,
+          0.0,
+          5.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "51": {
+      "pointwise_sort": {
+        "rank_indices": [
+          5,
+          3,
+          4,
+          7,
+          1,
+          10,
+          6,
+          8,
+          2,
+          9
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 4453,
+        "raw_scores": [
+          3.5,
+          0.0,
+          4.5,
+          4.5,
+          5.0,
+          2.0,
+          4.0,
+          2.0,
+          0.0,
+          3.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "52": {
+      "pointwise_sort": {
+        "rank_indices": [
+          6,
+          9,
+          1,
+          2,
+          3,
+          4,
+          5,
+          7,
+          8
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3479,
+        "raw_scores": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "53": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          4,
+          5,
+          6,
+          7,
+          8,
+          1,
+          3
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2719,
+        "raw_scores": [
+          2.0,
+          5.0,
+          1.0,
+          5.0,
+          5.0,
+          5.0,
+          3.0,
+          2.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "54": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          5,
+          6,
+          1,
+          4,
+          7,
+          8,
+          9,
+          2
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3206,
+        "raw_scores": [
+          2.0,
+          1.0,
+          5.0,
+          2.0,
+          4.5,
+          4.5,
+          2.0,
+          2.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "55": {
+      "pointwise_sort": {
+        "rank_indices": [
+          4,
+          1,
+          3,
+          6,
+          7,
+          5,
+          2
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 3010,
+        "raw_scores": [
+          3.0,
+          0.0,
+          2.0,
+          5.0,
+          1.0,
+          2.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "56": {
+      "pointwise_sort": {
+        "rank_indices": [
+          6,
+          3,
+          8,
+          2,
+          1,
+          4,
+          5,
+          7
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 3160,
+        "raw_scores": [
+          0.0,
+          1.0,
+          2.0,
+          0.0,
+          0.0,
+          5.0,
+          0.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "57": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          4,
+          6,
+          7,
+          5,
+          3
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2873,
+        "raw_scores": [
+          5.0,
+          4.5,
+          2.0,
+          4.5,
+          3.5,
+          4.5,
+          4.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "58": {
+      "pointwise_sort": {
+        "rank_indices": [
+          4,
+          5,
+          8,
+          9,
+          1,
+          3,
+          6,
+          7,
+          2
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 4104,
+        "raw_scores": [
+          4.0,
+          3.0,
+          4.0,
+          5.0,
+          4.5,
+          4.0,
+          4.0,
+          4.5,
+          4.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "59": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          4,
+          8,
+          2,
+          6,
+          3,
+          5,
+          7
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3508,
+        "raw_scores": [
+          5.0,
+          4.5,
+          4.0,
+          5.0,
+          4.0,
+          4.5,
+          2.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "60": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          3,
+          5,
+          6,
+          2,
+          4
+        ],
+        "precision": 0.5,
+        "api_calls": 0,
+        "tokens": 2230,
+        "raw_scores": [
+          5.0,
+          3.0,
+          5.0,
+          3.0,
+          5.0,
+          4.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "61": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          4,
+          6,
+          8,
+          3,
+          7,
+          2,
+          5
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 3401,
+        "raw_scores": [
+          3.0,
+          0.0,
+          1.0,
+          2.0,
+          0.0,
+          2.0,
+          1.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "62": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          4,
+          8,
+          6,
+          5,
+          7,
+          3,
+          9
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3775,
+        "raw_scores": [
+          5.0,
+          5.0,
+          0.0,
+          5.0,
+          1.0,
+          4.5,
+          1.0,
+          5.0,
+          0.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "63": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          5,
+          6,
+          3,
+          4,
+          8,
+          7,
+          1
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3227,
+        "raw_scores": [
+          0.0,
+          5.0,
+          4.5,
+          2.0,
+          5.0,
+          5.0,
+          1.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "64": {
+      "pointwise_sort": {
+        "rank_indices": [
+          5,
+          7,
+          2,
+          8,
+          4,
+          1,
+          3,
+          6,
+          9
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3576,
+        "raw_scores": [
+          2.0,
+          4.0,
+          2.0,
+          3.0,
+          5.0,
+          2.0,
+          5.0,
+          3.5,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "65": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          4,
+          5,
+          7,
+          8,
+          1,
+          3,
+          6
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2891,
+        "raw_scores": [
+          4.0,
+          5.0,
+          4.0,
+          5.0,
+          5.0,
+          4.0,
+          5.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "66": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          3,
+          1,
+          4,
+          5
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2051,
+        "raw_scores": [
+          4.0,
+          5.0,
+          4.5,
+          4.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "68": {
+      "pointwise_sort": {
+        "rank_indices": [
+          10,
+          3,
+          6,
+          8,
+          4,
+          5,
+          7,
+          1,
+          2,
+          9
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 4100,
+        "raw_scores": [
+          1.0,
+          1.0,
+          3.5,
+          2.0,
+          2.0,
+          3.5,
+          2.0,
+          3.0,
+          1.0,
+          4.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "69": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          5,
+          3,
+          4,
+          6
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2309,
+        "raw_scores": [
+          4.5,
+          3.5,
+          2.0,
+          2.0,
+          3.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "70": {
+      "pointwise_sort": {
+        "rank_indices": [
+          6,
+          1,
+          3,
+          5,
+          7,
+          8,
+          2,
+          4,
+          9
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 3935,
+        "raw_scores": [
+          3.0,
+          1.0,
+          2.5,
+          1.0,
+          2.5,
+          4.0,
+          2.0,
+          2.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "71": {
+      "pointwise_sort": {
+        "rank_indices": [
+          8,
+          2,
+          7,
+          9,
+          1,
+          3,
+          4,
+          5,
+          6
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 3873,
+        "raw_scores": [
+          2.0,
+          4.5,
+          2.0,
+          2.0,
+          2.0,
+          2.0,
+          3.0,
+          5.0,
+          3.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "72": {
+      "pointwise_sort": {
+        "rank_indices": [
+          7,
+          2,
+          6,
+          1,
+          3,
+          4,
+          5,
+          8,
+          9
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3925,
+        "raw_scores": [
+          1.0,
+          2.5,
+          1.0,
+          1.0,
+          1.0,
+          2.5,
+          3.5,
+          1.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "73": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          4,
+          5,
+          8,
+          3,
+          6,
+          7,
+          9
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3852,
+        "raw_scores": [
+          5.0,
+          4.5,
+          3.0,
+          4.5,
+          4.5,
+          2.5,
+          0.0,
+          4.5,
+          0.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "74": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          4,
+          2,
+          5,
+          1
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 1822,
+        "raw_scores": [
+          1.0,
+          2.0,
+          5.0,
+          5.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "75": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          8,
+          2,
+          3,
+          6,
+          9,
+          4,
+          5,
+          7
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3759,
+        "raw_scores": [
+          3.0,
+          2.5,
+          2.5,
+          2.0,
+          2.0,
+          2.5,
+          2.0,
+          3.0,
+          2.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "76": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          4,
+          5,
+          6,
+          7,
+          9,
+          1,
+          3,
+          8
+        ],
+        "precision": 0.3333333333333333,
+        "api_calls": 0,
+        "tokens": 3352,
+        "raw_scores": [
+          4.5,
+          5.0,
+          4.5,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          4.5,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "77": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          6,
+          3,
+          5,
+          4,
+          7
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 3057,
+        "raw_scores": [
+          5.0,
+          5.0,
+          4.0,
+          3.0,
+          3.5,
+          4.5,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "78": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          3,
+          6,
+          2,
+          4,
+          5,
+          7
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2778,
+        "raw_scores": [
+          5.0,
+          2.0,
+          5.0,
+          2.0,
+          2.0,
+          5.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "79": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          4,
+          6,
+          8,
+          2,
+          5,
+          3,
+          7
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3157,
+        "raw_scores": [
+          5.0,
+          4.0,
+          0.0,
+          5.0,
+          3.0,
+          5.0,
+          0.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "80": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          4,
+          6,
+          7,
+          8,
+          1,
+          3,
+          5,
+          9
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3563,
+        "raw_scores": [
+          4.0,
+          5.0,
+          3.5,
+          5.0,
+          2.0,
+          5.0,
+          5.0,
+          5.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "81": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          4,
+          7,
+          5,
+          2,
+          6,
+          1,
+          8
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3338,
+        "raw_scores": [
+          1.0,
+          2.0,
+          4.5,
+          4.0,
+          2.5,
+          2.0,
+          4.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "82": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          7,
+          2,
+          4,
+          5,
+          8,
+          9,
+          3,
+          6
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3835,
+        "raw_scores": [
+          5.0,
+          4.0,
+          3.0,
+          4.0,
+          3.5,
+          1.0,
+          4.5,
+          3.5,
+          3.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "83": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          7,
+          9
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3562,
+        "raw_scores": [
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          3.0,
+          4.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "84": {
+      "pointwise_sort": {
+        "rank_indices": [
+          6,
+          2,
+          4,
+          7,
+          1,
+          3,
+          5
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2591,
+        "raw_scores": [
+          1.0,
+          2.0,
+          1.0,
+          2.0,
+          1.0,
+          2.5,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "85": {
+      "pointwise_sort": {
+        "rank_indices": [
+          7,
+          2,
+          3,
+          4,
+          5,
+          6,
+          8,
+          1,
+          9
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3856,
+        "raw_scores": [
+          0.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          3.0,
+          1.0,
+          0.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "86": {
+      "pointwise_sort": {
+        "rank_indices": [
+          4,
+          1,
+          2,
+          3,
+          5,
+          7,
+          8,
+          6
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2953,
+        "raw_scores": [
+          3.0,
+          2.0,
+          2.0,
+          5.0,
+          2.0,
+          1.0,
+          2.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "87": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          3,
+          6,
+          7,
+          4,
+          5,
+          2
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2775,
+        "raw_scores": [
+          5.0,
+          1.0,
+          5.0,
+          4.5,
+          4.0,
+          5.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "88": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          3,
+          9,
+          7,
+          8,
+          1,
+          5,
+          6,
+          4
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 4006,
+        "raw_scores": [
+          4.0,
+          5.0,
+          5.0,
+          2.0,
+          3.0,
+          3.0,
+          4.5,
+          4.5,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "89": {
+      "pointwise_sort": {
+        "rank_indices": [
+          5,
+          6,
+          3,
+          7,
+          2,
+          4,
+          8,
+          1
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3082,
+        "raw_scores": [
+          1.0,
+          2.0,
+          4.0,
+          2.0,
+          5.0,
+          5.0,
+          3.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "90": {
+      "pointwise_sort": {
+        "rank_indices": [
+          6,
+          1,
+          5,
+          9,
+          8,
+          2,
+          3,
+          4,
+          7
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3548,
+        "raw_scores": [
+          4.5,
+          3.0,
+          2.5,
+          2.0,
+          4.5,
+          5.0,
+          1.0,
+          4.0,
+          4.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "91": {
+      "pointwise_sort": {
+        "rank_indices": [
+          5,
+          2,
+          10,
+          1,
+          3,
+          4,
+          6,
+          7,
+          8,
+          9
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 3842,
+        "raw_scores": [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          5.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "92": {
+      "pointwise_sort": {
+        "rank_indices": [
+          1,
+          3,
+          5,
+          6,
+          9,
+          4,
+          10,
+          8,
+          7,
+          2
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 4309,
+        "raw_scores": [
+          5.0,
+          2.0,
+          5.0,
+          4.5,
+          5.0,
+          5.0,
+          3.0,
+          4.0,
+          5.0,
+          4.5
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "93": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          1,
+          2
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3656,
+        "raw_scores": [
+          4.5,
+          2.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0,
+          5.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "94": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          4,
+          1,
+          5,
+          6,
+          3
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 2096,
+        "raw_scores": [
+          4.0,
+          5.0,
+          1.0,
+          5.0,
+          3.0,
+          2.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "95": {
+      "pointwise_sort": {
+        "rank_indices": [
+          2,
+          1,
+          3,
+          6,
+          4,
+          5,
+          8,
+          7
+        ],
+        "precision": 0.0,
+        "api_calls": 0,
+        "tokens": 3292,
+        "raw_scores": [
+          2.0,
+          3.0,
+          2.0,
+          1.0,
+          1.0,
+          2.0,
+          0.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "96": {
+      "pointwise_sort": {
+        "rank_indices": [
+          3,
+          7,
+          2,
+          4,
+          1,
+          5,
+          6,
+          8
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 2997,
+        "raw_scores": [
+          0.0,
+          2.0,
+          4.5,
+          2.0,
+          0.0,
+          0.0,
+          4.5,
+          0.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "98": {
+      "pointwise_sort": {
+        "rank_indices": [
+          9,
+          4,
+          5,
+          7,
+          10,
+          2,
+          1,
+          3,
+          6,
+          8
+        ],
+        "precision": 0.5,
+        "api_calls": 0,
+        "tokens": 4248,
+        "raw_scores": [
+          2.0,
+          2.5,
+          2.0,
+          3.0,
+          3.0,
+          2.0,
+          3.0,
+          2.0,
+          5.0,
+          3.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    },
+    "99": {
+      "pointwise_sort": {
+        "rank_indices": [
+          8,
+          1,
+          2,
+          7,
+          4,
+          6,
+          3,
+          5,
+          9
+        ],
+        "precision": 1.0,
+        "api_calls": 0,
+        "tokens": 3653,
+        "raw_scores": [
+          3.0,
+          3.0,
+          1.0,
+          2.0,
+          1.0,
+          2.0,
+          3.0,
+          4.0,
+          1.0
+        ]
+      },
+      "quick_sort": {},
+      "heap_sort": {},
+      "external_pointwise_sort": {},
+      "external_bubble_sort": {},
+      "external_merge_sort": {}
+    }
+  }
+}
