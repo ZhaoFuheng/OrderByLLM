@@ -3,6 +3,8 @@ from pydantic import BaseModel
 from .utils import count_tokens, hash_prompt
 from diskcache import Cache
 import json
+from typing import List, Callable, Dict, Tuple
+import asyncio
 
 cache = Cache('./sort_cache')
 
