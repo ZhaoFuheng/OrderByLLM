@@ -55,12 +55,11 @@ def num_inversions(gold, predict):
     return merge_sort_and_count(mapped_predict, temp_arr, 0, len(mapped_predict) - 1)
 
 def num_out_of_place(gold: list, predict: list) -> int:
+    if len(gold) != len(predict):
+        print('gold and predict list should be the same length')
     out_of_place_count = 0
-    for i, item in enumerate(predict):
-        if i < len(gold):
-            if gold[i] != predict[i]:
-                out_of_place_count += 1
-        else:
+    for k1, k2 in zip(gold, predict):
+        if k1 != k2:
             out_of_place_count += 1
     return out_of_place_count
     
