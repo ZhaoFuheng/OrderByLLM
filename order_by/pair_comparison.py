@@ -5,6 +5,9 @@ from diskcache import Cache
 import json
 from typing import List, Callable, Dict, Tuple
 import asyncio
+import numpy as np
+
+np.random.seed(0)
 
 cache = Cache('./sort_cache')
 
@@ -135,3 +138,59 @@ async def external_comparisons(data, client, prompt_template, modelname):
         except Exception as e:
             print(f"[ERROR] Attempt {api_call}: {e}")
     return data, api_call, total_tokens
+
+
+
+class AsyncComparator:
+    def __init__(self, question, texts, experiment_id, model_id, template):
+        self.question = question
+        self.texts = texts
+        self.experiment_id = experiment_id
+        self.model_id = model_id
+        self.prompt_template = template
+    
+    async def compare_indices(self, i: int, j: int, client) -> Tuple[str, int, int]:
+        # Format the prompt
+        prompt = self.prompt_template.format(
+            question=self.question,
+            passage_a=self.texts[i],
+            passage_b=self.texts[j])
+        
+        key_hash = hash_prompt(prompt, self.model_id)
+        
+        if key_hash in cache:
+            answer = cache[key_hash]
+            return answer["key"], answer["apis"], answer["tokens"]
+
+        api_call = 0
+        total_tokens = 0
+        while api_call < 3:
+            api_call += 1
+            try:
+                # def call_llm():
+                response = await client.responses.parse(
+                    model=self.model_id,
+                    input=[
+                        {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=0.0,
+                    text_format=ComparisonReasoning
+                )
+                parsed = response.output[0].content[0].parsed
+                total_tokens += response.usage.total_tokens
+                if parsed.key in ["A", "B"]:
+                    cache[key_hash] = {
+                        "key": parsed.key, "apis": api_call, "tokens": total_tokens, 'parsed': parsed,
+                    }
+                    return parsed.key, api_call, total_tokens
+                else:
+                    print(f"[WARN] Unexpected output: {parsed.key}; retrying...\n")
+
+            except Exception as e:
+                print(f"[ERROR] Attempt {api_call}: {e}. {self.experiment_id}, {self.model_id}")
+
+        # After 3 failures or invalid results, return random fallback
+        fallback = np.random.choice(["A", "B"])
+        print(f"[FALLBACK] Returning {fallback} {self.experiment_id}, {self.model_id}")
+        return fallback, api_call, total_tokens
