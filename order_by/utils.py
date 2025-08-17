@@ -1,5 +1,18 @@
 import tiktoken
 import hashlib
+from scipy.stats import kendalltau
+import random
+from openai import OpenAI, AsyncOpenAI
+import inspect
+from typing import Awaitable, TypeVar, Union
+
+def is_async_client(client) -> bool:
+    return isinstance(client, AsyncOpenAI)
+
+
+T = TypeVar("T")
+async def resolve(v: Union[T, Awaitable[T]]) -> T:
+    return await v if inspect.isawaitable(v) else v
 
 def hash_prompt(prompt: str, modelname: str) -> str:
     return hashlib.sha256(f"{modelname}:{prompt}".encode()).hexdigest()
@@ -62,7 +75,40 @@ def num_out_of_place(gold: list, predict: list) -> int:
         if k1 != k2:
             out_of_place_count += 1
     return out_of_place_count
+
+def kendalltau_distance(gold: list, predict: list) -> float:
+    """Return Kendall tau distance (# of discordant pairs) between two rankings."""
+    gold_pos = {v: i for i, v in enumerate(gold)}
+    # Map predict into the rank positions of gold
+    gold_ranks = [gold_pos[v] for v in gold if v in gold_pos]
+    gold_set = set(gold)
+
+    seen = set()
+    need_to_fix_idxs = []
+    for i, v in enumerate(predict):
+        if v in seen or v not in gold_set:
+            need_to_fix_idxs.append(i)
+        else:
+            seen.add(v)
+    missing = [v for v in gold if v not in set(predict)]
+
+    for i, idx in enumerate(need_to_fix_idxs):
+        predict[idx] = missing[i]
+
+    pred_ranks = [gold_pos[v] for v in predict if v in gold_pos]
+
+
+    if len(gold_ranks) != len(pred_ranks):
+        print("length of gold: ", len(gold_ranks))
+        print("length of prediction: ", len(pred_ranks))
+        raise ValueError("gold and predict must have the same items for Kendall tau distance")
+
+    tau, p_value = kendalltau(gold_ranks, pred_ranks)
+    return tau
     
+def create_numbered_passages(passages):
+    return "\n".join([f"passage_id:{i+1}\n{p}\n\n" for i, p in enumerate(passages)])
+
 if __name__ == "__main__":
     sample_text = "This is a sample text to calculate token count."
     token_count = count_tokens(sample_text)

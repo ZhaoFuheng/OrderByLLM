@@ -1,6 +1,6 @@
 import json
 from pydantic import BaseModel
-from .utils import count_tokens, hash_prompt
+from .utils import count_tokens, hash_prompt, resolve, create_numbered_passages
 from diskcache import Cache
 import json
 from typing import List, Callable, Dict, Tuple
@@ -23,49 +23,89 @@ class ExternalComparisonReasoning(BaseModel):
     steps: list[Step]
     sorted_list: list[str]
 
+
+class PassageComparisonReasoning(BaseModel):
+    steps: list[Step]
+    BetterPassageKey: str
+
+class PassageExternalComparisonReasoning(BaseModel):
+    steps: list[Step]
+    WorstToBestPassageKeys: list[str]
+
+
 class Pair_Comparison_Key:
-    def __init__(self, key):
-        self.key = key
-        self.datatype = type(key)
+    def __init__(self, key, schema):
+        if schema == ComparisonReasoning:
+            self.key = key
+            self.datatype = type(key)
+        elif schema == PassageComparisonReasoning:
+            self.key = key[1]
+            self.datatype = str
+            self.docid = key[0]
+        self.schema=schema
     
     async def get_greater(self, client, prompt, modelname, possibles):
         key_hash = hash_prompt(prompt, modelname)
 
         if key_hash in cache:
             cached = cache[key_hash]
-            parsed = ComparisonReasoning(**cached['parsed'])
-            if parsed.key in possibles:
-                return self.datatype(parsed.key), 0, cached['tokens']
-            
+            try:
+                parsed = self.schema(**cached['parsed'])
+                if self.schema == ComparisonReasoning and parsed.key in possibles:
+                    return self.datatype(parsed.key), 0, cached['tokens']
+                elif self.schema == PassageComparisonReasoning and parsed.BetterPassageKey in ['A', 'B']:
+                    return parsed.BetterPassageKey, 0, cached['tokens']
+            except Exception:
+                print("check cache")
+                pass 
+        
         api_call = 0 
         total_tokens = 0
         while api_call < 3:
             api_call += 1
             # response = client.chat.completions.create(
             try:
-                response = client.responses.parse(
-                    model=modelname,
-                    input=[
-                        {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
-                        {"role": "user", "content": prompt}],
-                    temperature=0.0,
-                    text_format=ComparisonReasoning
-                )
-                parsed = response.output[0].content[0].parsed
+                if 'gpt-5' in modelname:
+                    response = await resolve( client.responses.parse(
+                        model=modelname,
+                        input=[
+                            {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
+                            {"role": "user", "content": prompt}],
+                        text={
+                            "verbosity": "low"
+                        },
+                        text_format=self.schema,
+                    ))
+                    parsed = response.output_parsed
+                else:
+                    response = await resolve( client.responses.parse(
+                        model=modelname,
+                        input=[
+                            {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
+                            {"role": "user", "content": prompt}],
+                        temperature=0.0,
+                        text_format=self.schema,
+                    ))
+                    parsed = response.output[0].content[0].parsed
                 total_tokens += response.usage.total_tokens
 
                 cache[key_hash] = {
                     'parsed': parsed.dict(),
                     'tokens': total_tokens}
-
-                if parsed.key in possibles:
+                
+                if self.schema == ComparisonReasoning and parsed.key in possibles:
                     return  self.datatype(parsed.key), api_call, total_tokens
+                elif self.schema == PassageComparisonReasoning and parsed.BetterPassageKey in ['A', 'B']:
+                    return parsed.BetterPassageKey, api_call, total_tokens
                 else:
+                    print(self.schema)
                     print(f"output:{parsed} is not contained in [key1, key2]; try again\n")
             except Exception as e:
                 print(f"[ERROR] Attempt {api_call}: {e}")
         # return a random item
-        return possibles.pop(), api_call, total_tokens
+        if self.schema == ComparisonReasoning:
+            return possibles.pop(), api_call, total_tokens
+        return 'A', api_call, total_tokens
 
     async def compare(self, other, client, prompt_template, modelname):
         if self.key == other.key:
@@ -74,7 +114,7 @@ class Pair_Comparison_Key:
         prompt = prompt_template.format(key1=str(self.key), key2=str(other.key))
         greater_key, num, tokens = await self.get_greater(client, prompt, modelname, possibles)
 
-        if greater_key == self.key or greater_key == str(self.key):
+        if greater_key == self.key or greater_key == str(self.key) or greater_key == 'A':
             return 1, num, tokens
         return -1, num, tokens
 
@@ -89,108 +129,91 @@ def create_comparator(client, prompt_template, modelname):
     return comparator
         
 
-async def external_comparisons(data, client, prompt_template, modelname):
+async def external_comparisons(data, client, prompt_template, modelname, isPassage):
     if len(data) == 0:
         return data, 0, 0
     
-    datatype = type(data[0])
     api_call = 0 
     total_tokens = 0
-    prompt = prompt_template.format(keys = str(data))
     best_effort = None
+    key_to_passage = {} # used to map key to passage
+
+    if isPassage:
+        assert len(data[0]) == 2, print(data[0])
+        schema = PassageExternalComparisonReasoning
+        datatype = str
+        prompt = prompt_template.format(keys = create_numbered_passages(data))
+        for key, text in data:
+            key_to_passage[key] = text
+    else:
+        schema = ExternalComparisonReasoning
+        datatype = type(data[0])
+        prompt = prompt_template.format(keys = str(data))
 
     key_hash = hash_prompt(prompt, modelname)
     if key_hash in cache:
         cached = cache[key_hash]
-        parsed = ExternalComparisonReasoning(**cached['parsed'])
-        vals = parsed.sorted_list
-        if len(vals) == len(data):
-            return [datatype(v) for v in vals], 0, cached['tokens']
+        parsed = schema(**cached['parsed'])
+        if isPassage:
+            vals = parsed.WorstToBestPassageKeys
+
+            all_keys_presented = all(k in key_to_passage.values() for k in vals)
+            if len(vals) == len(data) and all_keys_presented:
+                return [key_to_passage[k] for k in vals], 0, cached['tokens']
+        else:
+            vals = parsed.sorted_list
+            if len(vals) == len(data):
+                return [datatype(v) for v in vals], 0, cached['tokens']
+        print("cache contain incomplete information")
+        return data, 0, cached['tokens']
     
     while api_call < 3:
         api_call += 1
         prefix = ''
+        if api_call > 1:
+            prefix = "Make sure the input list and output list have the same length"
         try:
             # Make the API call with "type": "json_object"
             # response = client.chat.completions.create(
-            response = client.responses.parse(
-                model=modelname,
-                input=[
-                    {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
-                    {"role": "user", "content": prefix + prompt}],
-                temperature=0.0,
-                text_format=ExternalComparisonReasoning
-            )
-            parsed = response.output[0].content[0].parsed
-            total_tokens += response.usage.total_tokens
-            vals = parsed.sorted_list
-            cache[key_hash] = {
-                'parsed': parsed.dict(),
-                'tokens': total_tokens}
-            if len(vals) == len(data):
-                return [datatype(v) for v in vals], api_call, total_tokens
+            if "gpt-5" in modelname:
+                response = await resolve( client.responses.parse(
+                    model=modelname,
+                    input=[
+                        {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
+                        {"role": "user", "content": prefix + prompt}],
+                    text={
+                        "verbosity": "low"
+                    },
+                    text_format=schema,
+                ))
+                parsed = response.output_parsed
             else:
-                print(f'api call: {api_call}: ISSUE: not the same length as input; try again\n')
-                prefix = "Make sure the output sorted_list and list of keys have the same length"
-                continue
+                response = await resolve( client.responses.parse(
+                    model=modelname,
+                    input=[
+                        {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
+                        {"role": "user", "content": prefix + prompt}],
+                    temperature=0.0,
+                    text_format=schema
+                ))
+                parsed = response.output[0].content[0].parsed
+            total_tokens += response.usage.total_tokens
+            if isPassage:
+                vals = parsed.WorstToBestPassageKeys
+                all_keys_presented = all(k in key_to_passage.values() for k in vals)
+                if len(vals) == len(data) and all_keys_presented:
+                    cache[key_hash] = {
+                        'parsed': parsed.dict(),
+                        'tokens': total_tokens
+                    }
+                    return [key_to_passage[k] for k in vals], 0, cached['tokens']
+            else:
+                vals = parsed.sorted_list
+                if len(vals) == len(data):
+                    return [datatype(v) for v in vals], api_call, total_tokens
+            print(f'api call: {api_call}: ISSUE: not the same length as input; try again\n')
         except json.JSONDecodeError as jde:
             print(f"[ERROR] Attempt {api_call}: Failed to decode JSON: {jde}")
         except Exception as e:
             print(f"[ERROR] Attempt {api_call}: {e}")
     return data, api_call, total_tokens
-
-
-
-class AsyncComparator:
-    def __init__(self, question, texts, experiment_id, model_id, template):
-        self.question = question
-        self.texts = texts
-        self.experiment_id = experiment_id
-        self.model_id = model_id
-        self.prompt_template = template
-    
-    async def compare_indices(self, i: int, j: int, client) -> Tuple[str, int, int]:
-        # Format the prompt
-        prompt = self.prompt_template.format(
-            question=self.question,
-            passage_a=self.texts[i],
-            passage_b=self.texts[j])
-        
-        key_hash = hash_prompt(prompt, self.model_id)
-        
-        if key_hash in cache:
-            answer = cache[key_hash]
-            return answer["key"], answer["apis"], answer["tokens"]
-
-        api_call = 0
-        total_tokens = 0
-        while api_call < 3:
-            api_call += 1
-            try:
-                # def call_llm():
-                response = await client.responses.parse(
-                    model=self.model_id,
-                    input=[
-                        {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    temperature=0.0,
-                    text_format=ComparisonReasoning
-                )
-                parsed = response.output[0].content[0].parsed
-                total_tokens += response.usage.total_tokens
-                if parsed.key in ["A", "B"]:
-                    cache[key_hash] = {
-                        "key": parsed.key, "apis": api_call, "tokens": total_tokens, 'parsed': parsed,
-                    }
-                    return parsed.key, api_call, total_tokens
-                else:
-                    print(f"[WARN] Unexpected output: {parsed.key}; retrying...\n")
-
-            except Exception as e:
-                print(f"[ERROR] Attempt {api_call}: {e}. {self.experiment_id}, {self.model_id}")
-
-        # After 3 failures or invalid results, return random fallback
-        fallback = np.random.choice(["A", "B"])
-        print(f"[FALLBACK] Returning {fallback} {self.experiment_id}, {self.model_id}")
-        return fallback, api_call, total_tokens

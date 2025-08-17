@@ -2,7 +2,7 @@ import json
 from pydantic import BaseModel
 from typing import Generic, TypeVar
 # from pydantic.generics import GenericModel
-from .utils import count_tokens, hash_prompt
+from .utils import count_tokens, hash_prompt, is_async_client, resolve, create_numbered_passages
 from diskcache import Cache
 import json
 
@@ -33,11 +33,22 @@ class ExternalPointwiseReasoning(BaseModel):
     values: list[float]
     confidences: list[int]
 
+
+class PassagePointwiseReasoning(BaseModel):
+    steps: list[Step]
+    relevance_score: float
+    confidence: int
+
+class PassageExternalPointwiseReasoning(BaseModel):
+    steps: list[Step]
+    relevance_scores: list[float]
+    confidences: list[int]
+
 class Pointwise_Key:
-    def __init__(self, key, prompt_template):
+    def __init__(self, key, prompt_template, schema=PointwiseReasoning):
         self.key = key
         self.prompt_template = prompt_template
-
+        self.schema = schema
     async def value(self, client, modelname, output_type):
         api_calls = 0
         total_tokens = 0
@@ -54,18 +65,30 @@ class Pointwise_Key:
             try:
                 # response = client.chat.completions.create(
                 #response = client.beta.chat.completions.parse(
-                response = client.responses.parse(
-                    model=modelname,
-                    input=[
-                        {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
-                        {"role": "user", "content": prompt}],
-                    temperature=0.0,
-                    text_format=PointwiseReasoning
-                )
-                # print(response)
-                #response = [choice.message.content.strip() for choice in response.choices][0]
-                parsed = response.output[0].content[0].parsed
+                if 'gpt-5' in modelname:
+                    response = await resolve( client.responses.parse(
+                        model=modelname,
+                        input=[
+                            {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
+                            {"role": "user", "content": prompt}],
+                        text={
+                            "verbosity": "low"
+                        },
+                        text_format=self.schema,
+                    ))
+                    parsed = response.output_parsed
+                else:
+                    response = await resolve( client.responses.parse(
+                        model=modelname,
+                        input=[
+                            {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
+                            {"role": "user", "content": prompt}],
+                        temperature=0.0,
+                        text_format=self.schema,
+                    ))
+                    parsed = response.output[0].content[0].parsed
                 total_tokens += response.usage.total_tokens
+                #response = [choice.message.content.strip() for choice in response.choices][0]                total_tokens += response.usage.total_tokens
                 cache[key_hash] = {
                     'parsed': parsed.dict(),
                     'tokens': total_tokens}
@@ -77,57 +100,76 @@ class Pointwise_Key:
 class PointwiseRelevanceKey:
     """ Used for relevance tasks, does not generate a confidence score.
     """
-    def __init__(self, question, passage, prompt_template):
-        self.question = question
-        self.passage = passage
+    def __init__(self, key, prompt_template, schema=PassagePointwiseReasoning):
+        self.key = key
         self.prompt_template = prompt_template
+        self.schema = schema
 
     async def value(self, client, modelname, output_type):
         api_calls = 0
         total_tokens = 0
-        prompt = self.prompt_template.format(question=self.question, passage=self.passage)
+        prompt = self.prompt_template.format(key=self.key)
         key_hash = hash_prompt(prompt, modelname)
         # print(prompt)
 
         if key_hash in cache:
             cached = cache[key_hash]
             parsed = cached['parsed']
-            return output_type(parsed['value']), 0, cached['tokens'], parsed['confidence']
+            return output_type(parsed['relevance_score']), 0, cached['tokens'], parsed['confidence']
 
         while api_calls < 3:
             api_calls += 1
             try:
-                response = client.responses.parse(
-                    model=modelname,
-                    input=[
-                        {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
-                        {"role": "user", "content": prompt}],
-                    temperature=0.0,
-                    text_format=PointwiseReasoning
-                )
-                # print(response)
-                parsed = response.output[0].content[0].parsed
+                if "gpt-5" in modelname:
+                    response = await resolve( client.responses.parse(
+                        model=modelname,
+                        input=[
+                            {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
+                            {"role": "user", "content": prompt}],
+                        text={
+                            "verbosity": "low"
+                        },
+                        text_format=self.schema,
+                    ))
+                    parsed = response.output_parsed
+
+                else:
+                    response = await resolve( client.responses.parse(
+                        model=modelname,
+                        input=[
+                            {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
+                            {"role": "user", "content": prompt}],
+                        temperature=0.0,
+                        text_format=self.schema,
+                    ))
+                    parsed = response.output[0].content[0].parsed
                 total_tokens += response.usage.total_tokens
                 cache[key_hash] = {
                     'parsed': parsed.dict(),
                     'tokens': total_tokens}
-                return output_type(parsed.value), api_calls, total_tokens, 0
+                return output_type(parsed.relevance_score), api_calls, total_tokens, int(parsed.confidence)
             except Exception as e:
                 print(f'exception={e}')
-        return None, api_calls, total_tokens, 0
+        return 0, api_calls, total_tokens, 0
 
 
-async def external_values(data, client, prompt_template, modelname, output_type):
+async def external_values(data, client, prompt_template, modelname, output_type, schema = ExternalPointwiseReasoning):
     api_call = 0 
     total_tokens = 0
-    prompt = prompt_template.format(keys = str(data))
+    if schema == PassageExternalPointwiseReasoning:
+        prompt = prompt_template.format(keys = str(create_numbered_passages(data)))
+    else:
+        prompt = prompt_template.format(keys = str(data))
     best_effort = None
     key_hash = hash_prompt(prompt, modelname)
 
     if key_hash in cache:
         cached = cache[key_hash]
         parsed = cached['parsed']
-        vals = parsed['values']
+        if schema == ExternalPointwiseReasoning:
+            vals = parsed['values']
+        else:
+            vals = parsed['relevance_scores']
         if len(vals) == len(data):
             return [output_type(v) for v in vals], 0, cached['tokens'], parsed['confidences']
 
@@ -137,18 +179,34 @@ async def external_values(data, client, prompt_template, modelname, output_type)
             # Make the API call with "type": "json_object"
             # response = client.chat.completions.create(
             # response = client.beta.chat.completions.parse(
-            response = client.responses.parse(
-                model=modelname,
-                input=[
-                    {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
-                    {"role": "user", "content": prompt}],
-                temperature=0.0,
-                text_format=ExternalPointwiseReasoning
-            )
-            parsed = response.output[0].content[0].parsed
+            if "gpt-5" in modelname:
+                response = await resolve( client.responses.parse(
+                    model=modelname,
+                    input=[
+                        {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    text={
+                        "verbosity": "low"
+                    },
+                    text_format=schema,
+                ))
+                parsed = response.output_parsed
+            else:
+                response = await resolve( client.responses.parse(
+                    model=modelname,
+                    input=[
+                        {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
+                        {"role": "user", "content": prompt}],
+                    temperature=0.0,
+                    text_format=schema,
+                ))
+                parsed = response.output[0].content[0].parsed
             total_tokens += response.usage.total_tokens
-            # print(response)
-            vals = parsed.values
+            if schema == ExternalPointwiseReasoning:
+                vals = parsed.values
+            else:
+                vals = parsed.relevance_scores
             best_effort = vals
 
             cache[key_hash] = {
@@ -159,9 +217,11 @@ async def external_values(data, client, prompt_template, modelname, output_type)
                 return [output_type(v) for v in vals], api_call, total_tokens, parsed.confidences
             else:
                 print(f'api call: {api_call}: ISSUE: not the same length as input; try again\n')
+                print(f"output is of length {len(vals)}, but should be {len(data)}")
                 continue
         except Exception as e:
             print(f"[ERROR] Attempt {api_call}: {e}")
     if best_effort and len(best_effort) == len(data):
+        print("Best Effort Due to Error")
         return best_effort, api_call, total_tokens
-    return data, api_call, total_tokens, 0
+    return [], api_call, total_tokens, 0
