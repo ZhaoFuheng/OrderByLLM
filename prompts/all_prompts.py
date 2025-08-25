@@ -45,5 +45,5 @@ Rank the passages based on how well they answer the question, from worst to best
 Question: {question}
 Passages:
 {keys}
-Output a JSON list of passage_id in ranked order (from worst to best).
+Output a JSON list of passage_id from worst passage to best passage.
 """
