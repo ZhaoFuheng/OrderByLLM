@@ -106,7 +106,9 @@ def kendalltau_distance(gold: list, predict: list) -> float:
     tau, p_value = kendalltau(gold_ranks, pred_ranks)
     return tau
     
-def create_numbered_passages(passages):
+def create_numbered_passages(passages, usePID = False):
+    if usePID:
+        return "\n".join([f"passage_id:{pid}\n{p}\n\n" for i, (pid, p) in enumerate(passages)]) 
     return "\n".join([f"passage_id:{i+1}\n{p}\n\n" for i, p in enumerate(passages)])
 
 if __name__ == "__main__":
