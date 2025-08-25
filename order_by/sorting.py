@@ -189,7 +189,6 @@ async def external_bubble_sort(data, sortfunc, k, client, prompt_template, model
     total_api_calls = 0
     total_tokens = 0
     n = len(data)
-
     for pass_end in range(n, 0, -k // 2):  # Shrink the range in each pass
         if pass_end < k // 2:
             sorted_chunk, num, tokens = await sortfunc(data[:pass_end], client, prompt_template, modelname, isPassage)

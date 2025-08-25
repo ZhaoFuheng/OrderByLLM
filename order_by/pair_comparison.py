@@ -30,7 +30,7 @@ class PassageComparisonReasoning(BaseModel):
 
 class PassageExternalComparisonReasoning(BaseModel):
     steps: list[Step]
-    WorstToBestPassageKeys: list[str]
+    WorstToBestPassageKeys: list[int]
 
 
 class Pair_Comparison_Key:
@@ -137,14 +137,20 @@ async def external_comparisons(data, client, prompt_template, modelname, isPassa
     total_tokens = 0
     best_effort = None
     key_to_passage = {} # used to map key to passage
+    index_to_key = {}
 
     if isPassage:
         assert len(data[0]) == 2, print(data[0])
         schema = PassageExternalComparisonReasoning
         datatype = str
-        prompt = prompt_template.format(keys = create_numbered_passages(data))
+        for index, (k, text) in enumerate(data):
+            index_to_key[index+1] = k
         for key, text in data:
             key_to_passage[key] = text
+
+        data = [(index+1, text) for index, (id, text) in enumerate(data)]
+        prompt = prompt_template.format(keys = create_numbered_passages(data, True))
+
     else:
         schema = ExternalComparisonReasoning
         datatype = type(data[0])
@@ -156,10 +162,11 @@ async def external_comparisons(data, client, prompt_template, modelname, isPassa
         parsed = schema(**cached['parsed'])
         if isPassage:
             vals = parsed.WorstToBestPassageKeys
-
-            all_keys_presented = all(k in key_to_passage.values() for k in vals)
+            vals = [index_to_key[v] for v in vals]
+            assert type(vals[0]) == str
+            all_keys_presented = all(k in key_to_passage.keys() for k in vals)
             if len(vals) == len(data) and all_keys_presented:
-                return [key_to_passage[k] for k in vals], 0, cached['tokens']
+                return [(k, key_to_passage[k]) for k in vals], 0, cached['tokens']
         else:
             vals = parsed.sorted_list
             if len(vals) == len(data):
@@ -167,11 +174,11 @@ async def external_comparisons(data, client, prompt_template, modelname, isPassa
         print("cache contain incomplete information")
         return data, 0, cached['tokens']
     
-    while api_call < 3:
+    while api_call < 5:
         api_call += 1
         prefix = ''
         if api_call > 1:
-            prefix = "Make sure the input list and output list have the same length"
+            prefix = f"Make sure the output list have length {len(data)}\n"
         try:
             # Make the API call with "type": "json_object"
             # response = client.chat.completions.create(
@@ -200,18 +207,27 @@ async def external_comparisons(data, client, prompt_template, modelname, isPassa
             total_tokens += response.usage.total_tokens
             if isPassage:
                 vals = parsed.WorstToBestPassageKeys
-                all_keys_presented = all(k in key_to_passage.values() for k in vals)
+                vals = [index_to_key[v] for v in vals]
+                assert type(vals[0]) == str
+                all_keys_presented = all(k in key_to_passage.keys() for k in vals)
+                if not all_keys_presented:
+                    print("not all keys are presented in the return list")
+                    print(vals)
+                    print(key_to_passage)
+                if len(vals) != len(data):
+                    print(f'api call: {api_call}: ISSUE: not the same length as input; try again\n')
                 if len(vals) == len(data) and all_keys_presented:
                     cache[key_hash] = {
                         'parsed': parsed.dict(),
                         'tokens': total_tokens
                     }
-                    return [key_to_passage[k] for k in vals], 0, cached['tokens']
+                    return [(k, key_to_passage[k]) for k in vals], 0, total_tokens
             else:
                 vals = parsed.sorted_list
                 if len(vals) == len(data):
                     return [datatype(v) for v in vals], api_call, total_tokens
-            print(f'api call: {api_call}: ISSUE: not the same length as input; try again\n')
+                else:
+                    print(f'api call: {api_call}: ISSUE: not the same length as input; try again\n')
         except json.JSONDecodeError as jde:
             print(f"[ERROR] Attempt {api_call}: Failed to decode JSON: {jde}")
         except Exception as e:
