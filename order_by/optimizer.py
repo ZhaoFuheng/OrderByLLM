@@ -51,7 +51,7 @@ class OrderByOptimizer:
         # min max boundary
         if self.isPassage:
             if 'mini' in self.model:
-                self.batch_space = [4, 6]
+                self.batch_space = [4, 4]
             else:
                 self.batch_space = [4, 8]
         else:
