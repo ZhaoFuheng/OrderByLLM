@@ -2,24 +2,19 @@ import json
 from pydantic import BaseModel
 from typing import Generic, TypeVar
 # from pydantic.generics import GenericModel
-from .utils import count_tokens, hash_prompt, is_async_client, resolve, create_numbered_passages
+from .utils import count_tokens, hash_prompt, is_async_client, resolve, create_numbered_passages, create_numbered_SQLs
 from diskcache import Cache
-import json
+import os
 
-cache = Cache('./sort_cache')
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+cache = Cache(os.path.join(PROJECT_ROOT, 'sort_cache'))
+# print(f"prompt cache at {os.path.join(PROJECT_ROOT, 'sort_cache')}")
+
 
 T = TypeVar("T")
 
 class Step(BaseModel):
     explanation: str
-
-# class PointwiseReasoning(GenericModel, Generic[T]):
-#     steps: list[Step]
-#     value: T
-
-# class ExternalPointwiseReasoning(GenericModel, Generic[T]):
-#     steps: list[Step]
-#     values: list[T]
 
 class PointwiseReasoning(BaseModel):
     key: str
@@ -44,6 +39,16 @@ class PassageExternalPointwiseReasoning(BaseModel):
     relevance_scores: list[float]
     confidences: list[int]
 
+class SQLPointwiseReasoning(BaseModel):
+    steps: list[Step]
+    correctness_score: float
+    confidence: int
+
+class SQLExternalPointwiseReasoning(BaseModel):
+    steps: list[Step]
+    correctness_scores: list[float]
+    confidences: list[int]
+
 class Pointwise_Key:
     def __init__(self, key, prompt_template, schema=PointwiseReasoning):
         self.key = key
@@ -58,7 +63,13 @@ class Pointwise_Key:
         if key_hash in cache:
             cached = cache[key_hash]
             parsed = cached['parsed']
-            return output_type(parsed['value']), 0, cached['tokens'], parsed['confidence']
+            # val, api calls, input tokens, output tokens, confidenecs
+            input_tokens = 0
+            if 'input_tokens' in cached:
+                input_tokens = cached['input_tokens']
+            else:
+                input_tokens = count_tokens(prompt)
+            return output_type(parsed['value']), 0, input_tokens, cached['tokens']-input_tokens, parsed['confidence']
 
         while api_calls < 3:
             api_calls += 1
@@ -91,19 +102,25 @@ class Pointwise_Key:
                 #response = [choice.message.content.strip() for choice in response.choices][0]                total_tokens += response.usage.total_tokens
                 cache[key_hash] = {
                     'parsed': parsed.dict(),
-                    'tokens': total_tokens}
-                return output_type(parsed.value), api_calls, total_tokens, parsed.confidence
+                    'tokens': response.usage.total_tokens,
+                    'input_tokens': response.usage.input_tokens,
+                    'output_tokens':response.usage.output_tokens  
+                    }
+                return output_type(parsed.value), api_calls, response.usage.input_tokens * api_calls, total_tokens - (response.usage.input_tokens * api_calls), parsed.confidence
             except Exception as e:
                 print(e)
-        return None, api_calls, total_tokens, 0
+        return None, api_calls, 0, 0, 0
 
 class PointwiseRelevanceKey:
     """ Used for relevance tasks, does not generate a confidence score.
     """
-    def __init__(self, key, prompt_template, schema=PassagePointwiseReasoning):
+    def __init__(self, key, prompt_template, isPassage=True):
         self.key = key
         self.prompt_template = prompt_template
-        self.schema = schema
+        if isPassage:
+            self.schema = PassagePointwiseReasoning
+        else:
+            self.schema = SQLPointwiseReasoning
 
     async def value(self, client, modelname, output_type):
         api_calls = 0
@@ -115,7 +132,15 @@ class PointwiseRelevanceKey:
         if key_hash in cache:
             cached = cache[key_hash]
             parsed = cached['parsed']
-            return output_type(parsed['relevance_score']), 0, cached['tokens'], parsed['confidence']
+            input_tokens = 0
+            if 'input_tokens' in cached:
+                input_tokens = cached['input_tokens']
+            else:
+                input_tokens = count_tokens(prompt)
+            if self.schema == PassagePointwiseReasoning:
+                return output_type(parsed['relevance_score']), 0, input_tokens, cached['tokens']-input_tokens, parsed['confidence']
+            elif self.schema == SQLPointwiseReasoning:
+                return output_type(parsed['correctness_score']), 0, input_tokens, cached['tokens']-input_tokens, parsed['confidence']
 
         while api_calls < 3:
             api_calls += 1
@@ -146,11 +171,17 @@ class PointwiseRelevanceKey:
                 total_tokens += response.usage.total_tokens
                 cache[key_hash] = {
                     'parsed': parsed.dict(),
-                    'tokens': total_tokens}
-                return output_type(parsed.relevance_score), api_calls, total_tokens, int(parsed.confidence)
+                    'tokens': response.usage.total_tokens,
+                    'input_tokens': response.usage.input_tokens,
+                    'output_tokens':response.usage.output_tokens  
+                    }
+                if self.schema == PassagePointwiseReasoning:
+                    return output_type(parsed.relevance_score), api_calls, response.usage.input_tokens * api_calls, total_tokens - (response.usage.input_tokens * api_calls), int(parsed.confidence)
+                elif self.schema == SQLPointwiseReasoning:
+                    return output_type(parsed.correctness_score), api_calls, response.usage.input_tokens * api_calls, total_tokens - (response.usage.input_tokens * api_calls), int(parsed.confidence)
             except Exception as e:
                 print(f'exception={e}')
-        return 0, api_calls, total_tokens, 0
+        return 0, api_calls, 0, total_tokens, 0
 
 
 async def external_values(data, client, prompt_template, modelname, output_type, schema = ExternalPointwiseReasoning):
@@ -158,6 +189,8 @@ async def external_values(data, client, prompt_template, modelname, output_type,
     total_tokens = 0
     if schema == PassageExternalPointwiseReasoning:
         prompt = prompt_template.format(keys = str(create_numbered_passages(data)))
+    elif schema == SQLExternalPointwiseReasoning:
+         prompt = prompt_template.format(keys = str(create_numbered_SQLs(data)))
     else:
         prompt = prompt_template.format(keys = str(data))
     best_effort = None
@@ -168,10 +201,21 @@ async def external_values(data, client, prompt_template, modelname, output_type,
         parsed = cached['parsed']
         if schema == ExternalPointwiseReasoning:
             vals = parsed['values']
-        else:
+        elif schema == PassageExternalPointwiseReasoning:
             vals = parsed['relevance_scores']
+        elif schema == SQLExternalPointwiseReasoning:
+            vals = parsed['correctness_scores']
+
+        input_tokens = 0
+        if 'input_tokens' in cached:
+            input_tokens = cached['input_tokens']
+        else:
+            input_tokens = count_tokens(prompt)
         if len(vals) == len(data):
-            return [output_type(v) for v in vals], 0, cached['tokens'], parsed['confidences']
+            return [output_type(v) for v in vals], 0, input_tokens, cached['tokens'] - input_tokens, parsed['confidences']
+        else:
+            print('need to delete this cached entry!')
+            del cache[key_hash]
 
     while api_call < 3:
         api_call += 1
@@ -205,16 +249,20 @@ async def external_values(data, client, prompt_template, modelname, output_type,
             total_tokens += response.usage.total_tokens
             if schema == ExternalPointwiseReasoning:
                 vals = parsed.values
-            else:
+            elif schema == PassageExternalPointwiseReasoning:
                 vals = parsed.relevance_scores
+            elif schema == SQLExternalPointwiseReasoning:
+                vals = parsed.correctness_scores
             best_effort = vals
 
             cache[key_hash] = {
                 'parsed': parsed.dict(),
-                'tokens': total_tokens
+                'tokens': response.usage.total_tokens,
+                'input_tokens': response.usage.input_tokens,
+                'output_tokens':response.usage.output_tokens  
             }
             if len(vals) == len(data):
-                return [output_type(v) for v in vals], api_call, total_tokens, parsed.confidences
+                return [output_type(v) for v in vals], api_call, response.usage.input_tokens * api_call, total_tokens - (response.usage.input_tokens * api_call), parsed.confidences
             else:
                 print(f'api call: {api_call}: ISSUE: not the same length as input; try again\n')
                 print(f"output is of length {len(vals)}, but should be {len(data)}")
@@ -223,5 +271,5 @@ async def external_values(data, client, prompt_template, modelname, output_type,
             print(f"[ERROR] Attempt {api_call}: {e}")
     if best_effort and len(best_effort) == len(data):
         print("Best Effort Due to Error")
-        return best_effort, api_call, total_tokens
-    return [], api_call, total_tokens, 0
+        return best_effort, api_call, 0, 0, total_tokens
+    return [], api_call, total_tokens, 0, 0

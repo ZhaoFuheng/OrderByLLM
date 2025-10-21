@@ -1,4 +1,4 @@
-from .pointwise import Pointwise_Key, external_values, PassageExternalPointwiseReasoning, ExternalPointwiseReasoning
+from .pointwise import Pointwise_Key, external_values, PassageExternalPointwiseReasoning, ExternalPointwiseReasoning, SQLExternalPointwiseReasoning
 from .pair_comparison import *
 import collections
 import asyncio
@@ -10,37 +10,42 @@ import heapq
 
 random.seed(0)
 
-async def pointwise_sort(data, client, prompt_template, modelname, output_type, key_class = Pointwise_Key):
+async def pointwise_sort(data, client, prompt_template, modelname, output_type, key_class = Pointwise_Key, isPassage=True):
     total_api_calls = 0
-    total_tokens = 0
+    total_input_tokens = 0
+    total_output_tokens = 0
     data_confidence = []
 
-    async def compute_sort_key(item, key_class, prompt_template):
-        key_obj = key_class(item, prompt_template)
-        value, api_calls, tokens, confidence = await key_obj.value(client, modelname, output_type)
-        return (value, item, api_calls, tokens, confidence)
+    async def compute_sort_key(item, key_class, prompt_template, isPassage=None):
+        if isPassage == None:
+            key_obj = key_class(item, prompt_template)
+        else:
+            key_obj = key_class(item, prompt_template, isPassage)
+        value, api_calls, input_tokens, output_tokens, confidence = await key_obj.value(client, modelname, output_type)
+        return (value, item, api_calls, input_tokens, output_tokens, confidence)
 
     if key_class == Pointwise_Key:
         tasks = [compute_sort_key(item, key_class, prompt_template) for item in data]
         results = await asyncio.gather(*tasks)
         sorted_results = sorted(results, key=lambda x: (x[0], x[1]))
     else:
-        tasks = [ compute_sort_key(text, key_class, prompt_template) for doc_id, text in data]
+        tasks = [ compute_sort_key(text, key_class, prompt_template, isPassage) for doc_id, text in data]
         results = await asyncio.gather(*tasks)
-        sorted_results = [(score, doc_id, api_calls, tokens, confidence, text) for (doc_id, _), (score, text, api_calls, tokens, confidence) in zip(data, results)]
-        sorted_results.sort(key=lambda r: (r[1], len(r[-1])))
+        sorted_results = [(score, doc_id, api_calls, in_tokens, out_tokens, confidence, text) for (doc_id, _), (score, text, api_calls, in_tokens, out_tokens, confidence) in zip(data, results)]
+        sorted_results.sort(key=lambda r: (r[1], -len(r[-1])))
         sorted_results = [r[:-1] for r in sorted_results]
 
-    sorted_data = [item for _, item, _, _, _ in sorted_results]
-    data_confidence = [confidence for _, _, _, _, confidence in sorted_results]
-    scores = [score for score, _, _, _, _ in sorted_results]
+    sorted_data = [item for _, item, _, _, _, _ in sorted_results]
+    data_confidence = [confidence for _, _, _, _, _, confidence in sorted_results]
+    scores = [score for score, _, _, _, _, _ in sorted_results]
 
-    total_api_calls = sum(api_calls for _, _, api_calls, _, _ in results)
-    total_tokens = sum(tokens for _, _, _, tokens, _ in results)
+    total_api_calls = sum(api_calls for _, _, api_calls, _, _, _ in results)
+    total_input_tokens = sum(input_tokens for _, _, _, input_tokens, _, _ in results)
+    total_output_tokens = sum(output_tokens for _, _, _, _, output_tokens, _ in results)
 
     if key_class == Pointwise_Key:
-        return sorted_data, total_api_calls, total_tokens, data_confidence
-    return sorted_data, scores, total_api_calls, total_tokens, data_confidence
+        return sorted_data, total_api_calls, total_input_tokens, total_output_tokens, data_confidence
+    return sorted_data, scores, total_api_calls, total_input_tokens, total_output_tokens, data_confidence
 
 
 # async def bubble_sort(data, client, prompt_template, modelname):
@@ -64,29 +69,33 @@ async def pointwise_sort(data, client, prompt_template, modelname, output_type, 
 
 
 
-async def quick_sort(data, client, prompt_template, modelname, isPassage, vote = 1):
+async def quick_sort(data, client, prompt_template, modelname, isPassage, vote = 1, isSQL=False):
     random.seed(0)
     if len(data) <= 1:
-        return data, 0, 0
+        return data, 0, 0, 0
 
     total_api_calls = 0
-    total_tokens = 0
-    schema = ComparisonReasoning
+    total_input_tokens = 0
+    total_output_tokens = 0
+    s = ComparisonReasoning
     if isPassage:
-        schema = PassageComparisonReasoning
+        s = PassageComparisonReasoning
+    if isSQL:
+        s = SQLComparisonReasoning
 
-    pivot = Pair_Comparison_Key(data[0], schema)
+    pivot = Pair_Comparison_Key(data[0], s)
     pivot_item = data[0]
     less = []
     greater = []
 
     for item in data[1:]:
-        wrapped_item = Pair_Comparison_Key(item, schema)
-        comparison_result, api_calls, tokens = await wrapped_item.compare(
+        wrapped_item = Pair_Comparison_Key(item, s)
+        comparison_result, api_calls, input_tokens, output_tokens = await wrapped_item.compare(
             pivot, client, prompt_template, modelname
         )
         total_api_calls += api_calls
-        total_tokens += tokens
+        total_input_tokens += input_tokens
+        total_output_tokens += output_tokens
         
         if vote == 1:
             if comparison_result == -1:
@@ -102,12 +111,13 @@ async def quick_sort(data, client, prompt_template, modelname, isPassage, vote =
             sampled_items = random.sample(sample_pool, sample_size)
             for peer_item in sampled_items:
                 total_votes += 1
-                peer_key = Pair_Comparison_Key(peer_item, schema)
-                additional_result, additional_calls, additional_tokens = await wrapped_item.compare(
+                peer_key = Pair_Comparison_Key(peer_item, s)
+                additional_result, additional_calls, additional_input_tokens, additional_output_tokens = await wrapped_item.compare(
                     peer_key, client, prompt_template, modelname
                 )
                 total_api_calls += additional_calls
-                total_tokens += additional_tokens
+                total_input_tokens += additional_input_tokens
+                total_output_tokens += additional_output_tokens
 
                 if put_in_less and additional_result == -1:
                     validation_votes += 1
@@ -121,16 +131,17 @@ async def quick_sort(data, client, prompt_template, modelname, isPassage, vote =
                 greater.append(item)
 
     # Parallel recursive sort
-    left_task = asyncio.create_task(quick_sort(less, client, prompt_template, modelname, isPassage, vote))
-    right_task = asyncio.create_task(quick_sort(greater, client, prompt_template, modelname, isPassage, vote))
+    left_task = asyncio.create_task(quick_sort(less, client, prompt_template, modelname, isPassage, vote, isSQL))
+    right_task = asyncio.create_task(quick_sort(greater, client, prompt_template, modelname, isPassage, vote, isSQL))
 
-    sorted_less, left_api_calls, left_tokens = await left_task
-    sorted_greater, right_api_calls, right_tokens = await right_task
+    sorted_less, left_api_calls, left_input_tokens, left_output_tokens = await left_task
+    sorted_greater, right_api_calls, right_input_tokens, right_output_tokens = await right_task
 
     total_api_calls += left_api_calls + right_api_calls
-    total_tokens += left_tokens + right_tokens
+    total_input_tokens += left_input_tokens + right_input_tokens
+    total_output_tokens += left_output_tokens + right_output_tokens
 
-    return sorted_less + [pivot_item] + sorted_greater, total_api_calls, total_tokens
+    return sorted_less + [pivot_item] + sorted_greater, total_api_calls, total_input_tokens, total_output_tokens 
 
 # async def heap_sort(data, client, prompt_template, modelname):
 #     async def heapify(data, n, i):
@@ -185,16 +196,20 @@ async def quick_sort(data, client, prompt_template, modelname, isPassage, vote =
 #     return sorted_data, total_api_calls, total_tokens
 
 
-async def external_bubble_sort(data, sortfunc, k, client, prompt_template, modelname, isPassage=False):
+async def external_bubble_sort(data, sortfunc, k, client, prompt_template, modelname, isPassage=False, isSQL=False):
     total_api_calls = 0
-    total_tokens = 0
+    total_input_tokens = 0
+    total_output_tokens = 0
+
+
     n = len(data)
     for pass_end in range(n, 0, -k // 2):  # Shrink the range in each pass
         if pass_end < k // 2:
-            sorted_chunk, num, tokens = await sortfunc(data[:pass_end], client, prompt_template, modelname, isPassage)
+            sorted_chunk, num, in_tokens, out_tokens = await sortfunc(data[:pass_end], client, prompt_template, modelname, isPassage, isSQL)
             assert len(sorted_chunk) == len(data[:pass_end])
             total_api_calls += num
-            total_tokens += tokens
+            total_input_tokens += in_tokens
+            total_output_tokens += out_tokens
             data[:pass_end] = sorted_chunk
             break
 
@@ -202,17 +217,18 @@ async def external_bubble_sort(data, sortfunc, k, client, prompt_template, model
         while start <= pass_end - k // 2:
             end = min(start + k, n)
             chunk = data[start:end]
-            sorted_chunk, num, tokens = await sortfunc(chunk, client, prompt_template, modelname, isPassage)
+            sorted_chunk, num, in_tokens, out_tokens = await sortfunc(chunk, client, prompt_template, modelname, isPassage, isSQL)
             assert len(sorted_chunk) == len(chunk)
             total_api_calls += num
-            total_tokens += tokens
+            total_input_tokens += in_tokens
+            total_output_tokens += out_tokens
             data[start:end] = sorted_chunk
             start += k // 2
-    return data, total_api_calls, total_tokens
+    return data, total_api_calls,  total_input_tokens, total_output_tokens
 
 
 
-async def external_merge_sort(data, sortfunc, k, client, prompt_template, modelname, isPassage = False):
+async def external_merge_sort(data, sortfunc, k, client, prompt_template, modelname, isPassage = False, isSQL=False):
     async def merge_sorted_chunks(l1, l2):
         def fix_duplicates(buffer, original):
             """Ensure buffer has same multiset as original by correcting LLM errors."""
@@ -258,10 +274,12 @@ async def external_merge_sort(data, sortfunc, k, client, prompt_template, modeln
         membership = collections.defaultdict(list)
         buffer_metadata = {'l1': 0, 'l2': 0}
         total_api_calls = 0
-        total_tokens = 0
         half = max(k // 2, 1)
 
         done_early = False
+
+        total_input_tokens = 0
+        total_output_tokens = 0
 
         while i[0] < len(l1) or j[0] < len(l2):
             if i[0] >= len(l1) and buffer_metadata['l1'] == 0:
@@ -276,9 +294,10 @@ async def external_merge_sort(data, sortfunc, k, client, prompt_template, modeln
             fill_buffer(i, j, buffer, membership, buffer_metadata, half)
 
             original_buffer = buffer[:]
-            buffer, num, tokens = await sortfunc(buffer, client, prompt_template, modelname, isPassage)
+            buffer, num, in_tokens, out_tokens = await sortfunc(buffer, client, prompt_template, modelname, isPassage, isSQL)
             total_api_calls += num
-            total_tokens += tokens
+            total_input_tokens += in_tokens
+            total_output_tokens += out_tokens
 
             assert len(original_buffer) == len(buffer)
 
@@ -303,15 +322,16 @@ async def external_merge_sort(data, sortfunc, k, client, prompt_template, modeln
         if buffer and not done_early:
             merged.extend(buffer)
         assert len(merged) == result_length, print(len(merged), result_length)
-        return merged, total_api_calls, total_tokens
+        return merged, total_api_calls, total_input_tokens, total_output_tokens
 
     # Step 1: Chunk sorting in parallel
     chunks = [data[i:i + k] for i in range(0, len(data), k)]
-    sort_tasks = [sortfunc(chunk, client, prompt_template, modelname, isPassage) for chunk in chunks]
+    sort_tasks = [sortfunc(chunk, client, prompt_template, modelname, isPassage, isSQL) for chunk in chunks]
     sort_results = await asyncio.gather(*sort_tasks)
 
     total_api_calls = sum(r[1] for r in sort_results)
-    total_tokens = sum(r[2] for r in sort_results)
+    total_input_tokens = sum(r[2] for r in sort_results)
+    total_output_tokens = sum(r[3] for r in sort_results)
     sorted_chunks = [r[0] for r in sort_results]
 
     for i, arr in enumerate(sorted_chunks):
@@ -324,23 +344,25 @@ async def external_merge_sort(data, sortfunc, k, client, prompt_template, modeln
             if i + 1 < len(sorted_chunks):
                 merge_tasks.append(merge_sorted_chunks(sorted_chunks[i], sorted_chunks[i + 1]))
             else:
-                merge_tasks.append(asyncio.sleep(0, result=(sorted_chunks[i], 0, 0)))  # no-op async return
+                merge_tasks.append(asyncio.sleep(0, result=(sorted_chunks[i], 0, 0, 0)))  # no-op async return
 
         merge_results = await asyncio.gather(*merge_tasks)
         total_api_calls += sum(r[1] for r in merge_results)
-        total_tokens += sum(r[2] for r in merge_results)
+        total_input_tokens  += sum(r[2] for r in merge_results)
+        total_output_tokens  += sum(r[3] for r in merge_results)
         sorted_chunks = [r[0] for r in merge_results]
 
-    return sorted_chunks[0], total_api_calls, total_tokens
+    return sorted_chunks[0], total_api_calls, total_input_tokens, total_output_tokens
 
 
-async def determine_external_pointwise_memory_size(data, sortfunc, client, prompt_template, modelname, output_type, schema, diff_tolerance, threshold=0.5, max_m=32):
+async def determine_external_pointwise_memory_size(data, sortfunc, client, prompt_template, modelname, output_type, schema, diff_tolerance, threshold=0.7, max_m=32):
     m = 2
+    total_input_tokens, total_output_tokens = 0, 0
     max_len = len(data)
     if "mini" in modelname:
         max_m = 8
 
-    while m * 2 <= max_len and m <= max_m:
+    while m * 2 <= max_len and m * 2 <= max_m:
         batch1 = data[:m]
         batch2 = data[m:2*m]
         batch3 = batch1 + batch2  # full 2m batch
@@ -351,9 +373,18 @@ async def determine_external_pointwise_memory_size(data, sortfunc, client, promp
             sortfunc(batch3, client, prompt_template, modelname, output_type, schema),
         )
 
-        vals1, _, _, _ = results[0]
-        vals2, _, _, _ = results[1]
-        vals3, _, _, _ = results[2]
+        vals1, _, input_tokens, output_tokens, _ = results[0] 
+        if m == 2: # batch 1 will be cached besides the first run
+            total_input_tokens += input_tokens
+            total_output_tokens += output_tokens
+
+        vals2, _, input_tokens, output_tokens, _ = results[1]
+        total_input_tokens += input_tokens
+        total_output_tokens += output_tokens
+
+        vals3, _, input_tokens, output_tokens, _ = results[2]
+        total_input_tokens += input_tokens
+        total_output_tokens += output_tokens
 
         if len(vals3) != 2*m or len(vals2) != m or len(vals1) != m:
             break
@@ -371,47 +402,55 @@ async def determine_external_pointwise_memory_size(data, sortfunc, client, promp
                 if abs(v1-v2) <= diff_tolerance:
                     agree_count += 1
                 else:
-                    print(f"from window m={m}: {v1}", f"from window 2*m: {v2}")
+                    print(f"from window m={m}: {v1}", f"from window 2m: {v2}")
             else:
                 if v1 == v2:
                     agree_count += 1
                 else:
-                    print(f"from window m={m}: {v1}", f"from window 2*m: {v2}")
+                    print(f"from window m={m}: {v1}", f"from window 2m: {v2}")
         agreement_ratio = agree_count / (2 * m)
 
         if agreement_ratio >= threshold:
             m *= 2
         else:
             print(f"Final memory size for external pointwise: m = {m} (agreement = {agreement_ratio:.2f})")
-            return m
-    print(f"Final memory size for external pointwise: m = {m} (agreement = {agreement_ratio:.2f})")
-    return m
+            return m , total_input_tokens, total_output_tokens 
+    print(f"Final memory size for external pointwise: m = {m}")
+    return m, total_input_tokens, total_output_tokens 
 
-async def external_pointwise_sort(data, sortfunc, client, prompt_template, modelname, output_type, diff_tolerance = 0.01, isPassage=False):
+async def external_pointwise_sort(data, sortfunc, client, prompt_template, modelname, output_type, diff_tolerance = 0.01, isPassage=False, isSQL=False):
     total_api_calls = 0
-    total_tokens = 0
     key_and_value = {}
     data_confidence = {}
     key_and_text = {}
 
+    total_input_tokens = 0
+    total_output_tokens = 0
 
-    if not isPassage:
+
+    if not isPassage and not isSQL: # factual data
         # define memory size
-        m =  await determine_external_pointwise_memory_size(data, sortfunc, client, prompt_template, modelname, output_type, ExternalPointwiseReasoning, diff_tolerance)
+        m, input_tokens, output_tokens =  await determine_external_pointwise_memory_size(data, sortfunc, client, prompt_template, modelname, output_type, ExternalPointwiseReasoning, diff_tolerance)
+
+        total_input_tokens += input_tokens
+        total_output_tokens += output_tokens
 
         chunks = [data[i:i + m] for i in range(0, len(data), m)]
         tasks = [sortfunc(chunk, client, prompt_template, modelname, output_type, ExternalPointwiseReasoning) for chunk in chunks]
         results = await asyncio.gather(*tasks)
         # Aggregate results
-        for chunk, (chunk_vals, api_calls, tokens, confidences) in zip(chunks, results):
+        for chunk, (chunk_vals, api_calls, in_tokens, out_tokens, confidences) in zip(chunks, results):
             total_api_calls += api_calls
-            total_tokens += tokens
+            total_input_tokens += in_tokens
+            total_output_tokens += out_tokens
+
             for k, v, conf in zip(chunk, chunk_vals, confidences):
                 try:
                     key_and_value[k] = output_type(v)
                     data_confidence[k] = conf
                 except Exception as e:
                     print(e)
+                    print("??????????")
                     key_and_value[k] = output_type(0.0)
                     data_confidence[k] = 0
 
@@ -419,24 +458,31 @@ async def external_pointwise_sort(data, sortfunc, client, prompt_template, model
         sorted_data = sorted(key_and_value, key=lambda k: (key_and_value[k], k))
         confidence = [data_confidence[k] for k in sorted_data]
 
-        return sorted_data, total_api_calls, total_tokens, confidence
+        return sorted_data, total_api_calls, total_input_tokens, total_output_tokens, confidence
     else:
-        passage_texts = [text for id, text in data]
-        passage_ids = [id for id, text in data]
+        if isPassage:
+            s = PassageExternalPointwiseReasoning
+        else:
+            s = SQLExternalPointwiseReasoning
+        texts = [text for id, text in data]
+        ids = [id for id, text in data]
 
         # define memory size
-        m =  await determine_external_pointwise_memory_size(passage_texts, sortfunc, client, prompt_template, modelname, output_type, PassageExternalPointwiseReasoning, diff_tolerance)
+        m, input_tokens, output_tokens  =  await determine_external_pointwise_memory_size(texts, sortfunc, client, prompt_template, modelname, output_type, s, diff_tolerance)
 
+        total_input_tokens += input_tokens
+        total_output_tokens += output_tokens
 
-        chunks = [passage_texts[i:i + m] for i in range(0, len(passage_texts), m)]
-        id_chunks = [passage_ids[i:i + m] for i in range(0, len(passage_texts), m)]
-        tasks = [sortfunc(chunk, client, prompt_template, modelname, output_type, PassageExternalPointwiseReasoning) for chunk in chunks]
+        text_chunks = [texts[i:i + m] for i in range(0, len(texts), m)]
+        id_chunks = [ids[i:i + m] for i in range(0, len(texts), m)]
+        tasks = [sortfunc(text_chunk, client, prompt_template, modelname, output_type, s) for text_chunk in text_chunks]
         results = await asyncio.gather(*tasks)
 
-        for chunk, text_chunk, (chunk_vals, api_calls, tokens, confidences) in zip(id_chunks, chunks, results):
+        for id_chunk, text_chunk, (chunk_vals, api_calls, in_tokens, out_tokens, confidences) in zip(id_chunks, text_chunks, results):
             total_api_calls += api_calls
-            total_tokens += tokens
-            for k, v, text, conf in zip(chunk, chunk_vals, text_chunk, confidences):
+            total_input_tokens += in_tokens
+            total_output_tokens += out_tokens
+            for k, v, text, conf in zip(id_chunk, chunk_vals, text_chunk, confidences):
                 try:
                     key_and_value[k] = output_type(v)
                     data_confidence[k] = conf
@@ -445,110 +491,110 @@ async def external_pointwise_sort(data, sortfunc, client, prompt_template, model
                     print(e)
                     key_and_value[k] = output_type(0.0)
                     data_confidence[k] = 0
-        sorted_data = sorted(key_and_value, key=lambda k: (key_and_value[k], k))
+        sorted_data = sorted(key_and_value, key=lambda k: (key_and_value[k], -len(key_and_text[k])))
         confidence = [data_confidence[k] for k in sorted_data]
         scores = [key_and_value[k] for k in sorted_data]
         sorted_data_text = [key_and_text[k] for k in sorted_data]
         
-        return sorted_data, scores, total_api_calls, total_tokens, confidence, sorted_data_text
+        return sorted_data, scores, total_api_calls, total_input_tokens, total_output_tokens, confidence, sorted_data_text
 
 
-async def hybrid_sort(data, sortfunc, vote, client, pointwise_prompt_template, comparison_prompt_template, modelname, output_type, diff=0.01, isPassage = False):
-    total_api_calls = 0
-    total_tokens = 0
+# async def hybrid_sort(data, sortfunc, vote, client, pointwise_prompt_template, comparison_prompt_template, modelname, output_type, diff=0.01, isPassage = False):
+#     total_api_calls = 0
+#     total_tokens = 0
 
-    if not isPassage:
-        sorted_list, api_calls, tokens, confidence = await external_pointwise_sort(data, sortfunc, client, pointwise_prompt_template, modelname, output_type, diff, isPassage)
-    else:
-        sorted_list, scores, api_calls, tokens, confidence, texts = await external_pointwise_sort(data, sortfunc, client, pointwise_prompt_template, modelname, output_type, diff, isPassage)
-        sorted_list = [(docid, text) for docid, text in zip(sorted_list, texts)]
-    total_api_calls  += api_calls
-    total_tokens += tokens
+#     if not isPassage:
+#         sorted_list, api_calls, tokens, confidence = await external_pointwise_sort(data, sortfunc, client, pointwise_prompt_template, modelname, output_type, diff, isPassage)
+#     else:
+#         sorted_list, scores, api_calls, tokens, confidence, texts = await external_pointwise_sort(data, sortfunc, client, pointwise_prompt_template, modelname, output_type, diff, isPassage)
+#         sorted_list = [(docid, text) for docid, text in zip(sorted_list, texts)]
+#     total_api_calls  += api_calls
+#     total_tokens += tokens
 
-    max_confidence = max(confidence)
-    median_confidence = statistics.median(confidence)
+#     max_confidence = max(confidence)
+#     median_confidence = statistics.median(confidence)
 
-    if isPassage:
-        schema = PassageComparisonReasoning
-    else:
-        schema = ComparisonReasoning
+#     if isPassage:
+#         schema = PassageComparisonReasoning
+#     else:
+#         schema = ComparisonReasoning
 
-    # Heap of (confidence, index)
-    heap = [(conf, idx) for idx, conf in enumerate(confidence)]
-    heapq.heapify(heap)  # Min-heap based on confidence
+#     # Heap of (confidence, index)
+#     heap = [(conf, idx) for idx, conf in enumerate(confidence)]
+#     heapq.heapify(heap)  # Min-heap based on confidence
 
-    sort_low_conf = []
-    while heap[0][0] < 7 or len(heap) > 0.95 * len(data):
-        conf, idx = heapq.heappop(heap)
-        item = sorted_list[idx]
-        if conf >= median_confidence or conf == max_confidence:
-            break
-        sort_low_conf.append(item)
+#     sort_low_conf = []
+#     while heap[0][0] < 7 or len(heap) > 0.95 * len(data):
+#         conf, idx = heapq.heappop(heap)
+#         item = sorted_list[idx]
+#         if conf >= median_confidence or conf == max_confidence:
+#             break
+#         sort_low_conf.append(item)
 
-    # Remove the selected low-confidence items from sorted_list
-    sorted_list = [item for item in sorted_list if item not in sort_low_conf]
+#     # Remove the selected low-confidence items from sorted_list
+#     sorted_list = [item for item in sorted_list if item not in sort_low_conf]
 
-    for item in sort_low_conf[::-1]:
-        key_item = Pair_Comparison_Key(item, schema)
-        left, right = 0, len(sorted_list)
+#     for item in sort_low_conf[::-1]:
+#         key_item = Pair_Comparison_Key(item, schema)
+#         left, right = 0, len(sorted_list)
 
-        while left < right:
-            mid = (left + right) // 2
+#         while left < right:
+#             mid = (left + right) // 2
 
-            # Step 1: Compare with mid
-            key_mid = Pair_Comparison_Key(sorted_list[mid], schema)
-            cmp_mid, api_calls, tokens = await key_item.compare(
-                key_mid, client, comparison_prompt_template, modelname
-            )
-            total_api_calls += api_calls
-            total_tokens += tokens
+#             # Step 1: Compare with mid
+#             key_mid = Pair_Comparison_Key(sorted_list[mid], schema)
+#             cmp_mid, api_calls, tokens = await key_item.compare(
+#                 key_mid, client, comparison_prompt_template, modelname
+#             )
+#             total_api_calls += api_calls
+#             total_tokens += tokens
 
-            if cmp_mid == -1:
+#             if cmp_mid == -1:
                 
-                sampled_indices = [i for i in range(mid + 1, min(mid + vote + 1, len(sorted_list)))]
+#                 sampled_indices = [i for i in range(mid + 1, min(mid + vote + 1, len(sorted_list)))]
 
-                # item < mid → should also be < mid+1 and mid+2 if mid is in correct order
-                disagree = 0
-                total_votes = 1
-                for offset in sampled_indices:
-                    if offset < right:
-                        key_check = Pair_Comparison_Key(sorted_list[offset], schema)
-                        cmp_check, api_calls, tokens = await key_item.compare(
-                            key_check, client, comparison_prompt_template, modelname
-                        )
-                        total_api_calls += api_calls
-                        total_tokens += tokens
-                        total_votes += 1
-                        if cmp_check == 1:  # item > mid+1 or mid+2
-                            disagree += 1
+#                 # item < mid → should also be < mid+1 and mid+2 if mid is in correct order
+#                 disagree = 0
+#                 total_votes = 1
+#                 for offset in sampled_indices:
+#                     if offset < right:
+#                         key_check = Pair_Comparison_Key(sorted_list[offset], schema)
+#                         cmp_check, api_calls, tokens = await key_item.compare(
+#                             key_check, client, comparison_prompt_template, modelname
+#                         )
+#                         total_api_calls += api_calls
+#                         total_tokens += tokens
+#                         total_votes += 1
+#                         if cmp_check == 1:  # item > mid+1 or mid+2
+#                             disagree += 1
 
-                if disagree > total_votes//2:
-                    left = mid + 1  # contradicts original direction
-                else:
-                    right = mid
-            else:
-                sampled_indices = [ i for i in range(max(mid - vote, left), mid)]
-                disagree = 0
-                total_votes = 1
-                for offset in sampled_indices:
-                    if offset >= left:
-                        key_check = Pair_Comparison_Key(sorted_list[offset], schema)
-                        cmp_check, api_calls, tokens = await key_item.compare(
-                            key_check, client, comparison_prompt_template, modelname
-                        )
-                        total_api_calls += api_calls
-                        total_tokens += tokens
-                        total_votes += 1
-                        if cmp_check == -1:  # item < mid-1 or mid-2
-                            disagree += 1
+#                 if disagree > total_votes//2:
+#                     left = mid + 1  # contradicts original direction
+#                 else:
+#                     right = mid
+#             else:
+#                 sampled_indices = [ i for i in range(max(mid - vote, left), mid)]
+#                 disagree = 0
+#                 total_votes = 1
+#                 for offset in sampled_indices:
+#                     if offset >= left:
+#                         key_check = Pair_Comparison_Key(sorted_list[offset], schema)
+#                         cmp_check, api_calls, tokens = await key_item.compare(
+#                             key_check, client, comparison_prompt_template, modelname
+#                         )
+#                         total_api_calls += api_calls
+#                         total_tokens += tokens
+#                         total_votes += 1
+#                         if cmp_check == -1:  # item < mid-1 or mid-2
+#                             disagree += 1
 
-                if disagree > total_votes // 2:
-                    right = mid  # contradicts original direction
-                else:
-                    left = mid + 1
-        # Final insertion
-        sorted_list.insert(left, item)
-    return sorted_list, total_api_calls, total_tokens
+#                 if disagree > total_votes // 2:
+#                     right = mid  # contradicts original direction
+#                 else:
+#                     left = mid + 1
+#         # Final insertion
+#         sorted_list.insert(left, item)
+#     return sorted_list, total_api_calls, total_tokens
 
 
 
@@ -556,38 +602,38 @@ async def hybrid_sort(data, sortfunc, vote, client, pointwise_prompt_template, c
 from openai import OpenAI
 import os
 
-async def main():
-    client = OpenAI(
-        # defaults to os.environ.get("OPENAI_API_KEY")
-        api_key=os.getenv("OPENAI_API_KEY"),
-    )
-    modelname = 'gpt-4o'
+# async def main():
+#     client = OpenAI(
+#         # defaults to os.environ.get("OPENAI_API_KEY")
+#         api_key=os.getenv("OPENAI_API_KEY"),
+#     )
+#     modelname = 'gpt-4o'
 
-    prompt_template = "In scale 1-100, how friendly is key: {key}? Rate the confidence in the proposed answer on a scale of 0-10.\n Output an int.\n"
-    sorted_data, num, tokens, conf = await pointwise_sort(['cat', 'tiger', 'dolphin'], client, prompt_template, modelname, int)
-    print(sorted_data, num, tokens, conf)
+#     prompt_template = "In scale 1-100, how friendly is key: {key}? Rate the confidence in the proposed answer on a scale of 0-10.\n Output an int.\n"
+#     sorted_data, num, tokens, conf = await pointwise_sort(['cat', 'tiger', 'dolphin'], client, prompt_template, modelname, int)
+#     print(sorted_data, num, tokens, conf)
 
-    prompt_template = "In scale 1-100, how friendly are keys: {keys}? For each answer, also provide a confidence rating on a scale of 0-10.\n"
-    sorted_data, num, tokens, conf = await external_pointwise_sort(['cat', 'tiger', 'dolphin'], external_values, 4, client, prompt_template, modelname, int)
-    print(sorted_data, num, tokens, conf)
+#     prompt_template = "In scale 1-100, how friendly are keys: {keys}? For each answer, also provide a confidence rating on a scale of 0-10.\n"
+#     sorted_data, num, tokens, conf = await external_pointwise_sort(['cat', 'tiger', 'dolphin'], external_values, 4, client, prompt_template, modelname, int)
+#     print(sorted_data, num, tokens, conf)
 
-    prompt_template = "Which is greater {key1} or {key2}? Output the greater key.\n"
-    # ignore bubble sort as it requries too many api calls when list is long.
-    sorted_data, num, tokens = await bubble_sort([34, 87, 12, 59, 3, 71, 45, 90], client, prompt_template, modelname)
-    print("bubble sort: ", sorted_data, num, tokens)
-    sorted_data, num, tokens = await quick_sort([34, 87, 12, 59, 3, 71, 45, 90], client, prompt_template, modelname)
-    print("quick sort: ", sorted_data, num, tokens)
-    sorted_data, num, tokens = await heap_sort([34, 87, 12, 59, 3, 71, 45, 90], client, prompt_template, modelname)
-    print("heap sort: ", sorted_data, num, tokens)
-    sorted_data, num, tokens = await insertion_sort([1, 3, 5, 7, 9], [2, 15], client, prompt_template, modelname)
-    print("heap sort: ", sorted_data, num, tokens)
+#     prompt_template = "Which is greater {key1} or {key2}? Output the greater key.\n"
+#     # ignore bubble sort as it requries too many api calls when list is long.
+#     sorted_data, num, tokens = await bubble_sort([34, 87, 12, 59, 3, 71, 45, 90], client, prompt_template, modelname)
+#     print("bubble sort: ", sorted_data, num, tokens)
+#     sorted_data, num, tokens = await quick_sort([34, 87, 12, 59, 3, 71, 45, 90], client, prompt_template, modelname)
+#     print("quick sort: ", sorted_data, num, tokens)
+#     sorted_data, num, tokens = await heap_sort([34, 87, 12, 59, 3, 71, 45, 90], client, prompt_template, modelname)
+#     print("heap sort: ", sorted_data, num, tokens)
+#     sorted_data, num, tokens = await insertion_sort([1, 3, 5, 7, 9], [2, 15], client, prompt_template, modelname)
+#     print("heap sort: ", sorted_data, num, tokens)
 
 
-    prompt_template = "Given a list of keys: {keys}\nSort the keys in ascending order.\n"
-    sorted_data, num, tokens = await external_bubble_sort([34, 87, 12, 59, 3, 71, 45, 90], external_comparisons, 4, client, prompt_template, modelname)
-    print("external bubble sort: ", sorted_data, num, tokens)
-    sorted_data, num, tokens = await external_merge_sort([34, 87, 12, 59, 3, 71, 45, 90], external_comparisons, 4, client, prompt_template, modelname)
-    print("external merge sort ", sorted_data, num, tokens)
+#     prompt_template = "Given a list of keys: {keys}\nSort the keys in ascending order.\n"
+#     sorted_data, num, tokens = await external_bubble_sort([34, 87, 12, 59, 3, 71, 45, 90], external_comparisons, 4, client, prompt_template, modelname)
+#     print("external bubble sort: ", sorted_data, num, tokens)
+#     sorted_data, num, tokens = await external_merge_sort([34, 87, 12, 59, 3, 71, 45, 90], external_comparisons, 4, client, prompt_template, modelname)
+#     print("external merge sort ", sorted_data, num, tokens)
 
-if __name__ == "__main__":
-    asyncio.run(main())
+# if __name__ == "__main__":
+#     asyncio.run(main())
