@@ -27,6 +27,27 @@ def count_tokens(text, model="gpt-3.5-turbo"):
         print(f"Error: {e}")
         return None
 
+def tokens2price(model, in_tokens, out_tokens):
+    """
+    Calculate the API cost given the model and number of input/output tokens.
+
+    Pricing (as of Sep 2025):
+    - gpt-4o:       $2.50 per 1M input tokens, $10.00 per 1M output tokens
+    - gpt-4o-mini:  $0.150 per 1M input tokens, $0.600 per 1M output tokens
+    """
+    if model == 'gpt-4o':
+        input_rate = 2.50 / 1_000_000
+        output_rate = 10.00 / 1_000_000
+    elif model == 'gpt-4o-mini':
+        input_rate = 0.150 / 1_000_000
+        output_rate = 0.600 / 1_000_000
+    else:
+        raise ValueError(f"Unknown model: {model}")
+
+    total_cost = in_tokens * input_rate + out_tokens * output_rate
+    return round(total_cost, 6) 
+        
+
 
 def num_inversions(gold, predict):
     gold_positions = {value: idx for idx, value in enumerate(gold)}
@@ -110,6 +131,11 @@ def create_numbered_passages(passages, usePID = False):
     if usePID:
         return "\n".join([f"passage_id:{pid}\n{p}\n\n" for i, (pid, p) in enumerate(passages)]) 
     return "\n".join([f"passage_id:{i+1}\n{p}\n\n" for i, p in enumerate(passages)])
+
+def create_numbered_SQLs(sqls, usePID = False):
+    if usePID:
+        return "\n".join([f"sql_id:{pid}\n{p}\n\n" for i, (pid, p) in enumerate(sqls)]) 
+    return "\n".join([f"sql_id:{i+1}\n{p}\n\n" for i, p in enumerate(sqls)])
 
 if __name__ == "__main__":
     sample_text = "This is a sample text to calculate token count."
