@@ -7,6 +7,8 @@ from typing import List, Callable, Tuple
 import hashlib
 import random
 import heapq
+from itertools import combinations
+from collections import defaultdict
 
 random.seed(0)
 
@@ -66,6 +68,122 @@ async def pointwise_sort(data, client, prompt_template, modelname, output_type, 
 
 #     sorted_data = [item.key for item in wrapped_data]
 #     return sorted_data, total_api_calls, total_tokens
+
+
+async def borda_sort(data, client, prompt_template, modelname, isPassage, vote=1, isSQL=False):
+    if len(data) <= 1:
+        return data, 0, 0, 0
+
+    total_api_calls = 0
+    total_input_tokens = 0
+    total_output_tokens = 0
+    
+    s = ComparisonReasoning
+    if isPassage:
+        s = PassageComparisonReasoning
+    if isSQL:
+        s = SQLComparisonReasoning
+
+    scores = defaultdict(int)
+
+    async def compare_pair(item_a, item_b):
+        key_a = Pair_Comparison_Key(item_a, s)
+        key_b = Pair_Comparison_Key(item_b, s)
+        
+        res, calls, in_tok, out_tok = await key_a.compare(
+            key_b, client, prompt_template, modelname
+        )
+        
+        winner = None
+        if res == 1:
+            winner = item_a
+        elif res == -1:
+            winner = item_b
+        
+        return winner, calls, in_tok, out_tok
+
+    all_pairs = list(combinations(data, 2))
+
+    tasks = [compare_pair(a, b) for a, b in all_pairs]
+    results = await asyncio.gather(*tasks)
+
+    for winner, calls, in_tok, out_tok in results:
+        total_api_calls += calls
+        total_input_tokens += in_tok
+        total_output_tokens += out_tok
+        
+        if winner is not None:
+            scores[winner] += 1
+
+    sorted_data = sorted(data, key=lambda x: scores[x], reverse=False)
+
+    return sorted_data, total_api_calls, total_input_tokens, total_output_tokens
+
+async def borda_quick_sort(data, client, prompt_template, modelname, isPassage, vote=1, isSQL=False):
+    if len(data) <= 1:
+        return data, 0, 0, 0
+
+    total_api_calls = 0
+    total_input_tokens = 0
+    total_output_tokens = 0
+    
+    s = ComparisonReasoning
+    if isPassage:
+        s = PassageComparisonReasoning
+    if isSQL:
+        s = SQLComparisonReasoning
+
+    scores = defaultdict(int)
+
+    async def compare_pair(item_a, item_b):
+        key_a = Pair_Comparison_Key(item_a, s)
+        key_b = Pair_Comparison_Key(item_b, s)
+        
+        res, calls, in_tok, out_tok = await key_a.compare(
+            key_b, client, prompt_template, modelname
+        )
+        
+        winner = None
+        if res == 1:
+            winner = item_a
+        elif res == -1:
+            winner = item_b
+        
+        return winner, calls, in_tok, out_tok
+
+    all_pairs = list(combinations(data, 2))
+    tasks = [compare_pair(a, b) for a, b in all_pairs]
+    results = await asyncio.gather(*tasks)
+
+    for winner, calls, in_tok, out_tok in results:
+        total_api_calls += calls
+        total_input_tokens += in_tok
+        total_output_tokens += out_tok
+        
+        if winner is not None:
+            scores[winner] += 1
+
+    score_groups = defaultdict(list)
+    for item in data:
+        score_groups[scores[item]].append(item)
+
+    final_sorted_data = []
+    unique_scores_ordered = sorted(score_groups.keys(), reverse=False)
+
+    for score in unique_scores_ordered:
+        group = score_groups[score]
+        if len(group) > 1:
+            sorted_group, qs_calls, qs_in, qs_out = await quick_sort(
+                group, client, prompt_template, modelname, isPassage, vote, isSQL
+            )
+            total_api_calls += qs_calls
+            total_input_tokens += qs_in
+            total_output_tokens += qs_out
+            final_sorted_data.extend(sorted_group)
+        else:
+            final_sorted_data.extend(group)
+
+    return final_sorted_data, total_api_calls, total_input_tokens, total_output_tokens
 
 
 
