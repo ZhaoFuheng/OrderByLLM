@@ -1,51 +1,63 @@
-from .pointwise import Pointwise_Key, external_values, PassageExternalPointwiseReasoning, ExternalPointwiseReasoning, SQLExternalPointwiseReasoning
+from .pointwise import Pointwise_Key, external_values, PassageExternalPointwiseReasoning, ExternalPointwiseReasoning, SQLExternalPointwiseReasoning, ReviewExternalPointwiseReasoning
 from .pair_comparison import *
 import collections
 import asyncio
 import statistics
-from typing import List, Callable, Tuple
+from typing import Any, List, Callable, Tuple
 import hashlib
 import random
 import heapq
+import collections
 
 random.seed(0)
 
-async def pointwise_sort(data, client, prompt_template, modelname, output_type, key_class = Pointwise_Key, isPassage=True):
+async def pointwise_sort(data, client, prompt_template, modelname, output_type, key_class = Pointwise_Key, isPassage=True, isReview=False):
     total_api_calls = 0
     total_input_tokens = 0
     total_output_tokens = 0
-    data_confidence = []
 
-    async def compute_sort_key(item, key_class, prompt_template, isPassage=None):
+    async def compute_sort_key(item, key_class, prompt_template, isPassage=None, isReview=False):
+        
         if isPassage == None:
+            assert key_class == Pointwise_Key, print('key_class', key_class)
             key_obj = key_class(item, prompt_template)
         else:
-            key_obj = key_class(item, prompt_template, isPassage)
-        value, api_calls, input_tokens, output_tokens, confidence = await key_obj.value(client, modelname, output_type)
-        return (value, item, api_calls, input_tokens, output_tokens, confidence)
+            assert key_class != Pointwise_Key, print('key_class', key_class)
+            key_obj = key_class(item, prompt_template, isPassage, isReview)
+        value, api_calls, input_tokens, output_tokens = await key_obj.value(client, modelname, output_type)
+        return (value, item, api_calls, input_tokens, output_tokens)
 
     if key_class == Pointwise_Key:
-        tasks = [compute_sort_key(item, key_class, prompt_template) for item in data]
-        results = await asyncio.gather(*tasks)
+        results = []
+        req_batch_size = 20
+        for i in range(0, len(data), req_batch_size):
+            batch = data[i:i+req_batch_size]
+            tasks = [compute_sort_key(item, key_class, prompt_template) for item in batch]
+            results_batch = await asyncio.gather(*tasks)
+            results.extend(results_batch)   
         sorted_results = sorted(results, key=lambda x: (x[0], x[1]))
     else:
-        tasks = [ compute_sort_key(text, key_class, prompt_template, isPassage) for doc_id, text in data]
-        results = await asyncio.gather(*tasks)
-        sorted_results = [(score, doc_id, api_calls, in_tokens, out_tokens, confidence, text) for (doc_id, _), (score, text, api_calls, in_tokens, out_tokens, confidence) in zip(data, results)]
+        results = []
+        req_batch_size = 20
+        for i in range(0, len(data), req_batch_size):
+            batch = data[i:i+req_batch_size]
+            tasks = [compute_sort_key(text, key_class, prompt_template, isPassage, isReview) for doc_id, text in batch]
+            results_batch = await asyncio.gather(*tasks)
+            results.extend(results_batch)
+        sorted_results = [(score, doc_id, api_calls, in_tokens, out_tokens, text) for (doc_id, _), (score, text, api_calls, in_tokens, out_tokens) in zip(data, results)]
         sorted_results.sort(key=lambda r: (r[1], -len(r[-1])))
         sorted_results = [r[:-1] for r in sorted_results]
 
-    sorted_data = [item for _, item, _, _, _, _ in sorted_results]
-    data_confidence = [confidence for _, _, _, _, _, confidence in sorted_results]
-    scores = [score for score, _, _, _, _, _ in sorted_results]
+    sorted_data = [item for _, item, _, _, _ in sorted_results]
+    scores = [score for score, _, _, _, _, in sorted_results]
 
-    total_api_calls = sum(api_calls for _, _, api_calls, _, _, _ in results)
-    total_input_tokens = sum(input_tokens for _, _, _, input_tokens, _, _ in results)
-    total_output_tokens = sum(output_tokens for _, _, _, _, output_tokens, _ in results)
+    total_api_calls = sum(api_calls for _, _, api_calls, _, _, in results)
+    total_input_tokens = sum(input_tokens for _, _, _, input_tokens, _ in results)
+    total_output_tokens = sum(output_tokens for _, _, _, _, output_tokens in results)
 
     if key_class == Pointwise_Key:
-        return sorted_data, total_api_calls, total_input_tokens, total_output_tokens, data_confidence
-    return sorted_data, scores, total_api_calls, total_input_tokens, total_output_tokens, data_confidence
+        return sorted_data, total_api_calls, total_input_tokens, total_output_tokens
+    return sorted_data, scores, total_api_calls, total_input_tokens, total_output_tokens
 
 
 # async def bubble_sort(data, client, prompt_template, modelname):
@@ -69,11 +81,10 @@ async def pointwise_sort(data, client, prompt_template, modelname, output_type, 
 
 
 
-async def quick_sort(data, client, prompt_template, modelname, isPassage, vote = 1, isSQL=False):
-    random.seed(0)
+async def quick_sort(data, client, prompt_template, modelname, isPassage, vote = 1, isSQL=False, isReview=False, limit_k=None, base_seed: int = 0):
     if len(data) <= 1:
         return data, 0, 0, 0
-
+    # print('quick_sort', len(data))
     total_api_calls = 0
     total_input_tokens = 0
     total_output_tokens = 0
@@ -82,130 +93,250 @@ async def quick_sort(data, client, prompt_template, modelname, isPassage, vote =
         s = PassageComparisonReasoning
     if isSQL:
         s = SQLComparisonReasoning
+    if isReview:
+        s = ReviewComparisonReasoning
 
     pivot = Pair_Comparison_Key(data[0], s)
     pivot_item = data[0]
     less = []
     greater = []
 
-    for item in data[1:]:
-        wrapped_item = Pair_Comparison_Key(item, s)
-        comparison_result, api_calls, input_tokens, output_tokens = await wrapped_item.compare(
-            pivot, client, prompt_template, modelname
-        )
+    if limit_k is None:
+        limit_k = len(data)
+    else:
+        limit_k = min(limit_k, len(data))
+
+    # Deterministic RNG seeded from call context to avoid concurrency nondeterminism
+    seed_material = f"{base_seed}|{pivot_item}|{len(data)}"
+    import hashlib as _qs_hashlib
+    local_seed = int(_qs_hashlib.sha256(seed_material.encode()).hexdigest(), 16) % (2**32)
+    local_rng = random.Random(local_seed)
+
+    # First, compare all items to the pivot concurrently
+    rest_items = data[1:]
+    compare_results = []
+    req_batch_size = 50
+    wrapped_items = [Pair_Comparison_Key(item, s) for item in rest_items]
+    for i in range(0, len(wrapped_items), req_batch_size):
+        batch_wrapped_items = wrapped_items[i:i+req_batch_size]
+        compare_tasks = [wrapped.compare(pivot, client, prompt_template, modelname) for wrapped in batch_wrapped_items]
+        compare_results_batch = await asyncio.gather(*compare_tasks)
+        compare_results.extend(compare_results_batch)
+
+
+    initial_less = []
+    initial_greater = []
+    initial_decisions = []  # (item, put_in_less)
+    for item, (comparison_result, api_calls, input_tokens, output_tokens) in zip(rest_items, compare_results):
         total_api_calls += api_calls
         total_input_tokens += input_tokens
         total_output_tokens += output_tokens
-        
-        if vote == 1:
-            if comparison_result == -1:
-                less.append(item)
-            else:
-                greater.append(item)
+        put_in_less = (comparison_result == -1)
+        initial_decisions.append((item, put_in_less))
+        if put_in_less:
+            initial_less.append(item)
         else:
-            put_in_less = (comparison_result == -1)
-            validation_votes = 1  # already have one vote
-            total_votes = 1
-            sample_pool = greater if put_in_less else less
+            initial_greater.append(item)
+
+    assert len(initial_decisions) == len(data)-1, print('initial_decisions', len(initial_decisions), 'data', len(data))
+
+    if vote == 1:
+        less.extend(initial_less)
+        greater.extend(initial_greater)
+    else:
+        items_comparison_results = collections.defaultdict(dict)
+        peer_tasks = []
+        # Validate each item's placement using peer comparisons; run peers concurrently per item
+        for (item, put_in_less) in initial_decisions:
+            if put_in_less:
+                initial_decision_value = -1
+            else:
+                initial_decision_value = 1
+            items_comparison_results[item][pivot_item] = initial_decision_value 
+
+            wrapped_item = Pair_Comparison_Key(item, s)
+            sample_pool = initial_greater if put_in_less else initial_less
             sample_size = min(vote - 1, len(sample_pool))
-            sampled_items = random.sample(sample_pool, sample_size)
+            sampled_items = local_rng.sample(sample_pool, sample_size)
+
+            if len(sampled_items) <= 1: # only one peer, no need to compare
+                if put_in_less:
+                    less.append(item)
+                else:
+                    greater.append(item)
+                continue
+
             for peer_item in sampled_items:
-                total_votes += 1
                 peer_key = Pair_Comparison_Key(peer_item, s)
-                additional_result, additional_calls, additional_input_tokens, additional_output_tokens = await wrapped_item.compare(
-                    peer_key, client, prompt_template, modelname
-                )
+                peer_tasks.append([item, peer_item, wrapped_item.compare(peer_key, client, prompt_template, modelname)])
+
+        if peer_tasks:
+            coros = [peer_task[2] for peer_task in peer_tasks]
+            peer_results = []
+            batch_size = 25
+            for i in range(0, len(coros), batch_size):
+                batch_coros = coros[i:i+batch_size]
+                batch_peer_results = await asyncio.gather(*batch_coros)
+                peer_results.extend(batch_peer_results)
+
+            for result, [item, peer_item, _] in zip(peer_results, peer_tasks):
+                additional_result, additional_calls, additional_input_tokens, additional_output_tokens = result
                 total_api_calls += additional_calls
                 total_input_tokens += additional_input_tokens
                 total_output_tokens += additional_output_tokens
-
-                if put_in_less and additional_result == -1:
-                    validation_votes += 1
-                elif not put_in_less and additional_result != -1:
-                    validation_votes += 1
-            if validation_votes < (total_votes + 1) // 2:
-                put_in_less = not put_in_less  # Flip decision
-            if put_in_less:
-                less.append(item)
+                
+                items_comparison_results[item][peer_item] = additional_result
+                items_comparison_results[peer_item][item] = -1 * additional_result
+                assert additional_result == -1 or additional_result == 1, print('additional_result', additional_result)
+        # print('items_comparison_results', items_comparison_results)
+        # first pick out the items that are in the correct position
+        for (item, put_in_less) in initial_decisions:
+            if item in less or item in greater:
+                continue
+            if put_in_less: # item is in less
+                if sum(items_comparison_results[item].values()) == -1 * len(items_comparison_results[item].values()):
+                    less.append(item)
             else:
-                greater.append(item)
+                if sum(items_comparison_results[item].values()) == len(items_comparison_results[item].values()):
+                    greater.append(item)
 
-    # Parallel recursive sort
-    left_task = asyncio.create_task(quick_sort(less, client, prompt_template, modelname, isPassage, vote, isSQL))
-    right_task = asyncio.create_task(quick_sort(greater, client, prompt_template, modelname, isPassage, vote, isSQL))
+        while_loop_count = 0
+        while len(less) + len(greater) < len(initial_decisions):
+            while_loop_count += 1
+            deadlock = True
 
-    sorted_less, left_api_calls, left_input_tokens, left_output_tokens = await left_task
-    sorted_greater, right_api_calls, right_input_tokens, right_output_tokens = await right_task
+            for (item, put_in_less) in initial_decisions:
+                if item in less or item in greater:
+                    continue
+                L_count = 0
+                G_count = 0
+                if put_in_less:
+                    L_count = 1.5
+                else:
+                    G_count = 1.5
+                all_contained = all( (peer_item in less or peer_item in greater) for peer_item in items_comparison_results[item].keys())
+                if not all_contained:
+                    continue
+                deadlock = False
+                for peer_item, peer_result in items_comparison_results[item].items():
+                    if peer_item in less and peer_result == -1:
+                        L_count += 1
+                    elif peer_item in less and peer_result == 1:
+                        pass
+                    if peer_item in greater and peer_result == 1:
+                        G_count += 1
+                    elif peer_item in greater and peer_result == -1:
+                        pass
+                # print(f'L_count: {L_count}, G_count: {G_count}, already filled: {len(less)} {len(greater)}')
+                if L_count > G_count:
+                    less.append(item)
+                else:
+                    greater.append(item)
+            if while_loop_count > 200:
+                assert False, print('while loop count too large', while_loop_count)
+            if deadlock:
+                for (item, put_in_less) in initial_decisions:
+                    L_count = 0
+                    G_count = 0
+                    if put_in_less:
+                        L_count = 1.5
+                    else:
+                        G_count = 1.5
+                    if item in less or item in greater:
+                        continue   
+                    for peer_item, peer_result in items_comparison_results[item].items():
+                        if peer_item in greater and peer_result == 1:
+                            G_count += 1
+                        if peer_item in less and peer_result == -1:
+                            L_count += 1
+                    if L_count > G_count:
+                        less.append(item)
+                    else:
+                        greater.append(item)
+                assert len(less) + len(greater) == len(data)-1, print('less', len(less), 'greater', len(greater), 'initial_decisions', len(initial_decisions), 'data', len(data))
+                break
+    assert len(less) + len(greater) == len(data)-1, print('less', len(less), 'greater', len(greater), 'initial_decisions', len(initial_decisions), 'data', len(data))
 
-    total_api_calls += left_api_calls + right_api_calls
-    total_input_tokens += left_input_tokens + right_input_tokens
-    total_output_tokens += left_output_tokens + right_output_tokens
+    # Decide how much to sort based on limit_k (sort only the last k elements)
+    if limit_k >= len(data):
+        # print('full sort', len(data))
+        # Full sort
+        left_seed = int(_qs_hashlib.sha256(f"{base_seed}|left|{pivot_item}|{len(less)}".encode()).hexdigest(), 16) % (2**32)
+        right_seed = int(_qs_hashlib.sha256(f"{base_seed}|right|{pivot_item}|{len(greater)}".encode()).hexdigest(), 16) % (2**32)
+        left_task = asyncio.create_task(quick_sort(less[:], client, prompt_template, modelname, isPassage, vote, isSQL, isReview, base_seed=left_seed))
+        right_task = asyncio.create_task(quick_sort(greater[:], client, prompt_template, modelname, isPassage, vote, isSQL, isReview, base_seed=right_seed))
 
-    return sorted_less + [pivot_item] + sorted_greater, total_api_calls, total_input_tokens, total_output_tokens 
+        sorted_less, left_api_calls, left_input_tokens, left_output_tokens = await left_task
+        sorted_greater, right_api_calls, right_input_tokens, right_output_tokens = await right_task
 
-# async def heap_sort(data, client, prompt_template, modelname):
-#     async def heapify(data, n, i):
-#         largest = i
-#         left = 2 * i + 1
-#         right = 2 * i + 2
-#         api_calls = 0
-#         tokens = 0
+        total_api_calls += left_api_calls + right_api_calls
+        total_input_tokens += left_input_tokens + right_input_tokens
+        total_output_tokens += left_output_tokens + right_output_tokens
 
-#         if left < n:
-#             comparison_result, calls, toks = await data[left].compare(data[largest], client, prompt_template, modelname)
-#             api_calls += calls
-#             tokens += toks
-#             if comparison_result == 1:
-#                 largest = left
+        return sorted_less + [pivot_item] + sorted_greater, total_api_calls, total_input_tokens, total_output_tokens
 
-#         if right < n:
-#             comparison_result, calls, toks = await data[right].compare(data[largest], client, prompt_template, modelname)
-#             api_calls += calls
-#             tokens += toks
-#             if comparison_result == 1:
-#                 largest = right
+    # Partial tail sort: ensure the last k elements are sorted
+    k = limit_k
+    n_greater = len(greater)
 
-#         if largest != i:
-#             data[i], data[largest] = data[largest], data[i]
-#             recursive_calls, recursive_toks = await heapify(data, n, largest)
-#             api_calls += recursive_calls
-#             tokens += recursive_toks
+    if k <= n_greater:
+        # Tail entirely within greater
+        right_seed = int(_qs_hashlib.sha256(f"{base_seed}|right|{pivot_item}|{len(greater)}".encode()).hexdigest(), 16) % (2**32)
+        sorted_greater, r_api, r_in, r_out = await quick_sort(
+            greater[:], client, prompt_template, modelname, isPassage, vote, isSQL, isReview, limit_k=k, base_seed=right_seed
+        )
+        total_api_calls += r_api
+        total_input_tokens += r_in
+        total_output_tokens += r_out
+        assert len(sorted_greater) == k, print('sorted_greater', len(sorted_greater), 'k', k)
+        return sorted_greater, total_api_calls, total_input_tokens, total_output_tokens
 
-#         return api_calls, tokens
+    if k == n_greater + 1:
+        # Tail is pivot + all of greater; fully sort greater and return exactly k items
+        right_seed = int(_qs_hashlib.sha256(f"{base_seed}|right|{pivot_item}|{len(greater)}".encode()).hexdigest(), 16) % (2**32)
+        sorted_greater, r_api, r_in, r_out = await quick_sort(
+            greater[:], client, prompt_template, modelname, isPassage, vote, isSQL, isReview, limit_k=n_greater, base_seed=right_seed
+        )
+        total_api_calls += r_api
+        total_input_tokens += r_in
+        total_output_tokens += r_out
+        return [pivot_item] + sorted_greater, total_api_calls, total_input_tokens, total_output_tokens
 
-#     n = len(data)
-#     total_api_calls = 0
-#     total_tokens = 0
+    # Tail spans some of less, plus pivot, plus all of greater
+    left_k = k - (n_greater + 1)
+    left_seed = int(_qs_hashlib.sha256(f"{base_seed}|left|{pivot_item}|{len(less)}".encode()).hexdigest(), 16) % (2**32)
+    right_seed = int(_qs_hashlib.sha256(f"{base_seed}|right|{pivot_item}|{len(greater)}".encode()).hexdigest(), 16) % (2**32)
+    left_task = asyncio.create_task(
+        quick_sort(less[:], client, prompt_template, modelname, isPassage, vote, isSQL, isReview, limit_k=left_k, base_seed=left_seed)
+    )
+    right_task = asyncio.create_task(
+        quick_sort(greater[:], client, prompt_template, modelname, isPassage, vote, isSQL, isReview, limit_k=n_greater, base_seed=right_seed)
+    )
+    left_sorted, l_api, l_in, l_out = await left_task
+    right_sorted, r_api, r_in, r_out = await right_task
 
-#     wrapped_data = [Pair_Comparison_Key(item) for item in data]
+    total_api_calls += l_api + r_api
+    total_input_tokens += l_in + r_in
+    total_output_tokens += l_out + r_out
 
-#     # Build heap (heapify each node from bottom up)
-#     for i in range(n // 2 - 1, -1, -1):
-#         api_calls, tokens = await heapify(wrapped_data, n, i)
-#         total_api_calls += api_calls
-#         total_tokens += tokens
-
-#     # Extract elements from heap
-#     for i in range(n - 1, 0, -1):
-#         wrapped_data[0], wrapped_data[i] = wrapped_data[i], wrapped_data[0]
-#         api_calls, tokens = await heapify(wrapped_data, i, 0)
-#         total_api_calls += api_calls
-#         total_tokens += tokens
-
-#     sorted_data = [item.key for item in wrapped_data]
-#     return sorted_data, total_api_calls, total_tokens
+    # Return exactly k items
+    return left_sorted + [pivot_item] + right_sorted, total_api_calls, total_input_tokens, total_output_tokens
 
 
-async def external_bubble_sort(data, sortfunc, k, client, prompt_template, modelname, isPassage=False, isSQL=False):
+async def external_bubble_sort(data, sortfunc, k, client, prompt_template, modelname, isPassage=False, isSQL=False, isReview=False, limit_k=None):
     total_api_calls = 0
     total_input_tokens = 0
     total_output_tokens = 0
-
+    
+    if limit_k is None:
+        limit_k = len(data)
+    else:
+        limit_k = min(limit_k, len(data))
 
     n = len(data)
-    for pass_end in range(n, 0, -k // 2):  # Shrink the range in each pass
+    for pass_end in range(n, n-limit_k, -k // 2):  # Shrink the range in each pass
         if pass_end < k // 2:
-            sorted_chunk, num, in_tokens, out_tokens = await sortfunc(data[:pass_end], client, prompt_template, modelname, isPassage, isSQL)
+            sorted_chunk, num, in_tokens, out_tokens = await sortfunc(data[:pass_end], client, prompt_template, modelname, isPassage, isSQL, isReview)
             assert len(sorted_chunk) == len(data[:pass_end])
             total_api_calls += num
             total_input_tokens += in_tokens
@@ -217,19 +348,28 @@ async def external_bubble_sort(data, sortfunc, k, client, prompt_template, model
         while start <= pass_end - k // 2:
             end = min(start + k, n)
             chunk = data[start:end]
-            sorted_chunk, num, in_tokens, out_tokens = await sortfunc(chunk, client, prompt_template, modelname, isPassage, isSQL)
+            sorted_chunk, num, in_tokens, out_tokens = await sortfunc(chunk, client, prompt_template, modelname, isPassage, isSQL, isReview)
             assert len(sorted_chunk) == len(chunk)
             total_api_calls += num
             total_input_tokens += in_tokens
             total_output_tokens += out_tokens
             data[start:end] = sorted_chunk
             start += k // 2
-    return data, total_api_calls,  total_input_tokens, total_output_tokens
+    return data[n-limit_k:], total_api_calls,  total_input_tokens, total_output_tokens
 
 
 
-async def external_merge_sort(data, sortfunc, k, client, prompt_template, modelname, isPassage = False, isSQL=False):
-    async def merge_sorted_chunks(l1, l2):
+async def external_merge_sort(data, sortfunc, k, client, prompt_template, modelname, isPassage = False, isSQL=False, isReview=False, limit_k=None, useCache=True):
+    if limit_k is None:
+        limit_k = len(data)
+    else:
+        limit_k = min(limit_k, len(data))
+
+    async def merge_sorted_chunks(l1, l2, limit_k):
+        # make l1 and l2 descending
+        l1 = l1[::-1]
+        l2 = l2[::-1] 
+
         def fix_duplicates(buffer, original):
             """Ensure buffer has same multiset as original by correcting LLM errors."""
             if set(buffer) == set(original) and all(buffer.count(x) == original.count(x) for x in set(buffer)):
@@ -252,60 +392,70 @@ async def external_merge_sort(data, sortfunc, k, client, prompt_template, modeln
 
             return result
 
-        def fill_buffer(i, j, buffer, membership, buffer_metadata, half):
+        def fill_buffer(list_i, list_j, buffer, membership, buffer_metadata, half):
             """Fill buffer with up to `half` items from each list."""
-            while buffer_metadata['l1'] < half and i[0] < len(l1):
-                item = l1[i[0]]
+            """The buffer is more likely to be descending"""
+            while buffer_metadata['l1'] < half and list_i[0] < len(l1):
+                item = l1[list_i[0]]
                 buffer.append(item)
                 membership[item].append('l1')
                 buffer_metadata['l1'] += 1
-                i[0] += 1
-            while buffer_metadata['l2'] < half and j[0] < len(l2):
-                item = l2[j[0]]
+                list_i[0] += 1
+            while buffer_metadata['l2'] < half and list_j[0] < len(l2):
+                item = l2[list_j[0]]
                 buffer.append(item)
                 membership[item].append('l2')
                 buffer_metadata['l2'] += 1
-                j[0] += 1
+                list_j[0] += 1
 
         result_length = len(l1) + len(l2)
-        i, j = [0], [0]  # Use lists for mutable indices in helpers
+        list_i, list_j = [0], [0]  # Use lists for mutable indices in helpers
+        # merged and buffer will both be descending
         merged = []
         buffer = []
         membership = collections.defaultdict(list)
         buffer_metadata = {'l1': 0, 'l2': 0}
-        total_api_calls = 0
         half = max(k // 2, 1)
 
         done_early = False
 
+        total_api_calls = 0
         total_input_tokens = 0
         total_output_tokens = 0
 
-        while i[0] < len(l1) or j[0] < len(l2):
-            if i[0] >= len(l1) and buffer_metadata['l1'] == 0:
-                merged.extend(buffer + l2[j[0]:])
+        while list_i[0] < len(l1) or list_j[0] < len(l2):
+            if len(merged) >= limit_k:
+                # print(f'limit_k {limit_k} reached, {l1} {l2} {merged}, total_api_calls {total_api_calls}')
+                final_merged = merged[::-1]
+                return final_merged[-limit_k:], total_api_calls, total_input_tokens, total_output_tokens
+            
+            if list_i[0] >= len(l1) and buffer_metadata['l1'] == 0:
+                merged.extend(buffer + l2[list_j[0]:])
                 done_early = True
                 break
-            if j[0] >= len(l2) and buffer_metadata['l2'] == 0:
-                merged.extend(buffer + l1[i[0]:])
+            if list_j[0] >= len(l2) and buffer_metadata['l2'] == 0:
+                merged.extend(buffer + l1[list_i[0]:])
                 done_early = True
                 break
 
-            fill_buffer(i, j, buffer, membership, buffer_metadata, half)
+            fill_buffer(list_i, list_j, buffer, membership, buffer_metadata, half)
 
             original_buffer = buffer[:]
-            buffer, num, in_tokens, out_tokens = await sortfunc(buffer, client, prompt_template, modelname, isPassage, isSQL)
+            ascending_buffer = buffer[::-1]
+            ascending_buffer, num, in_tokens, out_tokens = await sortfunc(ascending_buffer, client, prompt_template, modelname, isPassage, isSQL, isReview, useCache=useCache)
             total_api_calls += num
             total_input_tokens += in_tokens
             total_output_tokens += out_tokens
 
             assert len(original_buffer) == len(buffer)
 
-            buffer = fix_duplicates(buffer, original_buffer)
+            ascending_buffer = fix_duplicates(ascending_buffer, original_buffer)
 
-            assert len(original_buffer) == len(buffer), print('after fix duplicate')
+            assert len(original_buffer) == len(ascending_buffer), print('after fix duplicate')
 
             items_taken = 0
+            # buffer is descending
+            buffer = ascending_buffer[::-1]
             for key in buffer:
                 if not membership[key]:
                     print("LLM returned extra or duplicate key:", key)
@@ -316,17 +466,24 @@ async def external_merge_sort(data, sortfunc, k, client, prompt_template, modeln
                 items_taken += 1
                 if buffer_metadata[source] == 0:
                     break
-
+            # print('before', buffer)
             buffer = buffer[items_taken:]
+            # print('after', buffer)
 
         if buffer and not done_early:
             merged.extend(buffer)
-        assert len(merged) == result_length, print(len(merged), result_length)
-        return merged, total_api_calls, total_input_tokens, total_output_tokens
+        assert len(merged) == result_length
+        # swtich back to ascending
+        final_merged = merged[::-1]
+
+        # print(len(l1), len(l2), len(merged), 'total_api_calls', total_api_calls)
+
+        return final_merged[-limit_k:], total_api_calls, total_input_tokens, total_output_tokens
 
     # Step 1: Chunk sorting in parallel
+    assert type(k) == int, print('k', k)
     chunks = [data[i:i + k] for i in range(0, len(data), k)]
-    sort_tasks = [sortfunc(chunk, client, prompt_template, modelname, isPassage, isSQL) for chunk in chunks]
+    sort_tasks = [sortfunc(chunk, client, prompt_template, modelname, isPassage, isSQL, isReview, useCache=useCache) for chunk in chunks]
     sort_results = await asyncio.gather(*sort_tasks)
 
     total_api_calls = sum(r[1] for r in sort_results)
@@ -342,7 +499,7 @@ async def external_merge_sort(data, sortfunc, k, client, prompt_template, modeln
         merge_tasks = []
         for i in range(0, len(sorted_chunks), 2):
             if i + 1 < len(sorted_chunks):
-                merge_tasks.append(merge_sorted_chunks(sorted_chunks[i], sorted_chunks[i + 1]))
+                merge_tasks.append(merge_sorted_chunks(sorted_chunks[i], sorted_chunks[i + 1], limit_k))
             else:
                 merge_tasks.append(asyncio.sleep(0, result=(sorted_chunks[i], 0, 0, 0)))  # no-op async return
 
@@ -355,7 +512,7 @@ async def external_merge_sort(data, sortfunc, k, client, prompt_template, modeln
     return sorted_chunks[0], total_api_calls, total_input_tokens, total_output_tokens
 
 
-async def determine_external_pointwise_memory_size(data, sortfunc, client, prompt_template, modelname, output_type, schema, diff_tolerance, threshold=0.7, max_m=32):
+async def determine_external_pointwise_memory_size(data, sortfunc, client, prompt_template, modelname, output_type, schema, diff_tolerance, threshold=0.7, max_m=16):
     m = 2
     total_input_tokens, total_output_tokens = 0, 0
     max_len = len(data)
@@ -373,16 +530,16 @@ async def determine_external_pointwise_memory_size(data, sortfunc, client, promp
             sortfunc(batch3, client, prompt_template, modelname, output_type, schema),
         )
 
-        vals1, _, input_tokens, output_tokens, _ = results[0] 
+        vals1, _, input_tokens, output_tokens = results[0] 
         if m == 2: # batch 1 will be cached besides the first run
             total_input_tokens += input_tokens
             total_output_tokens += output_tokens
 
-        vals2, _, input_tokens, output_tokens, _ = results[1]
+        vals2, _, input_tokens, output_tokens = results[1]
         total_input_tokens += input_tokens
         total_output_tokens += output_tokens
 
-        vals3, _, input_tokens, output_tokens, _ = results[2]
+        vals3, _, input_tokens, output_tokens = results[2]
         total_input_tokens += input_tokens
         total_output_tokens += output_tokens
 
@@ -401,74 +558,86 @@ async def determine_external_pointwise_memory_size(data, sortfunc, client, promp
             if output_type in (float, int):
                 if abs(v1-v2) <= diff_tolerance:
                     agree_count += 1
-                else:
-                    print(f"from window m={m}: {v1}", f"from window 2m: {v2}")
+                # else:
+                #     print(f"from window m={m}: {v1}", f"from window 2m: {v2}")
             else:
                 if v1 == v2:
                     agree_count += 1
-                else:
-                    print(f"from window m={m}: {v1}", f"from window 2m: {v2}")
+                # else:
+                #     print(f"from window m={m}: {v1}", f"from window 2m: {v2}")
         agreement_ratio = agree_count / (2 * m)
 
         if agreement_ratio >= threshold:
             m *= 2
         else:
-            print(f"Final memory size for external pointwise: m = {m} (agreement = {agreement_ratio:.2f})")
+            print(f"Final memory size for external pointwise: m = {m} (agreement = {agreement_ratio:.2f}), modelname: {modelname}")
             return m , total_input_tokens, total_output_tokens 
-    print(f"Final memory size for external pointwise: m = {m}")
+    print(f"Final memory size for external pointwise: m = {m}, modelname: {modelname}")
     return m, total_input_tokens, total_output_tokens 
 
-async def external_pointwise_sort(data, sortfunc, client, prompt_template, modelname, output_type, diff_tolerance = 0.01, isPassage=False, isSQL=False):
+async def external_pointwise_sort(data, sortfunc, client, prompt_template, modelname, output_type, diff_tolerance = 0.01, isPassage=False, isSQL=False, isReview=False, max_m=16, batch_size_data=None):
     total_api_calls = 0
-    key_and_value = {}
-    data_confidence = {}
+    key_and_value = {} 
     key_and_text = {}
 
     total_input_tokens = 0
     total_output_tokens = 0
 
 
-    if not isPassage and not isSQL: # factual data
+    if not isPassage and not isSQL and not isReview:
         # define memory size
-        m, input_tokens, output_tokens =  await determine_external_pointwise_memory_size(data, sortfunc, client, prompt_template, modelname, output_type, ExternalPointwiseReasoning, diff_tolerance)
+        if batch_size_data is not None:
+            m, input_tokens, output_tokens =  await determine_external_pointwise_memory_size(batch_size_data[:], sortfunc, client, prompt_template, modelname, output_type, ExternalPointwiseReasoning, diff_tolerance, max_m=max_m)
+        else:
+            m, input_tokens, output_tokens =  await determine_external_pointwise_memory_size(data[:], sortfunc, client, prompt_template, modelname, output_type, ExternalPointwiseReasoning, diff_tolerance, max_m=max_m)
 
         total_input_tokens += input_tokens
         total_output_tokens += output_tokens
 
         chunks = [data[i:i + m] for i in range(0, len(data), m)]
-        tasks = [sortfunc(chunk, client, prompt_template, modelname, output_type, ExternalPointwiseReasoning) for chunk in chunks]
-        results = await asyncio.gather(*tasks)
+        results = []
+        req_batch_size = 20
+        for i in range(0, len(chunks), req_batch_size):
+            batch_chunks = chunks[i:i+req_batch_size]
+            tasks = [
+                sortfunc(chunk, client, prompt_template, modelname, output_type, ExternalPointwiseReasoning)
+                for chunk in batch_chunks
+            ]
+            batch_results = await asyncio.gather(*tasks)
+            results.extend(batch_results)
         # Aggregate results
-        for chunk, (chunk_vals, api_calls, in_tokens, out_tokens, confidences) in zip(chunks, results):
+        for chunk, (chunk_vals, api_calls, in_tokens, out_tokens) in zip(chunks, results):
             total_api_calls += api_calls
             total_input_tokens += in_tokens
             total_output_tokens += out_tokens
 
-            for k, v, conf in zip(chunk, chunk_vals, confidences):
+            for k, v in zip(chunk, chunk_vals):
                 try:
                     key_and_value[k] = output_type(v)
-                    data_confidence[k] = conf
                 except Exception as e:
                     print(e)
                     print("??????????")
                     key_and_value[k] = output_type(0.0)
-                    data_confidence[k] = 0
 
         # Sort by computed value then original key
         sorted_data = sorted(key_and_value, key=lambda k: (key_and_value[k], k))
-        confidence = [data_confidence[k] for k in sorted_data]
 
-        return sorted_data, total_api_calls, total_input_tokens, total_output_tokens, confidence
+        return sorted_data, total_api_calls, total_input_tokens, total_output_tokens
     else:
         if isPassage:
             s = PassageExternalPointwiseReasoning
+        elif isReview:
+            s = ReviewExternalPointwiseReasoning
         else:
             s = SQLExternalPointwiseReasoning
         texts = [text for id, text in data]
         ids = [id for id, text in data]
 
         # define memory size
-        m, input_tokens, output_tokens  =  await determine_external_pointwise_memory_size(texts, sortfunc, client, prompt_template, modelname, output_type, s, diff_tolerance)
+        if batch_size_data is not None:
+            m, input_tokens, output_tokens  =  await determine_external_pointwise_memory_size(batch_size_data[:], sortfunc, client, prompt_template, modelname, output_type, s, diff_tolerance, max_m=max_m)
+        else:
+            m, input_tokens, output_tokens  =  await determine_external_pointwise_memory_size(texts[:], sortfunc, client, prompt_template, modelname, output_type, s, diff_tolerance, max_m=max_m)
 
         total_input_tokens += input_tokens
         total_output_tokens += output_tokens
@@ -478,162 +647,19 @@ async def external_pointwise_sort(data, sortfunc, client, prompt_template, model
         tasks = [sortfunc(text_chunk, client, prompt_template, modelname, output_type, s) for text_chunk in text_chunks]
         results = await asyncio.gather(*tasks)
 
-        for id_chunk, text_chunk, (chunk_vals, api_calls, in_tokens, out_tokens, confidences) in zip(id_chunks, text_chunks, results):
+        for id_chunk, text_chunk, (chunk_vals, api_calls, in_tokens, out_tokens) in zip(id_chunks, text_chunks, results):
             total_api_calls += api_calls
             total_input_tokens += in_tokens
             total_output_tokens += out_tokens
-            for k, v, text, conf in zip(id_chunk, chunk_vals, text_chunk, confidences):
+            for k, v, text in zip(id_chunk, chunk_vals, text_chunk):
                 try:
                     key_and_value[k] = output_type(v)
-                    data_confidence[k] = conf
                     key_and_text[k] = text
                 except Exception as e:
                     print(e)
                     key_and_value[k] = output_type(0.0)
-                    data_confidence[k] = 0
         sorted_data = sorted(key_and_value, key=lambda k: (key_and_value[k], -len(key_and_text[k])))
-        confidence = [data_confidence[k] for k in sorted_data]
         scores = [key_and_value[k] for k in sorted_data]
         sorted_data_text = [key_and_text[k] for k in sorted_data]
         
-        return sorted_data, scores, total_api_calls, total_input_tokens, total_output_tokens, confidence, sorted_data_text
-
-
-# async def hybrid_sort(data, sortfunc, vote, client, pointwise_prompt_template, comparison_prompt_template, modelname, output_type, diff=0.01, isPassage = False):
-#     total_api_calls = 0
-#     total_tokens = 0
-
-#     if not isPassage:
-#         sorted_list, api_calls, tokens, confidence = await external_pointwise_sort(data, sortfunc, client, pointwise_prompt_template, modelname, output_type, diff, isPassage)
-#     else:
-#         sorted_list, scores, api_calls, tokens, confidence, texts = await external_pointwise_sort(data, sortfunc, client, pointwise_prompt_template, modelname, output_type, diff, isPassage)
-#         sorted_list = [(docid, text) for docid, text in zip(sorted_list, texts)]
-#     total_api_calls  += api_calls
-#     total_tokens += tokens
-
-#     max_confidence = max(confidence)
-#     median_confidence = statistics.median(confidence)
-
-#     if isPassage:
-#         schema = PassageComparisonReasoning
-#     else:
-#         schema = ComparisonReasoning
-
-#     # Heap of (confidence, index)
-#     heap = [(conf, idx) for idx, conf in enumerate(confidence)]
-#     heapq.heapify(heap)  # Min-heap based on confidence
-
-#     sort_low_conf = []
-#     while heap[0][0] < 7 or len(heap) > 0.95 * len(data):
-#         conf, idx = heapq.heappop(heap)
-#         item = sorted_list[idx]
-#         if conf >= median_confidence or conf == max_confidence:
-#             break
-#         sort_low_conf.append(item)
-
-#     # Remove the selected low-confidence items from sorted_list
-#     sorted_list = [item for item in sorted_list if item not in sort_low_conf]
-
-#     for item in sort_low_conf[::-1]:
-#         key_item = Pair_Comparison_Key(item, schema)
-#         left, right = 0, len(sorted_list)
-
-#         while left < right:
-#             mid = (left + right) // 2
-
-#             # Step 1: Compare with mid
-#             key_mid = Pair_Comparison_Key(sorted_list[mid], schema)
-#             cmp_mid, api_calls, tokens = await key_item.compare(
-#                 key_mid, client, comparison_prompt_template, modelname
-#             )
-#             total_api_calls += api_calls
-#             total_tokens += tokens
-
-#             if cmp_mid == -1:
-                
-#                 sampled_indices = [i for i in range(mid + 1, min(mid + vote + 1, len(sorted_list)))]
-
-#                 # item < mid → should also be < mid+1 and mid+2 if mid is in correct order
-#                 disagree = 0
-#                 total_votes = 1
-#                 for offset in sampled_indices:
-#                     if offset < right:
-#                         key_check = Pair_Comparison_Key(sorted_list[offset], schema)
-#                         cmp_check, api_calls, tokens = await key_item.compare(
-#                             key_check, client, comparison_prompt_template, modelname
-#                         )
-#                         total_api_calls += api_calls
-#                         total_tokens += tokens
-#                         total_votes += 1
-#                         if cmp_check == 1:  # item > mid+1 or mid+2
-#                             disagree += 1
-
-#                 if disagree > total_votes//2:
-#                     left = mid + 1  # contradicts original direction
-#                 else:
-#                     right = mid
-#             else:
-#                 sampled_indices = [ i for i in range(max(mid - vote, left), mid)]
-#                 disagree = 0
-#                 total_votes = 1
-#                 for offset in sampled_indices:
-#                     if offset >= left:
-#                         key_check = Pair_Comparison_Key(sorted_list[offset], schema)
-#                         cmp_check, api_calls, tokens = await key_item.compare(
-#                             key_check, client, comparison_prompt_template, modelname
-#                         )
-#                         total_api_calls += api_calls
-#                         total_tokens += tokens
-#                         total_votes += 1
-#                         if cmp_check == -1:  # item < mid-1 or mid-2
-#                             disagree += 1
-
-#                 if disagree > total_votes // 2:
-#                     right = mid  # contradicts original direction
-#                 else:
-#                     left = mid + 1
-#         # Final insertion
-#         sorted_list.insert(left, item)
-#     return sorted_list, total_api_calls, total_tokens
-
-
-
-
-from openai import OpenAI
-import os
-
-# async def main():
-#     client = OpenAI(
-#         # defaults to os.environ.get("OPENAI_API_KEY")
-#         api_key=os.getenv("OPENAI_API_KEY"),
-#     )
-#     modelname = 'gpt-4o'
-
-#     prompt_template = "In scale 1-100, how friendly is key: {key}? Rate the confidence in the proposed answer on a scale of 0-10.\n Output an int.\n"
-#     sorted_data, num, tokens, conf = await pointwise_sort(['cat', 'tiger', 'dolphin'], client, prompt_template, modelname, int)
-#     print(sorted_data, num, tokens, conf)
-
-#     prompt_template = "In scale 1-100, how friendly are keys: {keys}? For each answer, also provide a confidence rating on a scale of 0-10.\n"
-#     sorted_data, num, tokens, conf = await external_pointwise_sort(['cat', 'tiger', 'dolphin'], external_values, 4, client, prompt_template, modelname, int)
-#     print(sorted_data, num, tokens, conf)
-
-#     prompt_template = "Which is greater {key1} or {key2}? Output the greater key.\n"
-#     # ignore bubble sort as it requries too many api calls when list is long.
-#     sorted_data, num, tokens = await bubble_sort([34, 87, 12, 59, 3, 71, 45, 90], client, prompt_template, modelname)
-#     print("bubble sort: ", sorted_data, num, tokens)
-#     sorted_data, num, tokens = await quick_sort([34, 87, 12, 59, 3, 71, 45, 90], client, prompt_template, modelname)
-#     print("quick sort: ", sorted_data, num, tokens)
-#     sorted_data, num, tokens = await heap_sort([34, 87, 12, 59, 3, 71, 45, 90], client, prompt_template, modelname)
-#     print("heap sort: ", sorted_data, num, tokens)
-#     sorted_data, num, tokens = await insertion_sort([1, 3, 5, 7, 9], [2, 15], client, prompt_template, modelname)
-#     print("heap sort: ", sorted_data, num, tokens)
-
-
-#     prompt_template = "Given a list of keys: {keys}\nSort the keys in ascending order.\n"
-#     sorted_data, num, tokens = await external_bubble_sort([34, 87, 12, 59, 3, 71, 45, 90], external_comparisons, 4, client, prompt_template, modelname)
-#     print("external bubble sort: ", sorted_data, num, tokens)
-#     sorted_data, num, tokens = await external_merge_sort([34, 87, 12, 59, 3, 71, 45, 90], external_comparisons, 4, client, prompt_template, modelname)
-#     print("external merge sort ", sorted_data, num, tokens)
-
-# if __name__ == "__main__":
-#     asyncio.run(main())
+        return sorted_data, scores, total_api_calls, total_input_tokens, total_output_tokens, sorted_data_text
