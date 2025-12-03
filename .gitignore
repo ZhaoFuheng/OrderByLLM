@@ -178,5 +178,5 @@ __pycache__/
 
 # tmp files
 tmp_*
-
+sort_cache
 data/rotten_tomatoes_movie_reviews.csv

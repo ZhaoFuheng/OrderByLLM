@@ -244,3 +244,14 @@ def create_numbered_reviews(reviews, usePID = False):
 
 def create_numbered_rankings(ranks):
     return "\n".join([f"id:{i+1}\n{p}\n\n" for i, p in enumerate(ranks)])
+
+
+# not used in project; use OpenAI SDK instead
+# https://docs.snowflake.com/en/user-guide/snowflake-cortex/open_ai_sdk
+class SnowflakeClient:
+    def __init__(self, api_key, base_url):
+        self.api_key = api_key
+        self.base_url = base_url
+
+    def responses(self, model, prompt, schema):
+        return self.client.responses(model, prompt, schema)
