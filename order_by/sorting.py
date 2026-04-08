@@ -8,16 +8,27 @@ import hashlib
 import random
 import heapq
 import collections
+import logging
+log = logging.getLogger(__name__)
 
 random.seed(0)
 
-async def pointwise_sort(data, client, prompt_template, modelname, output_type, key_class = Pointwise_Key, isPassage=True, isReview=False):
+async def pointwise_sort(data, client, prompt_template, modelname, output_type, key_class = Pointwise_Key, isPassage=True, isReview=False, use_wiki=False, wiki_field=None):
     total_api_calls = 0
     total_input_tokens = 0
     total_output_tokens = 0
 
     async def compute_sort_key(item, key_class, prompt_template, isPassage=None, isReview=False):
-        
+        if use_wiki and key_class == Pointwise_Key:
+            from .tools import web_search_pointwise_value
+            prompt = prompt_template.format(key=str(item))
+            value, api_calls, input_tokens, output_tokens = await web_search_pointwise_value(
+                client, modelname, prompt,
+                wiki_entity=str(item),
+                wiki_field=wiki_field,
+            )
+            return (value, item, api_calls, input_tokens, output_tokens)
+
         if isPassage == None:
             assert key_class == Pointwise_Key, print('key_class', key_class)
             key_obj = key_class(item, prompt_template)
@@ -115,7 +126,7 @@ async def quick_sort(data, client, prompt_template, modelname, isPassage, vote =
     # First, compare all items to the pivot concurrently
     rest_items = data[1:]
     compare_results = []
-    req_batch_size = 50
+    req_batch_size = 25
     wrapped_items = [Pair_Comparison_Key(item, s) for item in rest_items]
     for i in range(0, len(wrapped_items), req_batch_size):
         batch_wrapped_items = wrapped_items[i:i+req_batch_size]
@@ -173,9 +184,9 @@ async def quick_sort(data, client, prompt_template, modelname, isPassage, vote =
         if peer_tasks:
             coros = [peer_task[2] for peer_task in peer_tasks]
             peer_results = []
-            batch_size = 25
-            for i in range(0, len(coros), batch_size):
-                batch_coros = coros[i:i+batch_size]
+            req_batch_size = 25
+            for i in range(0, len(coros), req_batch_size):
+                batch_coros = coros[i:i+req_batch_size]
                 batch_peer_results = await asyncio.gather(*batch_coros)
                 peer_results.extend(batch_peer_results)
 
@@ -458,7 +469,7 @@ async def external_merge_sort(data, sortfunc, k, client, prompt_template, modeln
             buffer = ascending_buffer[::-1]
             for key in buffer:
                 if not membership[key]:
-                    print("LLM returned extra or duplicate key:", key)
+                    log.error("LLM returned extra or duplicate key: %s", key)
                     continue
                 source = membership[key].pop()
                 buffer_metadata[source] -= 1
@@ -575,7 +586,25 @@ async def determine_external_pointwise_memory_size(data, sortfunc, client, promp
     print(f"Final memory size for external pointwise: m = {m}, modelname: {modelname}")
     return m, total_input_tokens, total_output_tokens 
 
-async def external_pointwise_sort(data, sortfunc, client, prompt_template, modelname, output_type, diff_tolerance = 0.01, isPassage=False, isSQL=False, isReview=False, max_m=16, batch_size_data=None):
+async def external_pointwise_sort(
+    data,
+    sortfunc,
+    client,
+    prompt_template,
+    modelname,
+    output_type,
+    diff_tolerance=0.01,
+    isPassage=False,
+    isSQL=False,
+    isReview=False,
+    max_m=16,
+    batch_size_data=None,
+    memory_size=None,
+    use_web_search=False,
+    wiki_field=None,
+):
+    import functools
+
     total_api_calls = 0
     key_and_value = {} 
     key_and_text = {}
@@ -583,16 +612,20 @@ async def external_pointwise_sort(data, sortfunc, client, prompt_template, model
     total_input_tokens = 0
     total_output_tokens = 0
 
+    if wiki_field:
+        from .tools import wiki_search_external_values
+        sortfunc = functools.partial(wiki_search_external_values, wiki_field=wiki_field)
+    elif use_web_search:
+        from .tools import web_search_external_values
+        sortfunc = web_search_external_values
+
+    if memory_size is None:
+        raise ValueError("memory_size must be provided for external_pointwise_sort.")
+    m = int(memory_size)
+    if m <= 0:
+        raise ValueError(f"memory_size must be > 0, got {memory_size}")
 
     if not isPassage and not isSQL and not isReview:
-        # define memory size
-        if batch_size_data is not None:
-            m, input_tokens, output_tokens =  await determine_external_pointwise_memory_size(batch_size_data[:], sortfunc, client, prompt_template, modelname, output_type, ExternalPointwiseReasoning, diff_tolerance, max_m=max_m)
-        else:
-            m, input_tokens, output_tokens =  await determine_external_pointwise_memory_size(data[:], sortfunc, client, prompt_template, modelname, output_type, ExternalPointwiseReasoning, diff_tolerance, max_m=max_m)
-
-        total_input_tokens += input_tokens
-        total_output_tokens += output_tokens
 
         chunks = [data[i:i + m] for i in range(0, len(data), m)]
         results = []
@@ -632,15 +665,6 @@ async def external_pointwise_sort(data, sortfunc, client, prompt_template, model
             s = SQLExternalPointwiseReasoning
         texts = [text for id, text in data]
         ids = [id for id, text in data]
-
-        # define memory size
-        if batch_size_data is not None:
-            m, input_tokens, output_tokens  =  await determine_external_pointwise_memory_size(batch_size_data[:], sortfunc, client, prompt_template, modelname, output_type, s, diff_tolerance, max_m=max_m)
-        else:
-            m, input_tokens, output_tokens  =  await determine_external_pointwise_memory_size(texts[:], sortfunc, client, prompt_template, modelname, output_type, s, diff_tolerance, max_m=max_m)
-
-        total_input_tokens += input_tokens
-        total_output_tokens += output_tokens
 
         text_chunks = [texts[i:i + m] for i in range(0, len(texts), m)]
         id_chunks = [ids[i:i + m] for i in range(0, len(texts), m)]

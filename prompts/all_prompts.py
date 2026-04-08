@@ -160,22 +160,34 @@ Output a JSON list of review ids from most negative to most positive.
 
 
 
-# https://yangzhangalmo.github.io/papers/CCS24-ICLMIA.pdf
-membership_inference_prompt = """You have seen the {description}: "{key}" in your training data.
-If you have seen it, return 'Yes'. Otherwise, return 'No'.
-Explain if you remember or recall it.
+direct_inquiry_factual_knowledge_prompt = """Determine whether the ranking task depends on factual world knowledge that require web search.
+Task description: {description}
+
+If this task requires factual knowledge, return 'Yes'.
+If this task is mainly subjective and requires reasoning, return 'No'.
+Provide a brief explanation.
 """
 
 llm_judge_prompt = """You are an EXPERT RANKED RESULT RATER. You are given a ranking criteria and a list of CANDIDATE RANKED RESULTS.
-Each candidate ranking has an integer ID. Your task is to find the best ranked result which sorts the input list of keys based on the ranking criteria.
-A list of keys: {keys}
+Each candidate ranking has an integer ID. Each ranking is ordered ascending from WORST to BEST (the last item is the best).
+Your task is to select the candidate ranking that best sorts the input items according to the criteria.
+
+Items to rank: {keys}
 
 Ranking criteria: {criteria}
 
-CANDIDATE RANKED RESULTS:
+CANDIDATE RANKED RESULTS (worst to best):
 {rankings}
 
-
-You should think step by step about the ranking and return the integer identifier of the best ranking. 
-Think step by step and evaluatea each of the CANDIDATE and {criteria}. Provide reasonings for your rating.
+Evaluate each candidate ranking against the criteria. For each candidate, assess whether its ordering correctly places the best items last and the worst items first.
+Return the integer ID of the best candidate ranking with your reasoning.
+Think step by step.
 """
+
+web_search_system_prompt = (
+    "You are a factual ranking assistant. "
+    "Use the provided web search results as your primary source of information. "
+    "If the web context does not contain the needed information, rely on your own knowledge to provide the best estimate. "
+    "Never return 0 simply because the web context is unclear — always give your best estimate. "
+    "Output a JSON object."
+)
