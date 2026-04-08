@@ -243,9 +243,8 @@ async def quick_sort(data, client, prompt_template, modelname, isPassage, vote =
                     less.append(item)
                 else:
                     greater.append(item)
-            if while_loop_count > 200:
-                assert False, print('while loop count too large', while_loop_count)
             if deadlock:
+                placed_one = False
                 for (item, put_in_less) in initial_decisions:
                     L_count = 0
                     G_count = 0
@@ -264,8 +263,10 @@ async def quick_sort(data, client, prompt_template, modelname, isPassage, vote =
                         less.append(item)
                     else:
                         greater.append(item)
-                assert len(less) + len(greater) == len(data)-1, print('less', len(less), 'greater', len(greater), 'initial_decisions', len(initial_decisions), 'data', len(data))
-                break
+                    placed_one = True
+                    break
+                if not placed_one:
+                    raise RuntimeError("Deadlock resolution failed to place any undecided item.")
     assert len(less) + len(greater) == len(data)-1, print('less', len(less), 'greater', len(greater), 'initial_decisions', len(initial_decisions), 'data', len(data))
 
     # Decide how much to sort based on limit_k (sort only the last k elements)
