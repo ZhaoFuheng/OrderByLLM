@@ -1,0 +1,221 @@
+{
+  "dataset": "sembench_movie",
+  "generated_at": "2026-04-08T00:29:23.535557+00:00",
+  "settings": {
+    "csv": "data/movie/rotten_tomatoes_movie_reviews.csv",
+    "top_k_movies": 5,
+    "review_limit": null,
+    "model": "llama3.1-70b",
+    "seeds": [
+      0
+    ],
+    "algorithms": [
+      "bm25",
+      "pointwise",
+      "quick_sort",
+      "quick_sort3",
+      "external_pointwise_4",
+      "external_merge_sort_4",
+      "external_bubble_sort_4"
+    ]
+  },
+  "metrics": [
+    {
+      "algorithm": "bm25",
+      "seed_scores": {
+        "0": 0.7665330328033535
+      },
+      "per_movie_scores": {
+        "0": {
+          "parasite_2019": 0.8882009734298801,
+          "ant_man_and_the_wasp_quantumania": 0.6513778180247372,
+          "joker_2019": 0.8608553287676206,
+          "avengers_endgame": 0.8084641090363314,
+          "snow_white_and_the_huntsman": 0.6237669347581977
+        }
+      },
+      "per_movie_costs": {
+        "0": {
+          "parasite_2019": 0.0,
+          "ant_man_and_the_wasp_quantumania": 0.0,
+          "joker_2019": 0.0,
+          "avengers_endgame": 0.0,
+          "snow_white_and_the_huntsman": 0.0
+        }
+      },
+      "score_mean": 0.7665330328033535,
+      "score_std": 0.0,
+      "price": 0.0,
+      "tokens": 0
+    },
+    {
+      "algorithm": "pointwise",
+      "seed_scores": {
+        "0": 0.8686868959946448
+      },
+      "per_movie_scores": {
+        "0": {
+          "parasite_2019": 0.9647399786793142,
+          "ant_man_and_the_wasp_quantumania": 0.8218369910364329,
+          "joker_2019": 0.8276025867416789,
+          "avengers_endgame": 0.9318802286113874,
+          "snow_white_and_the_huntsman": 0.7973746949044106
+        }
+      },
+      "per_movie_costs": {
+        "0": {
+          "parasite_2019": 0.03821,
+          "ant_man_and_the_wasp_quantumania": 0.038521,
+          "joker_2019": 0.054052,
+          "avengers_endgame": 0.051794,
+          "snow_white_and_the_huntsman": 0.025821
+        }
+      },
+      "score_mean": 0.8686868959946448,
+      "score_std": 0.0,
+      "price": 0.208398,
+      "tokens": 520995
+    },
+    {
+      "algorithm": "quick_sort",
+      "seed_scores": {
+        "0": 0.9085327140943746
+      },
+      "per_movie_scores": {
+        "0": {
+          "parasite_2019": 0.9660158506776273,
+          "ant_man_and_the_wasp_quantumania": 0.8369366629833952,
+          "joker_2019": 0.9721361082506086,
+          "avengers_endgame": 0.9389530232120595,
+          "snow_white_and_the_huntsman": 0.8286219253481828
+        }
+      },
+      "per_movie_costs": {
+        "0": {
+          "parasite_2019": 0.067542,
+          "ant_man_and_the_wasp_quantumania": 0.050933,
+          "joker_2019": 0.073285,
+          "avengers_endgame": 0.123724,
+          "snow_white_and_the_huntsman": 0.037572
+        }
+      },
+      "score_mean": 0.9085327140943746,
+      "score_std": 0.0,
+      "price": 0.353056,
+      "tokens": 882641
+    },
+    {
+      "algorithm": "quick_sort3",
+      "seed_scores": {
+        "0": 0.9089876097948206
+      },
+      "per_movie_scores": {
+        "0": {
+          "parasite_2019": 0.9660158506776273,
+          "ant_man_and_the_wasp_quantumania": 0.8544542811801069,
+          "joker_2019": 0.9936379211801047,
+          "avengers_endgame": 0.9494317945629642,
+          "snow_white_and_the_huntsman": 0.7813982013733001
+        }
+      },
+      "per_movie_costs": {
+        "0": {
+          "parasite_2019": 0.19659,
+          "ant_man_and_the_wasp_quantumania": 0.156282,
+          "joker_2019": 0.20867,
+          "avengers_endgame": 0.39348,
+          "snow_white_and_the_huntsman": 0.11542
+        }
+      },
+      "score_mean": 0.9089876097948206,
+      "score_std": 0.0,
+      "price": 1.070442,
+      "tokens": 2676104
+    },
+    {
+      "algorithm": "external_pointwise_4",
+      "seed_scores": {
+        "0": 0.8665177630874761
+      },
+      "per_movie_scores": {
+        "0": {
+          "parasite_2019": 0.9779908233701919,
+          "ant_man_and_the_wasp_quantumania": 0.7815818672063383,
+          "joker_2019": 0.8489566018559682,
+          "avengers_endgame": 0.9318802286113874,
+          "snow_white_and_the_huntsman": 0.7921792943934943
+        }
+      },
+      "per_movie_costs": {
+        "0": {
+          "parasite_2019": 0.013267,
+          "ant_man_and_the_wasp_quantumania": 0.014133,
+          "joker_2019": 0.018295,
+          "avengers_endgame": 0.01695,
+          "snow_white_and_the_huntsman": 0.008591
+        }
+      },
+      "score_mean": 0.8665177630874761,
+      "score_std": 0.0,
+      "price": 0.071236,
+      "tokens": 178091
+    },
+    {
+      "algorithm": "external_merge_sort_4",
+      "seed_scores": {
+        "0": 0.9186918006176763
+      },
+      "per_movie_scores": {
+        "0": {
+          "parasite_2019": 0.9735379777272561,
+          "ant_man_and_the_wasp_quantumania": 0.8617551601233632,
+          "joker_2019": 0.9481418198425163,
+          "avengers_endgame": 0.9769839539943288,
+          "snow_white_and_the_huntsman": 0.8330400914009166
+        }
+      },
+      "per_movie_costs": {
+        "0": {
+          "parasite_2019": 0.051913,
+          "ant_man_and_the_wasp_quantumania": 0.057039,
+          "joker_2019": 0.07086,
+          "avengers_endgame": 0.069326,
+          "snow_white_and_the_huntsman": 0.033834
+        }
+      },
+      "score_mean": 0.9186918006176763,
+      "score_std": 0.0,
+      "price": 0.282974,
+      "tokens": 707434
+    },
+    {
+      "algorithm": "external_bubble_sort_4",
+      "seed_scores": {
+        "0": 0.9046474589659107
+      },
+      "per_movie_scores": {
+        "0": {
+          "parasite_2019": 0.9696917969820115,
+          "ant_man_and_the_wasp_quantumania": 0.8589468947946608,
+          "joker_2019": 0.9416099993996121,
+          "avengers_endgame": 0.9335652577822053,
+          "snow_white_and_the_huntsman": 0.8194233458710641
+        }
+      },
+      "per_movie_costs": {
+        "0": {
+          "parasite_2019": 0.119969,
+          "ant_man_and_the_wasp_quantumania": 0.138483,
+          "joker_2019": 0.164257,
+          "avengers_endgame": 0.158638,
+          "snow_white_and_the_huntsman": 0.077781
+        }
+      },
+      "score_mean": 0.9046474589659107,
+      "score_std": 0.0,
+      "price": 0.659128,
+      "tokens": 1647819
+    }
+  ],
+  "metric_name": "ndcg@10"
+}

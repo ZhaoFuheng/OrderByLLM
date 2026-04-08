@@ -1,0 +1,59 @@
+{
+  "dataset": "population",
+  "models": [
+    "llama3.1-70b"
+  ],
+  "budgets": [
+    0.1
+  ],
+  "proxy_policies": [
+    "borda",
+    "llm_judge"
+  ],
+  "results_by_model": {
+    "llama3.1-70b": {
+      "borda": {
+        "0.1": {
+          "dataset": "population",
+          "generated_at": "2026-04-08T00:30:56.158366+00:00",
+          "settings": {
+            "csv": "data/population_by_country_2020.csv",
+            "model": "llama3.1-70b",
+            "total_ranking_budget": 0.1,
+            "sample_size": 20,
+            "proxy_policy": "borda"
+          },
+          "score_mean": 0.9817085427135679,
+          "score_std": 0.0,
+          "ranking_cost": 0.018864,
+          "optimization_cost": 0.0,
+          "chosen_alg": "web_point",
+          "in_tokens": 22046,
+          "out_tokens": 25114,
+          "metric_name": "kendalltau"
+        }
+      },
+      "llm_judge": {
+        "0.1": {
+          "dataset": "population",
+          "generated_at": "2026-04-08T00:30:56.176040+00:00",
+          "settings": {
+            "csv": "data/population_by_country_2020.csv",
+            "model": "llama3.1-70b",
+            "total_ranking_budget": 0.1,
+            "sample_size": 20,
+            "proxy_policy": "llm_judge"
+          },
+          "score_mean": 0.9817085427135679,
+          "score_std": 0.0,
+          "ranking_cost": 0.018864,
+          "optimization_cost": 0.0,
+          "chosen_alg": "web_point",
+          "in_tokens": 22046,
+          "out_tokens": 25114,
+          "metric_name": "kendalltau"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "dataset": "population",
+  "models": [
+    "openai-gpt-4.1"
+  ],
+  "budgets": [
+    1.0
+  ],
+  "proxy_policies": [
+    "borda",
+    "llm_judge"
+  ],
+  "results_by_model": {
+    "openai-gpt-4.1": {
+      "borda": {
+        "1": {
+          "dataset": "population",
+          "generated_at": "2026-04-08T00:30:54.991503+00:00",
+          "settings": {
+            "csv": "data/population_by_country_2020.csv",
+            "model": "openai-gpt-4.1",
+            "total_ranking_budget": 1.0,
+            "sample_size": 20,
+            "proxy_policy": "borda"
+          },
+          "score_mean": 0.9943718592964824,
+          "score_std": 0.0,
+          "ranking_cost": 0.138618,
+          "optimization_cost": 0.0,
+          "chosen_alg": "web_point",
+          "in_tokens": 33005,
+          "out_tokens": 9076,
+          "metric_name": "kendalltau"
+        }
+      },
+      "llm_judge": {
+        "1": {
+          "dataset": "population",
+          "generated_at": "2026-04-08T00:30:55.008266+00:00",
+          "settings": {
+            "csv": "data/population_by_country_2020.csv",
+            "model": "openai-gpt-4.1",
+            "total_ranking_budget": 1.0,
+            "sample_size": 20,
+            "proxy_policy": "llm_judge"
+          },
+          "score_mean": 0.9943718592964824,
+          "score_std": 0.0,
+          "ranking_cost": 0.138618,
+          "optimization_cost": 0.0,
+          "chosen_alg": "web_point",
+          "in_tokens": 33005,
+          "out_tokens": 9076,
+          "metric_name": "kendalltau"
+        }
+      }
+    }
+  }
+}
