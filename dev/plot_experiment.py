@@ -232,15 +232,27 @@ _ALG_ORDER = [
     "external_bubble_sort_4",
 ]
 
-# Colours for the two highlighted-query trace lines
-_TRACE_COLORS = ["#e63946", "#2a9d8f"]
+# Colour for the highlighted-query trace line
+_TRACE_COLOR = "#e63946"
+_TRACE_QID = "1037798"
+_DL19_BAR_COLORS = {
+    "bm25": "tab:gray",
+    "point": "tab:blue",
+    "ext_point_4": "tab:green",
+    "quick": "#b39ddb",
+    "quick_3": "tab:purple",
+    "ext_merge_4": "tab:brown",
+    "ext_bubble_4": "tab:red",
+    "optimal": "#66c2a5",
+}
 
 
 def plot_dl19_bar(payload: dict, output_dir: Path) -> Path:
-    """Seaborn violin + strip + mean-star chart for DL19 per-query ndcg@10.
+    """Dot-cloud + mean-star chart for DL19 per-query ndcg@10.
 
-    Algorithms are shown in _ALG_ORDER.  The first two queries get a dashed
-    trace line so you can see whether one algorithm is consistently best.
+    Algorithms are shown in _ALG_ORDER, plus an oracle-style `optimal` column.
+    One highlighted query gets a dashed trace line so you can see how a
+    representative query behaves across algorithms.
     """
     dataset     = payload.get("dataset", "dl19")
     metric_name = payload.get("metric_name", "ndcg@10")
@@ -251,13 +263,6 @@ def plot_dl19_bar(payload: dict, output_dir: Path) -> Path:
     by_alg       = {p.get("algorithm", ""): p for p in points}
     ordered_algs = [a for a in _ALG_ORDER if a in by_alg]
     ordered_algs += [a for a in by_alg if a not in ordered_algs]
-    alg_labels   = [_short_label(a) for a in ordered_algs]
-    n_algs       = len(ordered_algs)
-
-    # One distinct colour per algorithm (tab10)
-    cmap       = plt.get_cmap("tab10")
-    alg_colors = [cmap(i % 10) for i in range(n_algs)]
-    palette    = dict(zip(alg_labels, alg_colors))
 
     # ── Collect per-query scores averaged across seeds ─────────────────────────
     def _mean_per_qid(p: dict) -> dict[str, float]:
@@ -271,6 +276,19 @@ def plot_dl19_bar(payload: dict, output_dir: Path) -> Path:
         return {qid: float(np.mean(vs)) for qid, vs in totals.items()}
 
     per_qid_by_alg = [_mean_per_qid(by_alg[a]) for a in ordered_algs]
+    all_qids = sorted({qid for qid_dict in per_qid_by_alg for qid in qid_dict})
+    optimal_by_qid = {
+        qid: max(qid_dict.get(qid, float("-inf")) for qid_dict in per_qid_by_alg)
+        for qid in all_qids
+    }
+    ordered_algs.append("optimal")
+    per_qid_by_alg.append(optimal_by_qid)
+    alg_labels = [_short_label(a) if a != "optimal" else "optimal" for a in ordered_algs]
+    n_algs = len(ordered_algs)
+
+    # Use family-consistent colors; keep quick and quick_3 in the purple family.
+    alg_colors = [_DL19_BAR_COLORS.get(label, "tab:gray") for label in alg_labels]
+    palette = dict(zip(alg_labels, alg_colors))
 
     # Long-form DataFrame for seaborn
     rows = [
@@ -290,31 +308,21 @@ def plot_dl19_bar(payload: dict, output_dir: Path) -> Path:
         else float(by_alg[a].get("score_mean", 0.0))
         for lbl, a in zip(alg_labels, ordered_algs)
     ])
-
-    # First two query IDs for trace lines
-    all_qids   = sorted({r["qid"] for r in rows if r["qid"]})
-    trace_qids = all_qids[:2]
+    # Use a fixed highlighted query when present.
+    trace_qid = None
+    if _TRACE_QID in all_qids:
+        trace_qid = _TRACE_QID
 
     # ── Plot ──────────────────────────────────────────────────────────────────
     sns.set_theme(style="whitegrid", font_scale=1.1)
     fig, ax = plt.subplots(figsize=(max(10, n_algs * 1.7), 6))
 
-    # Violin (cloud shape) — use hue=x to silence palette deprecation warning
-    sns.violinplot(
-        data=df, x="algorithm", y="score",
-        order=alg_labels, hue="algorithm", hue_order=alg_labels,
-        palette=palette, legend=False,
-        inner=None, cut=0, bw_adjust=0.8,
-        linewidth=0.8, alpha=0.30,
-        ax=ax,
-    )
-
-    # Individual query dots
+    # Individual query dots with jitter to create the cloud look.
     sns.stripplot(
         data=df, x="algorithm", y="score",
         order=alg_labels, hue="algorithm", hue_order=alg_labels,
         palette=palette, legend=False,
-        size=9, alpha=0.75, jitter=True,
+        size=6, alpha=0.35, jitter=0.18,
         linewidth=0.3, edgecolor="white",
         ax=ax, zorder=3,
     )
@@ -323,18 +331,28 @@ def plot_dl19_bar(payload: dict, output_dir: Path) -> Path:
     for xi, (mean_val, color) in enumerate(zip(means, alg_colors)):
         ax.scatter(xi, mean_val, marker="*", color=color,
                    s=280, zorder=5, edgecolors="black", linewidths=0.6)
+        ax.text(
+            xi,
+            min(mean_val + 0.035, 1.06),
+            f"{mean_val:.3f}",
+            ha="center",
+            va="bottom",
+            fontsize=10,
+            color="black",
+            zorder=6,
+        )
 
-    # Dashed trace lines for the first two queries
-    for trace_i, (qid, color) in enumerate(zip(trace_qids, _TRACE_COLORS)):
+    # Dashed trace line for one highlighted query.
+    if trace_qid is not None:
         trace_x, trace_y = [], []
         for xi, qid_dict in enumerate(per_qid_by_alg):
-            if qid in qid_dict:
+            if trace_qid in qid_dict:
                 trace_x.append(xi)
-                trace_y.append(qid_dict[qid])
+                trace_y.append(qid_dict[trace_qid])
         if len(trace_x) > 1:
             ax.plot(
                 trace_x, trace_y,
-                linestyle="--", color=color,
+                linestyle="--", color=_TRACE_COLOR,
                 linewidth=1.8, marker="o", markersize=6, zorder=4,
             )
 

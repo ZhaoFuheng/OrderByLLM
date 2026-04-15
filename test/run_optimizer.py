@@ -42,7 +42,7 @@ from prompts.all_prompts import (
 POPULATION_WIKI_FIELD = "population_estimate"
 
 _POPULATION_FACTUAL_PROMPT = direct_inquiry_factual_knowledge_prompt.format_map(
-    {"description": "Rank countries by their population in 2020", "key": "{key}"}
+    {"description": "Rank countries by their population in 2020", "query": "population of the country", "example": "```{example}```"}
 )
 
 
@@ -162,7 +162,7 @@ async def run_optimizer_population(args, client: AsyncOpenAI, pbar: tqdm | None 
             "sample_size": args.sample_size,
             "proxy_policy": args.proxy_policy,
         },
-        "score_mean": rec["score"],
+        "score_mean": round(float(rec["score"]), 3),
         "score_std": 0.0,
         "ranking_cost": rec["ranking_cost"],
         "optimization_cost": rec["optimization_cost"],
@@ -231,7 +231,7 @@ async def _run_optimizer_dl20_query(
         client=client,
         data=ranking[:],
         factual_knowledge_prompt_template=direct_inquiry_factual_knowledge_prompt.format_map(
-            {"description": f"Rank passages by relevance to a query", "key": "{key}"}
+            {"description": "Rank passages by relevance to a query", "query": query, "example": "```{example}```"}
         ),
         pointwise_prompt_template=p_prompt,
         external_pointwise_prompt_template=ep_prompt,
@@ -404,7 +404,7 @@ async def run_optimizer_dl20(args, client: AsyncOpenAI, pbar: tqdm | None = None
             "sample_size": args.sample_size,
             "proxy_policy": args.proxy_policy,
         },
-        "score_mean": score,
+        "score_mean": round(float(score), 3),
         "score_std": 0.0,
         "per_query_scores": per_query_scores,
         "per_query_chosen_alg": {r["qid"]: r["chosen_alg"] for r in per_query_records},
@@ -442,7 +442,7 @@ async def _run_optimizer_movie(
         client=client,
         data=ranking[:],
         factual_knowledge_prompt_template=direct_inquiry_factual_knowledge_prompt.format_map(
-            {"description": "Rank movie reviews by positivity", "key": "{key}"}
+            {"description": "Rank movie reviews by positivity", "query": "positivity of the review", "example": "```{example}```"}
         ),
         pointwise_prompt_template=movie_pointwise_prompt_template,
         external_pointwise_prompt_template=movie_external_pointwise_prompt_template,
@@ -579,7 +579,7 @@ async def run_optimizer_sembench_movie(
             "sample_size": args.sample_size,
             "proxy_policy": args.proxy_policy,
         },
-        "score_mean": score,
+        "score_mean": round(float(score), 3),
         "score_std": 0.0,
         "per_movie_scores": per_movie_scores,
         "per_movie_chosen_alg": {r["movie_id"]: r["chosen_alg"] for r in per_movie_records},
@@ -682,10 +682,13 @@ def main():
                 for budget in args.budgets:
                     args.total_ranking_budget = budget
                     budget_str = f"{budget:.4f}".rstrip("0").rstrip(".")
-                    tqdm.write(f"\n[model={model}] [policy={policy}] [budget={budget_str}] starting...")
+                    tqdm.write(
+                        f"\n[model={model}] [policy={policy}] [budget={budget_str}] "
+                        f"[sample_size={args.sample_size}] starting..."
+                    )
                     pbar = tqdm(
                         total=1,
-                        desc=f"[{model}] policy={policy} budget={budget_str}",
+                        desc=f"[{model}] policy={policy} budget={budget_str} sample_size={args.sample_size}",
                         unit=unit_map[args.dataset],
                         leave=True,
                     )
@@ -697,7 +700,15 @@ def main():
                         result = await run_optimizer_sembench_movie(args, client, pbar=pbar)
                     pbar.close()
                     budget_results[budget_str] = result
-                    tqdm.write(f"[model={model}] [policy={policy}] [budget={budget_str}] done.")
+                    score_mean = float(result.get("score_mean", float("nan")))
+                    total_ranking_cost = float(
+                        result.get("total_ranking_cost", result.get("ranking_cost", float("nan")))
+                    )
+                    tqdm.write(
+                        f"[model={model}] [policy={policy}] [budget={budget_str}] "
+                        f"[sample_size={args.sample_size}] [score_mean={score_mean:.3f}] "
+                        f"[total_ranking_cost={total_ranking_cost:.4f}] done."
+                    )
                 policy_results[policy] = budget_results
             model_results[model] = policy_results
         return model_results

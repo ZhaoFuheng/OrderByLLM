@@ -146,31 +146,33 @@ _OPTIMIZER_COLOR = {
 def _load_optimizer_data(results_dir: Path, model: str) -> list[dict]:
     """Load optimizer JSON and return a flat list of
     {policy, budget, score, cost} dicts for the given model."""
-    pattern = f"optimizer_{model.replace('/', '-')}*.json"
     dots = []
-    for p in sorted(results_dir.glob(pattern)):
-        data = json.loads(p.read_text(encoding="utf-8"))
-        by_model = data.get("results_by_model", {}).get(model, {})
-        for policy, budgets in by_model.items():
-            if policy == "ideal":
-                continue
-            for budget_str, rec in budgets.items():
-                score = rec.get("score_mean", None)
-                cost = rec.get("total_ranking_cost", rec.get("ranking_cost", None))
-                # Backwards compat: old format stored cost inside seed_results
-                if cost is None:
-                    for sr in rec.get("seed_results", []):
-                        c = sr.get("total_ranking_cost", sr.get("ranking_cost", None))
-                        if c is not None:
-                            cost = c
-                            break
-                if score is not None and cost is not None:
-                    dots.append({
-                        "policy": policy,
-                        "budget": budget_str,
-                        "score": score,
-                        "cost": cost,
-                    })
+    p = results_dir / f"optimizer_{model.replace('/', '-')}.json"
+    if not p.exists():
+        return dots
+
+    data = json.loads(p.read_text(encoding="utf-8"))
+    by_model = data.get("results_by_model", {}).get(model, {})
+    for policy, budgets in by_model.items():
+        if policy == "ideal":
+            continue
+        for budget_str, rec in budgets.items():
+            score = rec.get("score_mean", None)
+            cost = rec.get("total_ranking_cost", rec.get("ranking_cost", None))
+            # Backwards compat: old format stored cost inside seed_results
+            if cost is None:
+                for sr in rec.get("seed_results", []):
+                    c = sr.get("total_ranking_cost", sr.get("ranking_cost", None))
+                    if c is not None:
+                        cost = c
+                        break
+            if score is not None and cost is not None:
+                dots.append({
+                    "policy": policy,
+                    "budget": budget_str,
+                    "score": score,
+                    "cost": cost,
+                })
     return dots
 
 
@@ -271,7 +273,7 @@ def plot_payload(payload: dict, output_dir: Path, results_dir: Path | None = Non
         "merge": "ext_merge_4",
     }
     _OPTIMIZER_LEGEND = {
-        "borda": "Opt(borda)",
+        "borda": "Opt(self-cons)",
         "llm_judge": "Opt(judge)",
         "ideal": "Opt(ideal)",
     }

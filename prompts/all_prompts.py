@@ -158,14 +158,27 @@ Output a JSON list of review ids from most negative to most positive.
 
 
 
+# Does the following ranking task only require factual world knowledge?
+
+direct_inquiry_factual_knowledge_prompt = """Can the following ranking task be solved using factual world knowledge?
+Task description: 
+{description}
+
+Query:
+{query}
+
+Example input rows: 
+{example}
 
 
-direct_inquiry_factual_knowledge_prompt = """Determine whether the ranking task depends on factual world knowledge that require web search.
-Task description: {description}
+Consider whether the example input rows can be ranked based on the task description and query using only factual world knowledge retrieved from the web.
+If the ranking of exmaple input rows require reasoning about its content, then it cannot be answered using factual world knowledge alone.
+If the input query is general rather than asking about a specific fact, then it cannot be answered using factual world knowledge alone.
 
-If this task requires factual knowledge, return 'Yes'.
-If this task is mainly subjective and requires reasoning, return 'No'.
-Provide a brief explanation.
+Return 'Yes' only if the ranking can be done by retrieving explicit factual world information and comparing those facts directly without comparing among the example rows.
+If the task involves relevance matching, interpretation, semantic judgment, nuanced reasoning, or any subjective preference, return 'No'.
+If you return 'Yes', also provide a short, specific web search query that would help retrieve the needed facts.
+If you return 'No', do not provide a web search query.
 """
 
 llm_judge_prompt = """You are an EXPERT RANKED RESULT RATER. You are given a ranking criteria and a list of CANDIDATE RANKED RESULTS.
