@@ -148,7 +148,7 @@ def quick_calls_formula(n: int, vote: int, limit_k: int) -> float:
     K = min(limit_k, n)
     if K >= n:
         return vote * n * math.log2(max(n, 2))
-    return vote * (n + K * math.log2(max(K, 2)))
+    return vote * 2 * (n + K * math.log2(max(K, 2)))
 
 
 def bubble_calls_formula(n: int, m: int, limit_k: int) -> float:
@@ -161,15 +161,15 @@ def bubble_calls_formula(n: int, m: int, limit_k: int) -> float:
 
 
 def merge_calls_formula(n: int, m: int, limit_k: int) -> float:
-    """O(N/m * (3 + 2*log2(K/m))): initial sorts + merge tree with limit_k early exit."""
+    """O(N/m * (2 + 2*log2(K/m))): initial sorts + merge tree with limit_k early exit."""
     K = min(limit_k, n)
     if m <= 0:
         return 1.0
-    n_chunks = math.ceil(n / m)
+    n_chunks = int(n / m)
     if K <= m:
         return float(n_chunks)
     log_term = math.log2(max(K / m, 1))
-    return max(n_chunks * (3 + 2 * log_term), 1.0)
+    return max(n_chunks * (2 + 2 * log_term), 1.0)
 
 
 def is_async_client(client) -> bool:
@@ -320,86 +320,18 @@ def kendalltau_distance(gold: list, predict: list) -> float:
     tau, p_value = kendalltau(gold_ranks, pred_ranks)
     return tau
 
-def borda(rankings, k):
-    # print(f'rankings: {rankings}')
+def borda(rankings):
     scores = defaultdict(int)
     for ranking in rankings:
         n = len(ranking)
         for position, item in enumerate(ranking):
             # worst item first → lowest score
-            # if k:
-            #     assert n >= k, print(f'ranking length {n} is less than k {k}')
-            #     cutoff = n - k
-            #     score = (position - cutoff + 1) if position >= cutoff else 0
-            # else:
             score = position
             scores[item] += score
     ranked_items = sorted(scores.items(), key=lambda x: (x[1], x[0]))
-    if k:
-        ranked_items = [item for item, score in ranked_items[-k:]]
-    else:
-        ranked_items = [item for item, score in ranked_items]
+    # print('ranked_items', ranked_items)
+    # ranked_items = [item for item, score in ranked_items]
     return ranked_items
-
-def bradley_terry(rankings, k, max_iter=200, tol=1e-6):
-
-    # Collect all unique items
-    items = list({item for rank in rankings for item in rank})
-
-    # Initialize strengths for each item
-    strength = {item: 1.0 for item in items}
-
-    # Pairwise win counts: wins[a][b] = number of times a beats b
-    wins = {a: defaultdict(int) for a in items}
-
-    # Rankings are ascending order (worst → best)
-    # So later items beat earlier items
-    for rank in rankings:
-        for i in range(len(rank)):
-            for j in range(i + 1, len(rank)):
-                winner = rank[j]
-                loser = rank[i]
-                wins[winner][loser] += 1
-
-    # MM iterations for Bradley–Terry
-    for _ in range(max_iter):
-        new_strength = {}
-        max_change = 0
-
-        for a in items:
-            numerator = 0.0
-            denom = 0.0
-
-            for b in items:
-                if a == b:
-                    continue
-
-                w_ab = wins[a][b]          # a beats b
-                w_ba = wins[b][a]          # b beats a
-
-                numerator += w_ab
-
-                # Avoid division by zero
-                denom += (w_ab + w_ba) / (strength[a] + strength[b])
-
-            new_val = numerator / denom if denom > 0 else strength[a]
-            new_strength[a] = new_val
-            max_change = max(max_change, abs(new_val - strength[a]))
-
-        strength = new_strength
-
-        if max_change < tol:
-            break
-
-    # Sort items by descending strength (best first)
-    ranked_items = sorted(items, key=lambda x: (-strength[x], x))
-
-    # Apply top-k cutoff if provided
-    if k:
-        ranked_items = ranked_items[:k]
-
-    return ranked_items[::-1]
-
 
 def create_numbered_passages(passages, usePID = False):
     if usePID:
