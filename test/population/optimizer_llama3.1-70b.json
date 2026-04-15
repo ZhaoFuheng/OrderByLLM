@@ -15,7 +15,7 @@
       "borda": {
         "0.1": {
           "dataset": "population",
-          "generated_at": "2026-04-08T00:30:56.158366+00:00",
+          "generated_at": "2026-04-13T23:37:53.828487+00:00",
           "settings": {
             "csv": "data/population_by_country_2020.csv",
             "model": "llama3.1-70b",
@@ -23,20 +23,20 @@
             "sample_size": 20,
             "proxy_policy": "borda"
           },
-          "score_mean": 0.9817085427135679,
+          "score_mean": 0.982,
           "score_std": 0.0,
-          "ranking_cost": 0.018864,
+          "ranking_cost": 0.018069,
           "optimization_cost": 0.0,
           "chosen_alg": "web_point",
-          "in_tokens": 22046,
-          "out_tokens": 25114,
+          "in_tokens": 21392,
+          "out_tokens": 23780,
           "metric_name": "kendalltau"
         }
       },
       "llm_judge": {
         "0.1": {
           "dataset": "population",
-          "generated_at": "2026-04-08T00:30:56.176040+00:00",
+          "generated_at": "2026-04-13T23:37:53.843589+00:00",
           "settings": {
             "csv": "data/population_by_country_2020.csv",
             "model": "llama3.1-70b",
@@ -44,13 +44,13 @@
             "sample_size": 20,
             "proxy_policy": "llm_judge"
           },
-          "score_mean": 0.9817085427135679,
+          "score_mean": 0.982,
           "score_std": 0.0,
-          "ranking_cost": 0.018864,
+          "ranking_cost": 0.018069,
           "optimization_cost": 0.0,
           "chosen_alg": "web_point",
-          "in_tokens": 22046,
-          "out_tokens": 25114,
+          "in_tokens": 21392,
+          "out_tokens": 23780,
           "metric_name": "kendalltau"
         }
       }

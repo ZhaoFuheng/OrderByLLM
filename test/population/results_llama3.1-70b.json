@@ -1,6 +1,6 @@
 {
   "dataset": "population",
-  "generated_at": "2026-04-08T00:28:55.526959+00:00",
+  "generated_at": "2026-04-14T00:49:35.470081+00:00",
   "settings": {
     "csv": "data/population_by_country_2020.csv",
     "model": "llama3.1-70b",
@@ -22,9 +22,9 @@
     {
       "algorithm": "pointwise",
       "seed_scores": {
-        "0": 0.9744723618090452
+        "0": 0.9746733668341709
       },
-      "score_mean": 0.9744723618090452,
+      "score_mean": 0.9746733668341709,
       "score_std": 0.0,
       "price": 0.010974,
       "tokens": 27435
@@ -62,9 +62,9 @@
     {
       "algorithm": "quick_sort",
       "seed_scores": {
-        "0": 0.8931658291457286
+        "0": 0.8937688442211055
       },
-      "score_mean": 0.8931658291457286,
+      "score_mean": 0.8937688442211055,
       "score_std": 0.0,
       "price": 0.118989,
       "tokens": 297472
@@ -72,9 +72,9 @@
     {
       "algorithm": "quick_sort3",
       "seed_scores": {
-        "0": 0.9076381909547737
+        "0": 0.9080402010050251
       },
-      "score_mean": 0.9076381909547737,
+      "score_mean": 0.9080402010050251,
       "score_std": 0.0,
       "price": 0.315305,
       "tokens": 788262
@@ -82,9 +82,9 @@
     {
       "algorithm": "external_bubble_sort_4",
       "seed_scores": {
-        "0": 0.6261306532663317
+        "0": 0.626532663316583
       },
-      "score_mean": 0.6261306532663317,
+      "score_mean": 0.626532663316583,
       "score_std": 0.0,
       "price": 0.558693,
       "tokens": 1396732
@@ -92,9 +92,9 @@
     {
       "algorithm": "external_merge_sort_4",
       "seed_scores": {
-        "0": 0.5628140703517588
+        "0": 0.5630150753768843
       },
-      "score_mean": 0.5628140703517588,
+      "score_mean": 0.5630150753768843,
       "score_std": 0.0,
       "price": 0.0505,
       "tokens": 126249

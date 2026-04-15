@@ -1,6 +1,6 @@
 {
   "dataset": "population",
-  "generated_at": "2026-04-08T00:28:55.508511+00:00",
+  "generated_at": "2026-04-14T00:49:35.452937+00:00",
   "settings": {
     "csv": "data/population_by_country_2020.csv",
     "model": "openai-gpt-4.1",
@@ -22,9 +22,9 @@
     {
       "algorithm": "pointwise",
       "seed_scores": {
-        "0": 0.9946733668341707
+        "0": 0.9964824120603015
       },
-      "score_mean": 0.9946733668341707,
+      "score_mean": 0.9964824120603015,
       "score_std": 0.0,
       "price": 0.151826,
       "tokens": 36307
@@ -32,9 +32,9 @@
     {
       "algorithm": "pointwise_with_search",
       "seed_scores": {
-        "0": 0.9943718592964824
+        "0": 0.996180904522613
       },
-      "score_mean": 0.9943718592964824,
+      "score_mean": 0.996180904522613,
       "score_std": 0.0,
       "price": 0.129858,
       "tokens": 39711
@@ -42,9 +42,9 @@
     {
       "algorithm": "external_pointwise_4",
       "seed_scores": {
-        "0": 0.9854271356783918
+        "0": 0.9872361809045226
       },
-      "score_mean": 0.9854271356783918,
+      "score_mean": 0.9872361809045226,
       "score_std": 0.0,
       "price": 0.048138,
       "tokens": 11715
@@ -52,9 +52,9 @@
     {
       "algorithm": "external_pointwise_4_with_search",
       "seed_scores": {
-        "0": 0.9927638190954773
+        "0": 0.9945728643216079
       },
-      "score_mean": 0.9927638190954773,
+      "score_mean": 0.9945728643216079,
       "score_std": 0.0,
       "price": 0.065266,
       "tokens": 17531
@@ -62,9 +62,9 @@
     {
       "algorithm": "quick_sort",
       "seed_scores": {
-        "0": 0.9842211055276381
+        "0": 0.9858291457286432
       },
-      "score_mean": 0.9842211055276381,
+      "score_mean": 0.9858291457286432,
       "score_std": 0.0,
       "price": 1.108264,
       "tokens": 303005
@@ -72,9 +72,9 @@
     {
       "algorithm": "quick_sort3",
       "seed_scores": {
-        "0": 0.9890452261306532
+        "0": 0.9906532663316583
       },
-      "score_mean": 0.9890452261306532,
+      "score_mean": 0.9906532663316583,
       "score_std": 0.0,
       "price": 2.858604,
       "tokens": 780537
@@ -82,9 +82,9 @@
     {
       "algorithm": "external_bubble_sort_4",
       "seed_scores": {
-        "0": 0.992964824120603
+        "0": 0.9945728643216079
       },
-      "score_mean": 0.992964824120603,
+      "score_mean": 0.9945728643216079,
       "score_std": 0.0,
       "price": 6.212566,
       "tokens": 1467269
@@ -92,9 +92,9 @@
     {
       "algorithm": "external_merge_sort_4",
       "seed_scores": {
-        "0": 0.9917587939698491
+        "0": 0.9935678391959799
       },
-      "score_mean": 0.9917587939698491,
+      "score_mean": 0.9935678391959799,
       "score_std": 0.0,
       "price": 0.57682,
       "tokens": 140915
