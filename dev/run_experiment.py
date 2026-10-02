@@ -2,7 +2,6 @@ import argparse
 import asyncio
 import json
 import logging
-import os
 import random
 import statistics
 import sys
@@ -29,7 +28,15 @@ from order_by.sorting import (
     pointwise_sort,
     quick_sort,
 )
-from order_by.utils import build_client, kendalltau_distance, tokens2price
+from order_by.clients import PROVIDER_HELP, PROVIDERS, build_client, run_async
+from order_by.utils import (
+    PhaseTracker,
+    gather_bounded,
+    kendalltau_distance,
+    load_env_file,
+    query_concurrency,
+    tokens2price,
+)
 from prompts.all_prompts import (
     nba_external_comparison_prompt_template,
     nba_external_pointwise_prompt_template,
@@ -73,20 +80,6 @@ NBA_WIKI_FIELD = "Listed height"
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
-
-
-def _load_env_file(env_path: Path) -> None:
-    if not env_path.exists():
-        return
-    for raw in env_path.read_text(encoding="utf-8").splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        key = key.strip()
-        value = value.strip().strip('"').strip("'")
-        if key and key not in os.environ:
-            os.environ[key] = value
 
 
 def _resolve(p: str) -> Path:
@@ -329,11 +322,9 @@ async def _run_dl19_algorithms_once(
     query: str,
     client: AsyncOpenAI,
     model: str,
-    alg_pbar: tqdm | None = None,
+    tracker: "PhaseTracker | None" = None,
 ):
-    def _set_alg(name: str):
-        if alg_pbar is not None:
-            alg_pbar.set_description(f"  alg: {name:<35s}")
+    tracker = tracker or PhaseTracker(None, 0)  # no-op when disabled
 
     assert len(ranking) == 100, print(len(ranking), 'not 100 for DL19')
     outputs = {}
@@ -343,46 +334,40 @@ async def _run_dl19_algorithms_once(
     ex_prompt = _safe_prompt(passage_external_comparison_prompt_template, question=query)
 
     # pointwise — capture scores directly for use in run scoring
-    _set_alg("pointwise")
-    p_ids, p_scores, _, p_in, p_out = await pointwise_sort(
+    p_ids, p_scores, _, p_in, p_out = await tracker.run("pointwise", pointwise_sort(
         ranking[:], client, p_prompt, model, float,
         key_class=PointwiseRelevanceKey, isPassage=True,
-    )
+    ))
     outputs["pointwise"] = (p_ids, p_scores, p_in, p_out)
 
     # external_pointwise_4 — also has direct scores
-    _set_alg("external_pointwise_4")
-    ep_ids, ep_scores, _, ep_in, ep_out, _ = await external_pointwise_sort(
+    ep_ids, ep_scores, _, ep_in, ep_out, _ = await tracker.run("external_pointwise_4", external_pointwise_sort(
         ranking[:], external_values, client, ep_prompt, model, float,
         isPassage=True, memory_size=4,
-    )
+    ))
     outputs["external_pointwise_4"] = (ep_ids, ep_scores, ep_in, ep_out)
 
     # Comparison-based algorithms return worst-to-best order (no direct scores).
-    _set_alg("quick_sort")
-    q1_sorted, _, q1_in, q1_out = await quick_sort(
+    q1_sorted, _, q1_in, q1_out = await tracker.run("quick_sort", quick_sort(
         ranking[:], client, pw_prompt, model, isPassage=True, vote=1,
-    )
+    ))
     outputs["quick_sort"] = (_normalize_docids(q1_sorted), None, q1_in, q1_out)
 
     # Run quick_sort3, external_bubble_sort_4, and external_merge_sort_4 concurrently
     # to saturate the rate limit and reduce total wall-clock time.
-    _set_alg("quick_sort3 | ext_bubble_4 | ext_merge_4  [parallel]")
     (
         (q3_sorted, _, q3_in, q3_out),
         (eb_sorted, _, eb_in, eb_out),
         (em_sorted, _, em_in, em_out),
     ) = await asyncio.gather(
-        quick_sort(ranking[:], client, pw_prompt, model, isPassage=True, vote=3),
-        external_bubble_sort(ranking[:], external_comparisons, 4, client, ex_prompt, model, isPassage=True),
-        external_merge_sort(ranking[:], external_comparisons, 4, client, ex_prompt, model, isPassage=True),
+        tracker.run("quick_sort3", quick_sort(ranking[:], client, pw_prompt, model, isPassage=True, vote=3)),
+        tracker.run("external_bubble_sort_4", external_bubble_sort(ranking[:], external_comparisons, 4, client, ex_prompt, model, isPassage=True)),
+        tracker.run("external_merge_sort_4", external_merge_sort(ranking[:], external_comparisons, 4, client, ex_prompt, model, isPassage=True)),
     )
     outputs["quick_sort3"]            = (_normalize_docids(q3_sorted), None, q3_in, q3_out)
     outputs["external_bubble_sort_4"] = (_normalize_docids(eb_sorted), None, eb_in, eb_out)
     outputs["external_merge_sort_4"]  = (_normalize_docids(em_sorted), None, em_in, em_out)
 
-    if alg_pbar is not None:
-        alg_pbar.set_description(f"  alg: {'done':<35s}")
     return outputs
 
 
@@ -402,19 +387,31 @@ async def run_dl19(args, client: AsyncOpenAI, pbar: tqdm | None = None, alg_pbar
             sidx = args.seeds.index(seed) + 1
             pbar.reset(total=len(first_stage))
             pbar.set_description(f"[{args.model}] seed {sidx}/{len(args.seeds)}")
+
+        tracker = PhaseTracker(alg_pbar, len(first_stage))
+
+        # Pre-shuffle all queries using the shared rng so the order
+        # is identical regardless of query concurrency.
+        prepared = []
         for qid, query, ranking in first_stage:
-            # Shuffle each query's document list individually (matches DL19.ipynb)
             top_ranking = ranking[:]
             rng.shuffle(top_ranking)
+            prepared.append((qid, query, top_ranking))
+
+        async def _rank_query(qid, query, top_ranking):
             outputs = await _run_dl19_algorithms_once(
-                top_ranking,
-                query,
-                client,
-                args.model,
-                alg_pbar=alg_pbar,
+                top_ranking, query, client, args.model, tracker=tracker,
             )
             if pbar is not None:
                 pbar.update(1)
+            tracker.query_done()
+            return qid, outputs
+
+        results = await gather_bounded(
+            [_rank_query(*p) for p in prepared],
+            query_concurrency(args.model, args.provider),
+        )
+        for qid, outputs in results:
             for alg, (docids, scores, in_t, out_t) in outputs.items():
                 acc[alg]["in_tokens"] += in_t
                 acc[alg]["out_tokens"] += out_t
@@ -424,7 +421,6 @@ async def run_dl19(args, client: AsyncOpenAI, pbar: tqdm | None = None, alg_pbar
                 else:
                     # Comparison-based (worst-to-best order): assign rank score i+1.
                     run_by_alg[alg][str(qid)] = {str(d): float(i + 1) for i, d in enumerate(docids)}
-        pass  # bars are owned and closed by the caller
 
         for alg in DL19_ALGORITHMS:
             alg_metrics = evaluator.evaluate(run_by_alg[alg])
@@ -467,7 +463,7 @@ async def run_dl19(args, client: AsyncOpenAI, pbar: tqdm | None = None, alg_pbar
 
 
 
-_DEFAULT_MODELS = "llama3.1-70b,llama3.1-405b,openai-gpt-4.1"
+_DEFAULT_MODELS = "llama3.1-70b,claude-haiku-4-5,openai-gpt-5-mini"
 
 
 def _output_path(dataset: str, model: str) -> Path:
@@ -490,7 +486,7 @@ def main():
     handler.setFormatter(logging.Formatter("%(levelname)s [%(name)s] %(message)s"))
     logging.root.setLevel(logging.WARNING)
     logging.root.handlers = [handler]
-    _load_env_file(PROJECT_ROOT / ".env")
+    load_env_file(PROJECT_ROOT / ".env")
 
     parser = argparse.ArgumentParser(description="Run script-based experiments.")
     parser.add_argument("--dataset", choices=["dl19", "nba"], required=True)
@@ -498,6 +494,12 @@ def main():
         "--models",
         default=_DEFAULT_MODELS,
         help="Comma-separated list of model names to run (default: all three).",
+    )
+    parser.add_argument(
+        "--provider",
+        choices=PROVIDERS,
+        default="cortex",
+        help=PROVIDER_HELP,
     )
     parser.add_argument("--dl19-run-file", default="data/run.msmarco-v1-passage.bm25-default.dl19.txt")
     parser.add_argument("--hit-depth", type=int, default=100)
@@ -515,7 +517,7 @@ def main():
         raise ValueError("At least one seed is required.")
 
     models = [m.strip() for m in args.models.split(",") if m.strip()]
-    client = build_client()
+    client = build_client(args.provider)
 
     async def _run_one(model: str, pos: int):
         import copy
@@ -558,7 +560,7 @@ def main():
     async def _run_all():
         await asyncio.gather(*[_run_one(m, i) for i, m in enumerate(models)])
 
-    asyncio.run(_run_all())
+    run_async(_run_all(), client)
 
 
 if __name__ == "__main__":

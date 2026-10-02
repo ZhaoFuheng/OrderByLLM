@@ -1,3 +1,4 @@
+import os
 import tiktoken
 import hashlib
 from pathlib import Path
@@ -176,18 +177,107 @@ def is_async_client(client) -> bool:
     return isinstance(client, AsyncOpenAI)
 
 
-def build_client() -> AsyncOpenAI:
-    """Build an AsyncOpenAI client from environment variables.
+class PhaseTracker:
+    """Aggregates which algorithms are currently in flight across concurrent
+    query workers and renders it on a tqdm status line, e.g.
+    `done 47/200 | running: pointwise×2 quick_sort×1 ext_merge_4×2`.
 
-    Required env var : OPENAI_API_KEY
-    Optional env var : OPENAI_BASE_URL  (set to point at Snowflake Cortex, etc.)
+    Shared by the dev/ and test/ experiment runners. With query-level
+    concurrency there is no single "current algorithm", so this shows the
+    multiset of algorithms running right now plus queries completed. Pass any
+    object with a `.set_description(str)` method (a tqdm bar) as `status_line`;
+    pass None to disable.
     """
-    import os
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise ValueError("OPENAI_API_KEY is required in environment or .env")
-    base_url = os.getenv("OPENAI_BASE_URL") or None
-    return AsyncOpenAI(api_key=api_key, base_url=base_url)
+
+    _SHORT = {
+        "external_pointwise_4": "ext_pw_4",
+        "external_pointwise_6": "ext_pw_6",
+        "external_pointwise_8": "ext_pw_8",
+        "external_bubble_sort_4": "ext_bubble_4",
+        "external_bubble_sort_6": "ext_bubble_6",
+        "external_bubble_sort_8": "ext_bubble_8",
+        "external_merge_sort_4": "ext_merge_4",
+        "external_merge_sort_6": "ext_merge_6",
+        "external_merge_sort_8": "ext_merge_8",
+    }
+
+    def __init__(self, status_line, total):
+        self.status_line = status_line
+        self.total = total
+        self.inflight = defaultdict(int)
+        self.done = 0
+
+    def enter(self, alg):
+        self.inflight[alg] += 1
+        self._refresh()
+
+    def leave(self, alg):
+        self.inflight[alg] -= 1
+        if self.inflight[alg] <= 0:
+            self.inflight.pop(alg, None)
+        self._refresh()
+
+    def query_done(self):
+        self.done += 1
+        self._refresh()
+
+    async def run(self, alg, coro):
+        """Await `coro` while counting `alg` as in flight — use this to wrap
+        each algorithm call so entry/exit is tracked automatically."""
+        self.enter(alg)
+        try:
+            return await coro
+        finally:
+            self.leave(alg)
+
+    def _refresh(self):
+        if self.status_line is None:
+            return
+        parts = " ".join(
+            f"{self._SHORT.get(a, a)}×{c}" for a, c in sorted(self.inflight.items())
+        )
+        self.status_line.set_description(
+            f"  done {self.done}/{self.total} | running: {parts or '—'}"
+        )
+
+
+def query_concurrency(model: str, provider: str | None = None) -> int:
+    """How many queries of a benchmark the runners rank at once. Each query
+    already fans out many concurrent LLM calls, so this only needs to be large
+    enough to keep the provider busy without tripping its rate limits."""
+    if provider == "fireworks" or "openai" in model:
+        return 10
+    if "claude" in model:
+        return 5
+    return 1
+
+
+async def gather_bounded(coros, limit: int) -> list:
+    """Await `coros` with at most `limit` running at once. Results keep the
+    input order; with limit=1 the coroutines run strictly one after another."""
+    sem = asyncio.Semaphore(limit)
+
+    async def _run(coro):
+        async with sem:
+            return await coro
+
+    return await asyncio.gather(*[_run(c) for c in coros])
+
+
+def load_env_file(env_path: Path) -> None:
+    """Populate os.environ from a KEY=VALUE file, without overriding variables
+    that are already set in the shell."""
+    if not env_path.exists():
+        return
+    for raw in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            os.environ[key] = value
 
 
 T = TypeVar("T")
@@ -210,23 +300,21 @@ def tokens2price(model, in_tokens, out_tokens):
     """
     Calculate the API cost given the model and number of input/output tokens.
 
-    Pricing (as of Sep 2025):
-    - gpt-4o:          $2.50 per 1M input tokens, $10.00 per 1M output tokens
-    - gpt-4o-mini:     $0.150 per 1M input tokens, $0.600 per 1M output tokens
-    - llama3.1-70b:    $0.40 per 1M input tokens, $0.40 per 1M output tokens
-    - llama3.1-405b:   $4.00 per 1M input tokens, $4.00 per 1M output tokens
-    - openai-gpt-5:    $1.25 per 1M input tokens, $10.00 per 1M output tokens
-    - openai-gpt-5-mini:$0.25 per 1M input tokens, $2.00 per 1M output tokens
+    `pricing` maps a model's short name to its ($ per 1M input tokens,
+    $ per 1M output tokens) rate.
     """
-    # Define a dictionary for easy rate lookup
     pricing = {
         'gpt-4o': (2.50, 10.00),
         'gpt-4o-mini': (0.150, 0.600),
         'llama3.1-70b': (0.40, 0.40),
         'llama3.1-405b': (4.00, 4.00),
         'openai-gpt-5': (1.25, 10.00),
-        'openai-gpt-5-mini': (0.25, 2.00),
+        'openai-gpt-5-mini': (0.25, 2.00),  # reasoning tokens bill at the output rate
+        'openai-gpt-5-nano': (0.05, 0.40),  # reasoning tokens bill at the output rate
         'openai-gpt-4.1': (2.00, 8.00),
+        'claude-haiku-4-5': (1.00, 5.00),
+        'claude-sonnet-4-5': (3.00, 15.00),
+        'claude-sonnet-4-6': (3.00, 15.00),
         'mistral-7b': (0.25, 0.25)
     }
 
@@ -320,6 +408,16 @@ def kendalltau_distance(gold: list, predict: list) -> float:
     tau, p_value = kendalltau(gold_ranks, pred_ranks)
     return tau
 
+def rrf(rankings, k=60):
+    scores = defaultdict(float)
+    for ranking in rankings:
+        for position, item in enumerate(ranking):
+            rank = len(ranking) - position
+            scores[item] += 1.0 / (k + rank)
+    ranked_items = sorted(scores.items(), key=lambda x: (x[1], x[0]))
+    return ranked_items
+
+
 def borda(rankings):
     scores = defaultdict(int)
     for ranking in rankings:
@@ -329,8 +427,6 @@ def borda(rankings):
             score = position
             scores[item] += score
     ranked_items = sorted(scores.items(), key=lambda x: (x[1], x[0]))
-    # print('ranked_items', ranked_items)
-    # ranked_items = [item for item, score in ranked_items]
     return ranked_items
 
 def create_numbered_passages(passages, usePID = False):

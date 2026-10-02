@@ -13,6 +13,13 @@ log = logging.getLogger(__name__)
 
 random.seed(0)
 
+def _batch_size(modelname: str, default: int = 25) -> int:
+    if 'claude' in modelname:
+        return 100
+    if 'llama' in modelname:
+        return 10
+    return default
+
 async def pointwise_sort(data, client, prompt_template, modelname, output_type, key_class = Pointwise_Key, isPassage=True, isReview=False, use_wiki=False, wiki_field=None):
     total_api_calls = 0
     total_input_tokens = 0
@@ -40,7 +47,7 @@ async def pointwise_sort(data, client, prompt_template, modelname, output_type, 
 
     if key_class == Pointwise_Key:
         results = []
-        req_batch_size = 20
+        req_batch_size = _batch_size(modelname, 20)
         for i in range(0, len(data), req_batch_size):
             batch = data[i:i+req_batch_size]
             tasks = [compute_sort_key(item, key_class, prompt_template) for item in batch]
@@ -49,7 +56,7 @@ async def pointwise_sort(data, client, prompt_template, modelname, output_type, 
         sorted_results = sorted(results, key=lambda x: (x[0], x[1]))
     else:
         results = []
-        req_batch_size = 20
+        req_batch_size = _batch_size(modelname, 20)
         for i in range(0, len(data), req_batch_size):
             batch = data[i:i+req_batch_size]
             tasks = [compute_sort_key(text, key_class, prompt_template, isPassage, isReview) for doc_id, text in batch]
@@ -111,6 +118,18 @@ async def quick_sort(data, client, prompt_template, modelname, isPassage, vote =
     pivot_item = data[0]
     less = []
     greater = []
+    # Sets mirroring `less` / `greater`: the vote > 1 placement loops below test
+    # membership once per item per pass, which is quadratic on a list.
+    in_less = set()
+    in_greater = set()
+
+    def put_less(item):
+        less.append(item)
+        in_less.add(item)
+
+    def put_greater(item):
+        greater.append(item)
+        in_greater.add(item)
 
     if limit_k is None:
         limit_k = len(data)
@@ -126,7 +145,7 @@ async def quick_sort(data, client, prompt_template, modelname, isPassage, vote =
     # First, compare all items to the pivot concurrently
     rest_items = data[1:]
     compare_results = []
-    req_batch_size = 25
+    req_batch_size = _batch_size(modelname, 25)
     wrapped_items = [Pair_Comparison_Key(item, s) for item in rest_items]
     for i in range(0, len(wrapped_items), req_batch_size):
         batch_wrapped_items = wrapped_items[i:i+req_batch_size]
@@ -172,9 +191,9 @@ async def quick_sort(data, client, prompt_template, modelname, isPassage, vote =
 
             if len(sampled_items) <= 1: # only one peer, no need to compare
                 if put_in_less:
-                    less.append(item)
+                    put_less(item)
                 else:
-                    greater.append(item)
+                    put_greater(item)
                 continue
 
             for peer_item in sampled_items:
@@ -184,7 +203,7 @@ async def quick_sort(data, client, prompt_template, modelname, isPassage, vote =
         if peer_tasks:
             coros = [peer_task[2] for peer_task in peer_tasks]
             peer_results = []
-            req_batch_size = 25
+            req_batch_size = _batch_size(modelname, 25)
             for i in range(0, len(coros), req_batch_size):
                 batch_coros = coros[i:i+req_batch_size]
                 batch_peer_results = await asyncio.gather(*batch_coros)
@@ -198,18 +217,23 @@ async def quick_sort(data, client, prompt_template, modelname, isPassage, vote =
                 
                 items_comparison_results[item][peer_item] = additional_result
                 items_comparison_results[peer_item][item] = -1 * additional_result
-                assert additional_result == -1 or additional_result == 1, print('additional_result', additional_result)
+                # additional_result can be 0 when two items are identical: passage
+                # comparison keys on the doc TEXT (Pair_Comparison_Key.key = key[1]),
+                # and some corpora (e.g. nfcorpus) contain exact-duplicate documents.
+                # A 0 is a genuine tie — the placement logic below only counts ±1, so
+                # it contributes nothing and the item is placed by its other peers.
+                assert additional_result in (-1, 0, 1), print('additional_result', additional_result)
         # print('items_comparison_results', items_comparison_results)
         # first pick out the items that are in the correct position
         for (item, put_in_less) in initial_decisions:
-            if item in less or item in greater:
+            if item in in_less or item in in_greater:
                 continue
             if put_in_less: # item is in less
                 if sum(items_comparison_results[item].values()) == -1 * len(items_comparison_results[item].values()):
-                    less.append(item)
+                    put_less(item)
             else:
                 if sum(items_comparison_results[item].values()) == len(items_comparison_results[item].values()):
-                    greater.append(item)
+                    put_greater(item)
 
         while_loop_count = 0
         while len(less) + len(greater) < len(initial_decisions):
@@ -217,7 +241,7 @@ async def quick_sort(data, client, prompt_template, modelname, isPassage, vote =
             deadlock = True
 
             for (item, put_in_less) in initial_decisions:
-                if item in less or item in greater:
+                if item in in_less or item in in_greater:
                     continue
                 L_count = 0
                 G_count = 0
@@ -225,24 +249,24 @@ async def quick_sort(data, client, prompt_template, modelname, isPassage, vote =
                     L_count = 1.5
                 else:
                     G_count = 1.5
-                all_contained = all( (peer_item in less or peer_item in greater) for peer_item in items_comparison_results[item].keys())
+                all_contained = all( (peer_item in in_less or peer_item in in_greater) for peer_item in items_comparison_results[item].keys())
                 if not all_contained:
                     continue
                 deadlock = False
                 for peer_item, peer_result in items_comparison_results[item].items():
-                    if peer_item in less and peer_result == -1:
+                    if peer_item in in_less and peer_result == -1:
                         L_count += 1
-                    elif peer_item in less and peer_result == 1:
+                    elif peer_item in in_less and peer_result == 1:
                         pass
-                    if peer_item in greater and peer_result == 1:
+                    if peer_item in in_greater and peer_result == 1:
                         G_count += 1
-                    elif peer_item in greater and peer_result == -1:
+                    elif peer_item in in_greater and peer_result == -1:
                         pass
                 # print(f'L_count: {L_count}, G_count: {G_count}, already filled: {len(less)} {len(greater)}')
                 if L_count > G_count:
-                    less.append(item)
+                    put_less(item)
                 else:
-                    greater.append(item)
+                    put_greater(item)
             if deadlock:
                 placed_one = False
                 for (item, put_in_less) in initial_decisions:
@@ -252,17 +276,17 @@ async def quick_sort(data, client, prompt_template, modelname, isPassage, vote =
                         L_count = 1.5
                     else:
                         G_count = 1.5
-                    if item in less or item in greater:
+                    if item in in_less or item in in_greater:
                         continue   
                     for peer_item, peer_result in items_comparison_results[item].items():
-                        if peer_item in greater and peer_result == 1:
+                        if peer_item in in_greater and peer_result == 1:
                             G_count += 1
-                        if peer_item in less and peer_result == -1:
+                        if peer_item in in_less and peer_result == -1:
                             L_count += 1
                     if L_count > G_count:
-                        less.append(item)
+                        put_less(item)
                     else:
-                        greater.append(item)
+                        put_greater(item)
                     placed_one = True
                     break
                 if not placed_one:
@@ -630,7 +654,7 @@ async def external_pointwise_sort(
 
         chunks = [data[i:i + m] for i in range(0, len(data), m)]
         results = []
-        req_batch_size = 20
+        req_batch_size = _batch_size(modelname, 20)
         for i in range(0, len(chunks), req_batch_size):
             batch_chunks = chunks[i:i+req_batch_size]
             tasks = [

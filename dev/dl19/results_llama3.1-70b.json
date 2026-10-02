@@ -1,6 +1,6 @@
 {
   "dataset": "dl19",
-  "generated_at": "2026-04-08T00:28:50.657685+00:00",
+  "generated_at": "2026-10-02T21:50:11.520516+00:00",
   "settings": {
     "run_file": "data/run.msmarco-v1-passage.bm25-default.dl19.txt",
     "hit_depth": 100,

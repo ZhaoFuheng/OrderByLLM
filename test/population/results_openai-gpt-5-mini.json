@@ -1,0 +1,104 @@
+{
+  "dataset": "population",
+  "generated_at": "2026-10-02T22:07:27.349347+00:00",
+  "settings": {
+    "csv": "data/population_by_country_2020.csv",
+    "model": "openai-gpt-5-mini",
+    "seeds": [
+      0
+    ],
+    "algorithms": [
+      "pointwise",
+      "pointwise_with_search",
+      "external_pointwise_4",
+      "external_pointwise_4_with_search",
+      "quick_sort",
+      "quick_sort3",
+      "external_bubble_sort_4",
+      "external_merge_sort_4"
+    ]
+  },
+  "metrics": [
+    {
+      "algorithm": "pointwise",
+      "seed_scores": {
+        "0": 0.995678391959799
+      },
+      "score_mean": 0.995678391959799,
+      "score_std": 0.0,
+      "price": 0.035732,
+      "tokens": 34058
+    },
+    {
+      "algorithm": "pointwise_with_search",
+      "seed_scores": {
+        "0": 0.9958793969849247
+      },
+      "score_mean": 0.9958793969849247,
+      "score_std": 0.0,
+      "price": 0.033818,
+      "tokens": 43426
+    },
+    {
+      "algorithm": "external_pointwise_4",
+      "seed_scores": {
+        "0": 0.9704522613065325
+      },
+      "score_mean": 0.9704522613065325,
+      "score_std": 0.0,
+      "price": 0.010647,
+      "tokens": 10877
+    },
+    {
+      "algorithm": "external_pointwise_4_with_search",
+      "seed_scores": {
+        "0": 0.978894472361809
+      },
+      "score_mean": 0.978894472361809,
+      "score_std": 0.0,
+      "price": 0.012116,
+      "tokens": 16774
+    },
+    {
+      "algorithm": "quick_sort",
+      "seed_scores": {
+        "0": 0.9859296482412061
+      },
+      "score_mean": 0.9859296482412061,
+      "score_std": 0.0,
+      "price": 0.234533,
+      "tokens": 288082
+    },
+    {
+      "algorithm": "quick_sort3",
+      "seed_scores": {
+        "0": 0.98964824120603
+      },
+      "score_mean": 0.98964824120603,
+      "score_std": 0.0,
+      "price": 0.597721,
+      "tokens": 740397
+    },
+    {
+      "algorithm": "external_bubble_sort_4",
+      "seed_scores": {
+        "0": 0.993467336683417
+      },
+      "score_mean": 0.993467336683417,
+      "score_std": 0.0,
+      "price": 1.840401,
+      "tokens": 1624742
+    },
+    {
+      "algorithm": "external_merge_sort_4",
+      "seed_scores": {
+        "0": 0.9863316582914572
+      },
+      "score_mean": 0.9863316582914572,
+      "score_std": 0.0,
+      "price": 0.170535,
+      "tokens": 155210
+    }
+  ],
+  "metric_name": "kendalltau"
+}

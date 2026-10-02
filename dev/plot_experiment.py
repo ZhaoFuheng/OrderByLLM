@@ -41,7 +41,7 @@ _FAMILY_MARKER = {
     "quick":        "s",
     "quick3":       "h",
     "bubble":       "*",
-    "merge":        "D",
+    "merge":        "X",
 }
 
 
@@ -207,7 +207,9 @@ def plot_payload(payload: dict, output_dir: Path, include_dl19_bar: bool = False
 
     output_dir.mkdir(parents=True, exist_ok=True)
     model_tag = f"_{model.replace('/', '-')}" if model else ""
-    out_path = output_dir / f"{dataset}{model_tag}_{metric_name}.png"
+    # Figure filenames must contain no '_' or '-' (LaTeX-safe): strip both.
+    stem = f"{dataset}{model_tag}_{metric_name}".replace("_", "").replace("-", "")
+    out_path = output_dir / f"{stem}.png"
     fig.tight_layout()
     fig.savefig(out_path, dpi=180)
     plt.close(fig)
@@ -250,9 +252,8 @@ _DL19_BAR_COLORS = {
 def plot_dl19_bar(payload: dict, output_dir: Path) -> Path:
     """Dot-cloud + mean-star chart for DL19 per-query ndcg@10.
 
-    Algorithms are shown in _ALG_ORDER, plus an oracle-style `optimal` column.
-    One highlighted query gets a dashed trace line so you can see how a
-    representative query behaves across algorithms.
+    Algorithms are shown in _ALG_ORDER. One highlighted query gets a dashed trace
+    line so you can see how a representative query behaves across algorithms.
     """
     dataset     = payload.get("dataset", "dl19")
     metric_name = payload.get("metric_name", "ndcg@10")
@@ -277,13 +278,7 @@ def plot_dl19_bar(payload: dict, output_dir: Path) -> Path:
 
     per_qid_by_alg = [_mean_per_qid(by_alg[a]) for a in ordered_algs]
     all_qids = sorted({qid for qid_dict in per_qid_by_alg for qid in qid_dict})
-    optimal_by_qid = {
-        qid: max(qid_dict.get(qid, float("-inf")) for qid_dict in per_qid_by_alg)
-        for qid in all_qids
-    }
-    ordered_algs.append("optimal")
-    per_qid_by_alg.append(optimal_by_qid)
-    alg_labels = [_short_label(a) if a != "optimal" else "optimal" for a in ordered_algs]
+    alg_labels = [_short_label(a) for a in ordered_algs]
     n_algs = len(ordered_algs)
 
     # Use family-consistent colors; keep quick and quick_3 in the purple family.
@@ -365,7 +360,9 @@ def plot_dl19_bar(payload: dict, output_dir: Path) -> Path:
 
     output_dir.mkdir(parents=True, exist_ok=True)
     model_tag = f"_{model.replace('/', '-')}" if model else ""
-    out_path = output_dir / f"{dataset}{model_tag}_{metric_name}_bar.png"
+    # Figure filenames must contain no '_' or '-' (LaTeX-safe): strip both.
+    stem = f"{dataset}{model_tag}_{metric_name}_bar".replace("_", "").replace("-", "")
+    out_path = output_dir / f"{stem}.png"
     fig.savefig(out_path, dpi=180, bbox_inches="tight")
     plt.close(fig)
     return out_path

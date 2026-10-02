@@ -1,4 +1,3 @@
-from zipfile import LargeZipFile
 from .sorting import *
 from .utils import *
 from collections import defaultdict
@@ -7,16 +6,13 @@ from .pointwise import *
 import random
 from typing import Any, List, Optional, Sequence
 from pydantic import BaseModel
-from diskcache import Cache
+from .cache import cache
 import asyncio
 import math
 import pytrec_eval
 import os
 from enum import Enum
 
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-cache = Cache(os.path.join(PROJECT_ROOT, 'sort_cache'), size_limit=50 * 1024**3, eviction_policy='least-recently-used')
-# print(f"prompt cache at {os.path.join(PROJECT_ROOT, 'sort_cache')}")
 
 def _progress_write(message: str) -> None:
     try:
@@ -58,6 +54,7 @@ class OrderByOptimizer:
         ideal_oracle = None,
         k: int = None,
         judge_model = None,
+        judge_client = None,
         good_algs = None,
         bm25_passage = None,
         isReview = False,
@@ -66,8 +63,10 @@ class OrderByOptimizer:
         external_pointwise_memory_size = 8,
         wiki_field = None,
         use_simulation_estimate: bool = False,
+        rrf_k: int = 60,
+        ensemble_max_lists: int = 0,
     ):
-        assert proxy_ground_truth_policy in ['borda', 'llm_judge', 'ext_bubble_4', 'ideal'], print(f"proxy_ground_truth_policy must be one of ['borda', 'llm_judge', 'ext_bubble_4', 'ideal_oracle'], but got {proxy_ground_truth_policy}")
+        assert proxy_ground_truth_policy in ['borda', 'rrf', 'rrf_ensemble', 'borda_ensemble', 'llm_judge', 'ideal'], print(f"proxy_ground_truth_policy must be one of ['borda', 'rrf', 'rrf_ensemble', 'borda_ensemble', 'llm_judge', 'ideal'], but got {proxy_ground_truth_policy}")
         self.ideal_oracle = ideal_oracle
         self.llm_judge_prompt_template = llm_judge_prompt_template
         self.proxy_ground_truth_policy = proxy_ground_truth_policy
@@ -93,6 +92,11 @@ class OrderByOptimizer:
         self.wiki_field = wiki_field
         self.optimization_budget = 0.0
         self.use_simulation_estimate = use_simulation_estimate
+        self.rrf_k = rrf_k  # reciprocal-rank-fusion constant (default 60)
+        # Cap the number of lists fused in the ensemble final aggregation. 0 = no
+        # cap. Keeps only the top-quality lists so a large quality gap between the
+        # best and the rest can't drown the strong list under many weak votes.
+        self.ensemble_max_lists = ensemble_max_lists
         self._ext_point_batch = 4
         if self.isPassage:
             assert k is not None, print(f'k must be provided for passage ranking')
@@ -109,9 +113,13 @@ class OrderByOptimizer:
             self.judge_model = judge_model
         else:
             self.judge_model = self.model
+        # Optional separate client for the LLM judge, so the judge can run on a
+        # different provider than the ranking model (e.g. haiku ranking + gpt-5-nano
+        # judge). None -> reuse self.client (same provider as ranking).
+        self.judge_client = judge_client
 
         # min max boundary
-        self.batch_space = [4, 10]
+        self.batch_space = [4, 8]
         self.alg_cost_est = {}
 
         self.factual_knowledge_schema = SeenStatus
@@ -136,14 +144,19 @@ class OrderByOptimizer:
     async def _call_llm(self, prompt, schema, llm_judge=False):
         if llm_judge:
             model = self.judge_model
+            active_client = self.judge_client if self.judge_client is not None else self.client
         else:
             model = self.model
+            active_client = self.client
 
         key_hash = hash_prompt(prompt, model)
         if key_hash in cache:
             try:
                 cached = cache[key_hash]
-                parsed = schema(**cached['parsed'])
+                cached_parsed = cached['parsed']
+                if schema is SeenStatus and 'webSearchQuery' not in cached_parsed:
+                    cached_parsed = {**cached_parsed, 'webSearchQuery': ''}
+                parsed = schema(**cached_parsed)
                 if 'input_tokens' in cached:
                     input_tokens = cached['input_tokens']
                 else:
@@ -152,23 +165,26 @@ class OrderByOptimizer:
             except Exception:
                 del cache[key_hash]
 
-        i = 0
-        while i < 10:
-            i += 1
+        response = None
+        parsed = None
+        for i in range(1, 11):
+            suffix = ''
+            if i > 2:
+                suffix = " If isFactualKnowledge is 'No', still put an empty string for webSearchQuery."
             try:
-                if type(self.client) == SnowflakeClient:
-                    response = await resolve(self.client.responses(
+                if type(active_client) == SnowflakeClient:
+                    response = await resolve(active_client.responses(
                         model=model,
-                        prompt=prompt,
+                        prompt=prompt + suffix,
                         schema=schema,
                     ))
-                    parsed = response.output_parsed 
+                    parsed = response.output_parsed
                 else:
-                    response = await resolve(self.client.beta.chat.completions.parse(
+                    response = await resolve(active_client.beta.chat.completions.parse(
                             model=model,
                             messages=[
                                 {"role": "system", "content": "You are a helpful agent. Think step by step. Output a JSON object."},
-                                {"role": "user", "content": prompt}],
+                                {"role": "user", "content": prompt + suffix}],
                             temperature=0.0,
                             response_format=schema,
                             max_completion_tokens = 20*1024,
@@ -176,12 +192,15 @@ class OrderByOptimizer:
                     parsed = response.choices[0].message.parsed
                 break
             except Exception as e:
-                print(e)
+                log.warning("optimizer _call_llm %s attempt %d/10: %s", model, i, e)
                 if '429' in str(e):
-                    print('rate limit exceeded, waiting for 30 second')
-                    await asyncio.sleep(30)
+                    await asyncio.sleep(10)
                 continue
-        
+
+        if response is None or parsed is None:
+            log.error("optimizer _call_llm %s: all retries exhausted for schema %s", model, schema.__name__)
+            raise RuntimeError(f"optimizer _call_llm {model}: all 10 retries exhausted for {schema.__name__}")
+
         input_tokens = (
                         getattr(response.usage, "input_tokens", None)
                         or getattr(response.usage, "prompt_tokens", None)
@@ -252,7 +271,8 @@ class OrderByOptimizer:
                 assert actual_sample_api_calls is not None, print(f'actual_sample_api_calls is not provided for {alg_name}')
                 s_calls = actual_sample_api_calls
                 expected_calls = quick_calls_formula(sample_size, v, min(self.k, sample_size))
-                correction_factor = expected_calls / s_calls
+                # correction_factor = expected_calls / s_calls
+                correction_factor = 1.0
                 total_calls = quick_calls_formula(total_size, v, self.k)
                 ans = curr_price * total_calls * correction_factor / max(s_calls, 1)
             # ans *= 1.3 # avoid underestimation
@@ -305,6 +325,13 @@ class OrderByOptimizer:
                         sorted_ids.append(data)
                 rankings.append(sorted_ids[-self.k:])
                 candidate_algs.append(alg_name)
+
+            if len(candidate_algs) == 0:
+                # Only point-based algorithms are affordable at this budget, and the
+                # judge doesn't rank those — nothing to compare. Fall back to
+                # ext_point_4 instead of asking the judge to pick from an empty list
+                # (which spins 7 retries then IndexErrors).
+                return f'ext_point_{self._ext_point_batch}'
 
             if len(candidate_algs) == 1:
                 return candidate_algs[0]
@@ -392,7 +419,7 @@ class OrderByOptimizer:
                 return best_alg
         else:
             assert False
-    
+
     async def physical_order_by_impl(self, seed=42):
         self.rng = random.Random(seed)
         factual_knowledge, input_tokens, output_tokens, web_search_query = await self.is_factual_knowledge()
@@ -413,11 +440,13 @@ class OrderByOptimizer:
         assert sample_size <= len(self.data), print(f'sample size {sample_size} is greater than the data size {len(self.data)}')
         sampled_data = self.data[:sample_size]
 
-        init_algs = ['ext_point_4','point','ext_merge_4','quick']
+        base_batch = 8
+        init_algs = ['point',f'ext_merge_{base_batch}','quick']
+
         results, names, invoked_budget = await self.invoke_all_on_samples(
             sampled_data[:], init_algs
         )
-
+        
         for r, n in zip(results, names):
             assert len(r) == 4, print(r, n)
             self.total_input_tokens += r[2]
@@ -433,6 +462,7 @@ class OrderByOptimizer:
             q_r, _ = quick_entry
             q3_est_price = self.estimated_total_price('quick_3', None, None, None)
             if q3_est_price <= self.ranking_budget:
+                init_algs.append('quick_3')
                 q3_results, q3_names, q3_budget = await self.invoke_all_on_samples(sampled_data[:], ['quick_3'])
                 for r, n in zip(q3_results, q3_names):
                     assert len(r) == 4, print(r, n)
@@ -441,44 +471,40 @@ class OrderByOptimizer:
                 self.optimization_budget += q3_budget
                 extracted += [(r[0], tokens2price(self.model, r[2], r[3]), name, r[1]) for r, name in zip(q3_results, q3_names)]
 
-       # Extract per-call cost from the batch-4 runs to estimate larger batch sizes.
-        base_batch = 4
+       # Extract per-call cost from the batch-8 runs to estimate larger batch sizes.
         base_costs = {}   # {prefix: (sample_price, num_calls)}
         for r, name in zip(results, names):
-            if name == 'ext_merge_4':
+            if 'ext_merge' in name:
                 base_costs['ext_merge'] = (tokens2price(self.model, r[2], r[3]), r[1])
                 
-        bubble_batch = -1
+        most_expensive_bubble_batch = -1
         assert 'ext_merge' in base_costs, print(f'ext_merge not in base_costs: {base_costs}')
-        b4_price, b4_calls = base_costs['ext_merge']
+        b8_price, b8_calls = base_costs['ext_merge']
         for b in range(self.batch_space[0], self.batch_space[1]+1, 2):
-            scaled_price = b4_price * (b / base_batch)
-            est_price = self.estimated_total_price(f'ext_bubble_{b}', scaled_price, sample_size, actual_sample_api_calls=b4_calls)
+            scaled_price = b8_price * (b / base_batch)
+            est_price = self.estimated_total_price(f'ext_bubble_{b}', scaled_price, sample_size, actual_sample_api_calls=b8_calls)
             if est_price <= self.ranking_budget:
-                bubble_batch = b
+                most_expensive_bubble_batch = b
                 break
 
-        merge_batch = -1
-        b4_price, b4_calls = base_costs['ext_merge']
+        # Record the estimated full-run price of each ext_merge batch size
+        # (kept in self.alg_cost_est). NOTE: no extra ext_merge batch sizes are
+        # probed on the sample -- only ext_merge_{base_batch} from init_algs. In
+        # the runs behind the published results the affordable batch found by
+        # this sweep was never used, and that behavior is kept so the results
+        # (and the cached LLM calls they rely on) stay reproducible.
         for b in range(self.batch_space[0], self.batch_space[1]+1, 2):
-            scaled_price = b4_price * (b / base_batch)
-            est_price = self.estimated_total_price(f'ext_merge_{b}', scaled_price, sample_size, actual_sample_api_calls=b4_calls)
+            scaled_price = b8_price * (b / base_batch)
+            est_price = self.estimated_total_price(f'ext_merge_{b}', scaled_price, sample_size, actual_sample_api_calls=b8_calls)
             if est_price <= self.ranking_budget:
-                merge_batch = b
                 break
 
-        
         batch_algs = []
-        if merge_batch > 0:
-            if f'ext_merge_{merge_batch}' not in init_algs:
-                batch_algs.append(f'ext_merge_{merge_batch}')
-            if merge_batch == 4 and self.proxy_ground_truth_policy == 'borda':
-                batch_algs.append(f"ext_merge_6")
-        if bubble_batch > 0:
-            if f'ext_bubble_{bubble_batch}' not in init_algs:
-                batch_algs.append(f'ext_bubble_{bubble_batch}')
-            if bubble_batch == 4 and self.proxy_ground_truth_policy == 'borda':
-                batch_algs.append(f"ext_bubble_6")
+        if most_expensive_bubble_batch > 0:
+            for bubble_b in range(most_expensive_bubble_batch, self.batch_space[-1]+1, 2):
+                batch_algs.append(f'ext_bubble_{bubble_b}')
+                if f'ext_bubble_{bubble_b}' not in init_algs:
+                    init_algs.append(f'ext_bubble_{bubble_b}')
 
         results, names, additional_invoked_budget = await self.invoke_all_on_samples(
             sampled_data[:], batch_algs
@@ -502,10 +528,6 @@ class OrderByOptimizer:
             for sorted_data, curr_price, alg_name, num_calls in extracted:
                 est_price = self.estimated_total_price(alg_name, curr_price, sample_size, actual_sample_api_calls=num_calls)
                 if est_price < self.ranking_budget:
-                    if 'ext_bubble' in alg_name and 'ext_bubble_4' in filtered_algs and alg_name != 'ext_bubble_4':
-                        continue
-                    if 'ext_merge' in alg_name and 'ext_merge_4' in filtered_algs and alg_name != 'ext_merge_4':
-                        continue
                     filtered_extracted.append((sorted_data, est_price, alg_name))
 
             # print('number of candidates', len(filtered_extracted))
@@ -530,46 +552,54 @@ class OrderByOptimizer:
                 best_alg = await self.determine_best_ranking_order(filtered_extracted, sampled_data[:])
             return await self.map_algname_2_alg(self.data[:], best_alg, final_decision=True), best_alg, self.ranking_budget, self.optimization_budget
 
-        elif self.proxy_ground_truth_policy == 'borda':
+        elif self.proxy_ground_truth_policy in ('borda', 'rrf', 'rrf_ensemble', 'borda_ensemble'):
+            # Two aggregation steps, independently chosen:
+            #   score_agg  -> builds the proxy-ground-truth consensus used to score candidates
+            #   final_agg  -> aggregates the selected algorithms' full rankings (ensemble only)
+            # borda / borda_ensemble: borda. rrf / rrf_ensemble: rrf.
+            _pol = self.proxy_ground_truth_policy
+            _rrf = lambda rankings: rrf(rankings, k=self.rrf_k)  # honor configurable rrf k
+            score_agg = borda if _pol in ('borda', 'borda_ensemble') else _rrf
+            final_agg = borda if _pol == 'borda_ensemble' else _rrf
+            is_ensemble = 'ensemble' in _pol
             all_rankings = {}
+
+            all_init_rankings = {}
             for sorted_data, curr_price, alg_name, num_calls in extracted:
                 ranking = []
                 for data in sorted_data:
                     ranking.append(data[0] if type(data) == tuple else data)
                 all_rankings[alg_name] = ranking[-self.k:]
+                if alg_name in init_algs:
+                    all_init_rankings[alg_name] = ranking[-self.k:]
+
+
+            # Consensus 'gold' proxy, computed ONCE from all candidate rankings.
+            assert len(all_rankings) > 0, print('all_rankings is empty')
+            # gold_sorted_data = score_agg(all_rankings.values())
+            gold_sorted_data = score_agg(all_init_rankings.values())
+            gold_sorted_data = gold_sorted_data[-self.k:]
+            gold_ids = [doc_id for (doc_id, score) in gold_sorted_data]
+
+            def _quality(pred, gold_ids):
+                # Agreement of a ranking `pred` with the consensus `gold_ids`.
+                if not self.isPassage and not self.isReview:
+                    return kendalltau_distance(gold_ids[:], pred)
+                top_k = self.k
+                gold = {'Q1': {str(doc_id): int(i + 1) for i, doc_id in enumerate(gold_ids)}}
+                evaluator = pytrec_eval.RelevanceEvaluator(gold, {f'ndcg_cut.{top_k}'})
+                run = {'Q1': {str(doc_id): int(i + 1) for i, doc_id in enumerate(pred)}}
+                metrics = evaluator.evaluate(run)
+                return sum(m[f'ndcg_cut_{top_k}'] for m in metrics.values()) / len(metrics)
 
             candidates = []
             for idx, (sorted_data, curr_price, alg_name, num_calls) in enumerate(extracted):
                 est_price = self.estimated_total_price(alg_name, curr_price, sample_size, actual_sample_api_calls=num_calls)
                 if est_price < self.ranking_budget:
-                    assert len(all_rankings) > 0, print(f'all_rankings is empty')
-                    gold_sorted_data = borda(all_rankings.values())
-                    gold_ids = []
-                    for (doc_id, score) in gold_sorted_data:
-                        gold_ids.append(doc_id)
-                    
                     pred = sorted_data
                     if type(sorted_data[0]) == tuple:
                         pred = [infos[0] for infos in sorted_data]
-
-                    if not self.isPassage and not self.isReview:
-                        # it should be a full sort?
-                        quality = kendalltau_distance(gold_ids[:], pred)
-                    else:
-                        quality = 0.0
-                        top_k = self.k
-                        gold = {
-                            'Q1': {
-                                str(doc_id): int(i+1)
-                                for i, doc_id in enumerate(gold_ids)
-                            }
-                        }
-                        evaluator = pytrec_eval.RelevanceEvaluator(gold, {f'ndcg_cut.{top_k}'})
-                        run = {
-                            'Q1': {str(doc_id): int(i+1) for i, doc_id in enumerate(pred)}
-                        }
-                        metrics = evaluator.evaluate(run)
-                        quality += sum(metric[f'ndcg_cut_{top_k}'] for metric in metrics.values()) / len(metrics)
+                    quality = _quality(pred, gold_ids)
                     candidates.append((quality, est_price, alg_name))
 
             all_algs = set()
@@ -578,16 +608,55 @@ class OrderByOptimizer:
 
             filtered_candidates = []
             for quality, est_price, alg_name in candidates:
-                if 'point' in alg_name:
-                    continue
+                # if 'point' in alg_name:
+                #     continue
                 filtered_candidates.append((quality, est_price, alg_name))
             candidates = filtered_candidates[:]
 
             fallback_alg = f'ext_point_{self._ext_point_batch}' if self._ext_point_batch > 0 else 'point'
+
+            if is_ensemble:
+                # Rank affordable candidates by proxy quality, greedily pick the subset
+                # whose SUM of estimated costs stays under the budget, run each on the
+                # FULL data, and aggregate (final_agg) their rankings into a single output.
+                if len(candidates) == 0:
+                    selected = [fallback_alg]
+                else:
+                    ranked = sorted(candidates, key=lambda x: (-x[0], x[1]))  # quality desc, cheaper tie
+                    selected, cum = [], 0.0
+                    for _q, price, name in ranked:
+                        # Cap the number of fused lists (0 = no cap): keep only the
+                        # top-quality lists so a runaway best list isn't diluted.
+                        if self.ensemble_max_lists and len(selected) >= self.ensemble_max_lists:
+                            break
+                        if not selected or cum + price < self.ranking_budget:
+                            selected.append(name)
+                            cum += price
+                agg_input, tot_calls, tot_in, tot_out = [], 0, 0, 0
+                # The selected ensemble algorithms are independent, so run them
+                # concurrently (like the sampling phase's invoke_all_on_samples).
+                # gather preserves order, so agg_input stays aligned with `selected`.
+                _ens_results = await asyncio.gather(*[
+                    self.map_algname_2_alg(self.data[:], name, final_decision=False)
+                    for name in selected])
+                for sd, calls, in_t, out_t in _ens_results:
+                    agg_input.append([(d[0] if type(d) == tuple else d) for d in sd])
+                    tot_calls += calls
+                    tot_in += in_t
+                    tot_out += out_t
+                if len(agg_input) == 1:
+                    final_ids = agg_input[0]
+                else:
+                    final_ids = [doc_id for (doc_id, _s) in final_agg(agg_input)]
+                # fold the shared optimization tokens in once (as final_decision would)
+                final_ans = (final_ids, tot_calls,
+                             tot_in + self.total_input_tokens, tot_out + self.total_output_tokens)
+                return final_ans, '+'.join(selected), self.ranking_budget, self.optimization_budget
+
             if len(candidates) == 0:
                 best_alg = fallback_alg
             else:
-                best_candidate = max(candidates, key=lambda x: (x[0], x[1])) if candidates else None
+                best_candidate = max(candidates, key=lambda x: (x[0], x[1]))
                 assert best_candidate != None
                 _, _, best_alg = best_candidate
             final_ans = await self.map_algname_2_alg(self.data[:], best_alg, final_decision=True)

@@ -1,0 +1,33 @@
+{
+  "dataset": "nq_situatedqa_combined",
+  "prompt": "V5b",
+  "model": "claude-haiku-4-5",
+  "metrics": {
+    "n": 274,
+    "accuracy": 0.8868613138686131,
+    "confusion": {
+      "parametric": {
+        "parametric": 122,
+        "non_parametric": 15
+      },
+      "non_parametric": {
+        "parametric": 16,
+        "non_parametric": 121
+      }
+    },
+    "per_class": {
+      "parametric": {
+        "precision": 0.8840579710144928,
+        "recall": 0.8905109489051095,
+        "f1": 0.8872727272727274,
+        "support": 137
+      },
+      "non_parametric": {
+        "precision": 0.8897058823529411,
+        "recall": 0.8832116788321168,
+        "f1": 0.8864468864468864,
+        "support": 137
+      }
+    }
+  }
+}

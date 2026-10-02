@@ -1,0 +1,59 @@
+{
+  "dataset": "population",
+  "models": [
+    "claude-haiku-4-5"
+  ],
+  "budgets": [
+    1.0
+  ],
+  "proxy_policies": [
+    "rrf_ensemble",
+    "llm_judge"
+  ],
+  "results_by_model": {
+    "claude-haiku-4-5": {
+      "rrf_ensemble": {
+        "1": {
+          "dataset": "population",
+          "generated_at": "2026-10-02T22:30:24.018798+00:00",
+          "settings": {
+            "csv": "data/population_by_country_2020.csv",
+            "model": "claude-haiku-4-5",
+            "total_ranking_budget": 1.0,
+            "sample_size": 20,
+            "proxy_policy": "rrf_ensemble"
+          },
+          "score_mean": 0.981,
+          "score_std": 0.0,
+          "ranking_cost": 0.248539,
+          "optimization_cost": 0.0,
+          "chosen_alg": "web_point",
+          "in_tokens": 157204,
+          "out_tokens": 18267,
+          "metric_name": "kendalltau"
+        }
+      },
+      "llm_judge": {
+        "1": {
+          "dataset": "population",
+          "generated_at": "2026-10-02T22:30:24.075666+00:00",
+          "settings": {
+            "csv": "data/population_by_country_2020.csv",
+            "model": "claude-haiku-4-5",
+            "total_ranking_budget": 1.0,
+            "sample_size": 20,
+            "proxy_policy": "llm_judge"
+          },
+          "score_mean": 0.981,
+          "score_std": 0.0,
+          "ranking_cost": 0.248539,
+          "optimization_cost": 0.0,
+          "chosen_alg": "web_point",
+          "in_tokens": 157204,
+          "out_tokens": 18267,
+          "metric_name": "kendalltau"
+        }
+      }
+    }
+  }
+}

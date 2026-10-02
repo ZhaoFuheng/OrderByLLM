@@ -2,7 +2,6 @@ import argparse
 import asyncio
 import json
 import math
-import os
 import random
 import sys
 from collections import defaultdict
@@ -23,8 +22,9 @@ from order_by.sorting import (
     pointwise_sort,
     quick_sort,
 )
+from order_by.clients import build_client
 from order_by.utils import (
-    build_client, tokens2price,
+    load_env_file, tokens2price,
     bubble_sort_calls_sim, merge_sort_calls_sim,
     quick_sort_calls_balanced, quick_sort_calls_sim,
     quick_calls_formula, bubble_calls_formula, merge_calls_formula,
@@ -40,19 +40,6 @@ LIMIT_K = 10
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
-
-def _load_env(path: Path) -> None:
-    if not path.exists():
-        return
-    for raw in path.read_text(encoding="utf-8").splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        key, value = key.strip(), value.strip().strip('"').strip("'")
-        if key and key not in os.environ:
-            os.environ[key] = value
-
 
 def _safe_prompt(template: str, **kwargs) -> str:
     class _P(dict):
@@ -314,7 +301,7 @@ def estimated_calls_formula(alg_name, sample_size, total_size, k,
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 async def _run(args) -> None:
-    _load_env(PROJECT_ROOT / ".env")
+    load_env_file(PROJECT_ROOT / ".env")
     client = build_client()
 
     print(f"Loading DL20 queries (n={args.n_queries or 'all'})…")
@@ -456,7 +443,7 @@ async def _run(args) -> None:
 
 
 def main() -> None:
-    _load_env(PROJECT_ROOT / ".env")
+    load_env_file(PROJECT_ROOT / ".env")
 
     parser = argparse.ArgumentParser(
         description="Compare optimizer cost estimates vs actual costs on DL20.",

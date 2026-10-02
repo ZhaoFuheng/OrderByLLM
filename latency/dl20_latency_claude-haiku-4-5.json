@@ -1,0 +1,85 @@
+{
+  "model": "claude-haiku-4-5",
+  "concurrency": 100,
+  "speedup": 20.0,
+  "latency_model": {
+    "intercept": 1.4151608618664286,
+    "per_output_token": 0.0069853499640595154,
+    "per_input_token": 0.0,
+    "chosen": "out_only",
+    "r2": 0.8751060273753338,
+    "formula": "latency_s = intercept + per_output_token*out + per_input_token*in"
+  },
+  "optimizer": {
+    "n_queries": 10,
+    "concurrency": 100,
+    "proxy_policy": "llm_judge",
+    "budget": 56.0,
+    "avg_latency_per_query_s": 306.63,
+    "median_latency_per_query_s": 276.27,
+    "min_s": 252.27,
+    "max_s": 588.38,
+    "per_query": [
+      {
+        "qid": "1030303",
+        "latency_s": 310.93,
+        "chosen_alg": "ext_merge_8",
+        "n_requests": 178
+      },
+      {
+        "qid": "1037496",
+        "latency_s": 264.66,
+        "chosen_alg": "ext_merge_8",
+        "n_requests": 194
+      },
+      {
+        "qid": "1043135",
+        "latency_s": 266.09,
+        "chosen_alg": "quick",
+        "n_requests": 525
+      },
+      {
+        "qid": "1051399",
+        "latency_s": 283.6,
+        "chosen_alg": "ext_merge_8",
+        "n_requests": 242
+      },
+      {
+        "qid": "1064670",
+        "latency_s": 255.17,
+        "chosen_alg": "quick",
+        "n_requests": 549
+      },
+      {
+        "qid": "1071750",
+        "latency_s": 252.27,
+        "chosen_alg": "quick",
+        "n_requests": 274
+      },
+      {
+        "qid": "1105792",
+        "latency_s": 287.23,
+        "chosen_alg": "ext_merge_8",
+        "n_requests": 187
+      },
+      {
+        "qid": "1106979",
+        "latency_s": 268.95,
+        "chosen_alg": "quick",
+        "n_requests": 425
+      },
+      {
+        "qid": "1108651",
+        "latency_s": 588.38,
+        "chosen_alg": "ext_bubble_8",
+        "n_requests": 224
+      },
+      {
+        "qid": "1109707",
+        "latency_s": 289.01,
+        "chosen_alg": "ext_merge_8",
+        "n_requests": 196
+      }
+    ]
+  }
+}

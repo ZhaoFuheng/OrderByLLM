@@ -1,6 +1,6 @@
 {
   "dataset": "nba",
-  "generated_at": "2026-04-08T00:28:10.234558+00:00",
+  "generated_at": "2026-10-02T21:48:16.057010+00:00",
   "settings": {
     "csv": "data/nba_heights_200.csv",
     "model": "llama3.1-70b",

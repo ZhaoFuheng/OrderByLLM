@@ -1,0 +1,304 @@
+{
+  "dataset": "nfcorpus",
+  "models": [
+    "llama3.1-70b"
+  ],
+  "budgets": [
+    5.0,
+    10.0,
+    18.0,
+    26.0
+  ],
+  "proxy_policies": [
+    "rrf_ensemble",
+    "llm_judge"
+  ],
+  "results_by_model": {
+    "llama3.1-70b": {
+      "rrf_ensemble": {
+        "5": {
+          "dataset": "nfcorpus",
+          "generated_at": "2026-10-02T22:16:52.081768+00:00",
+          "settings": {
+            "nfcorpus_dir": "data/nfcorpus",
+            "nfcorpus_limit": 3,
+            "model": "llama3.1-70b",
+            "total_ranking_budget": 5.0,
+            "sample_size": 20,
+            "proxy_policy": "rrf_ensemble"
+          },
+          "score_mean": 0.236,
+          "score_std": 0.0,
+          "per_query_scores": {
+            "PLAIN-1008": 0.0,
+            "PLAIN-1018": 0.2726701556894781,
+            "PLAIN-102": 0.4355891605791733
+          },
+          "per_query_chosen_alg": {
+            "PLAIN-1008": "ext_merge_8",
+            "PLAIN-1018": "point",
+            "PLAIN-102": "point"
+          },
+          "chosen_alg_counts": {
+            "ext_merge_8": 1,
+            "point": 2
+          },
+          "total_ranking_budget": 5.0,
+          "per_query_budget": 1.6666666666666667,
+          "total_optimization_cost": 0.100348,
+          "total_ranking_cost": 3.8579920000000003,
+          "in_tokens": 8148693,
+          "out_tokens": 1747156,
+          "metric_name": "ndcg@10"
+        },
+        "10": {
+          "dataset": "nfcorpus",
+          "generated_at": "2026-10-02T22:16:58.557947+00:00",
+          "settings": {
+            "nfcorpus_dir": "data/nfcorpus",
+            "nfcorpus_limit": 3,
+            "model": "llama3.1-70b",
+            "total_ranking_budget": 10.0,
+            "sample_size": 20,
+            "proxy_policy": "rrf_ensemble"
+          },
+          "score_mean": 0.379,
+          "score_std": 0.0,
+          "per_query_scores": {
+            "PLAIN-1008": 0.0,
+            "PLAIN-1018": 0.6090726157997783,
+            "PLAIN-102": 0.5282800663700055
+          },
+          "per_query_chosen_alg": {
+            "PLAIN-1008": "ext_bubble_8",
+            "PLAIN-1018": "quick",
+            "PLAIN-102": "quick"
+          },
+          "chosen_alg_counts": {
+            "ext_bubble_8": 1,
+            "quick": 2
+          },
+          "total_ranking_budget": 10.0,
+          "per_query_budget": 3.3333333333333335,
+          "total_optimization_cost": 0.139376,
+          "total_ranking_cost": 8.963341,
+          "in_tokens": 19919994,
+          "out_tokens": 2836798,
+          "metric_name": "ndcg@10"
+        },
+        "18": {
+          "dataset": "nfcorpus",
+          "generated_at": "2026-10-02T22:17:08.159259+00:00",
+          "settings": {
+            "nfcorpus_dir": "data/nfcorpus",
+            "nfcorpus_limit": 3,
+            "model": "llama3.1-70b",
+            "total_ranking_budget": 18.0,
+            "sample_size": 20,
+            "proxy_policy": "rrf_ensemble"
+          },
+          "score_mean": 0.336,
+          "score_std": 0.0,
+          "per_query_scores": {
+            "PLAIN-1008": 0.0,
+            "PLAIN-1018": 0.532877640254568,
+            "PLAIN-102": 0.47429449308855226
+          },
+          "per_query_chosen_alg": {
+            "PLAIN-1008": "ext_bubble_8+ext_merge_8+point",
+            "PLAIN-1018": "ext_bubble_8+quick",
+            "PLAIN-102": "ext_bubble_8+quick"
+          },
+          "chosen_alg_counts": {
+            "ext_bubble_8+ext_merge_8+point": 1,
+            "ext_bubble_8+quick": 2
+          },
+          "total_ranking_budget": 18.0,
+          "per_query_budget": 6.0,
+          "total_optimization_cost": 0.261816,
+          "total_ranking_cost": 18.644334,
+          "in_tokens": 42903622,
+          "out_tokens": 4361753,
+          "metric_name": "ndcg@10"
+        },
+        "26": {
+          "dataset": "nfcorpus",
+          "generated_at": "2026-10-02T22:17:19.461814+00:00",
+          "settings": {
+            "nfcorpus_dir": "data/nfcorpus",
+            "nfcorpus_limit": 3,
+            "model": "llama3.1-70b",
+            "total_ranking_budget": 26.0,
+            "sample_size": 20,
+            "proxy_policy": "rrf_ensemble"
+          },
+          "score_mean": 0.363,
+          "score_std": 0.0,
+          "per_query_scores": {
+            "PLAIN-1008": 0.0,
+            "PLAIN-1018": 0.6618313225363274,
+            "PLAIN-102": 0.4260967530293622
+          },
+          "per_query_chosen_alg": {
+            "PLAIN-1008": "ext_bubble_8+ext_merge_8+ext_bubble_6",
+            "PLAIN-1018": "ext_bubble_8+ext_bubble_6+ext_merge_8",
+            "PLAIN-102": "ext_bubble_4+ext_merge_8+point"
+          },
+          "chosen_alg_counts": {
+            "ext_bubble_8+ext_merge_8+ext_bubble_6": 1,
+            "ext_bubble_8+ext_bubble_6+ext_merge_8": 1,
+            "ext_bubble_4+ext_merge_8+point": 1
+          },
+          "total_ranking_budget": 26.0,
+          "per_query_budget": 8.666666666666666,
+          "total_optimization_cost": 0.359186,
+          "total_ranking_cost": 30.085380999999998,
+          "in_tokens": 67227132,
+          "out_tokens": 8884286,
+          "metric_name": "ndcg@10"
+        }
+      },
+      "llm_judge": {
+        "5": {
+          "dataset": "nfcorpus",
+          "generated_at": "2026-10-02T22:17:20.986159+00:00",
+          "settings": {
+            "nfcorpus_dir": "data/nfcorpus",
+            "nfcorpus_limit": 3,
+            "model": "llama3.1-70b",
+            "total_ranking_budget": 5.0,
+            "sample_size": 20,
+            "proxy_policy": "llm_judge"
+          },
+          "score_mean": 0.278,
+          "score_std": 0.0,
+          "per_query_scores": {
+            "PLAIN-1008": 0.0,
+            "PLAIN-1018": 0.7631925784528223,
+            "PLAIN-102": 0.06975096265942551
+          },
+          "per_query_chosen_alg": {
+            "PLAIN-1008": "ext_merge_8",
+            "PLAIN-1018": "ext_merge_8",
+            "PLAIN-102": "ext_merge_8"
+          },
+          "chosen_alg_counts": {
+            "ext_merge_8": 3
+          },
+          "total_ranking_budget": 5.0,
+          "per_query_budget": 1.6666666666666667,
+          "total_optimization_cost": 0.100348,
+          "total_ranking_cost": 5.298132,
+          "in_tokens": 12859674,
+          "out_tokens": 636526,
+          "metric_name": "ndcg@10"
+        },
+        "10": {
+          "dataset": "nfcorpus",
+          "generated_at": "2026-10-02T22:17:26.981298+00:00",
+          "settings": {
+            "nfcorpus_dir": "data/nfcorpus",
+            "nfcorpus_limit": 3,
+            "model": "llama3.1-70b",
+            "total_ranking_budget": 10.0,
+            "sample_size": 20,
+            "proxy_policy": "llm_judge"
+          },
+          "score_mean": 0.304,
+          "score_std": 0.0,
+          "per_query_scores": {
+            "PLAIN-1008": 0.0,
+            "PLAIN-1018": 0.6090726157997783,
+            "PLAIN-102": 0.30145864516321047
+          },
+          "per_query_chosen_alg": {
+            "PLAIN-1008": "quick",
+            "PLAIN-1018": "quick",
+            "PLAIN-102": "ext_bubble_8"
+          },
+          "chosen_alg_counts": {
+            "quick": 2,
+            "ext_bubble_8": 1
+          },
+          "total_ranking_budget": 10.0,
+          "per_query_budget": 3.3333333333333335,
+          "total_optimization_cost": 0.139376,
+          "total_ranking_cost": 8.090038999999999,
+          "in_tokens": 18356737,
+          "out_tokens": 2216800,
+          "metric_name": "ndcg@10"
+        },
+        "18": {
+          "dataset": "nfcorpus",
+          "generated_at": "2026-10-02T22:17:30.723684+00:00",
+          "settings": {
+            "nfcorpus_dir": "data/nfcorpus",
+            "nfcorpus_limit": 3,
+            "model": "llama3.1-70b",
+            "total_ranking_budget": 18.0,
+            "sample_size": 20,
+            "proxy_policy": "llm_judge"
+          },
+          "score_mean": 0.304,
+          "score_std": 0.0,
+          "per_query_scores": {
+            "PLAIN-1008": 0.0,
+            "PLAIN-1018": 0.6090726157997783,
+            "PLAIN-102": 0.30145864516321047
+          },
+          "per_query_chosen_alg": {
+            "PLAIN-1008": "ext_bubble_8",
+            "PLAIN-1018": "quick",
+            "PLAIN-102": "ext_bubble_8"
+          },
+          "chosen_alg_counts": {
+            "ext_bubble_8": 2,
+            "quick": 1
+          },
+          "total_ranking_budget": 18.0,
+          "per_query_budget": 6.0,
+          "total_optimization_cost": 0.261816,
+          "total_ranking_cost": 9.346852,
+          "in_tokens": 22176751,
+          "out_tokens": 1844918,
+          "metric_name": "ndcg@10"
+        },
+        "26": {
+          "dataset": "nfcorpus",
+          "generated_at": "2026-10-02T22:17:36.119943+00:00",
+          "settings": {
+            "nfcorpus_dir": "data/nfcorpus",
+            "nfcorpus_limit": 3,
+            "model": "llama3.1-70b",
+            "total_ranking_budget": 26.0,
+            "sample_size": 20,
+            "proxy_policy": "llm_judge"
+          },
+          "score_mean": 0.345,
+          "score_std": 0.0,
+          "per_query_scores": {
+            "PLAIN-1008": 0.0,
+            "PLAIN-1018": 0.6090726157997783,
+            "PLAIN-102": 0.4260967530293622
+          },
+          "per_query_chosen_alg": {
+            "PLAIN-1008": "quick",
+            "PLAIN-1018": "quick",
+            "PLAIN-102": "ext_bubble_6"
+          },
+          "chosen_alg_counts": {
+            "quick": 2,
+            "ext_bubble_6": 1
+          },
+          "total_ranking_budget": 26.0,
+          "per_query_budget": 8.666666666666666,
+          "total_optimization_cost": 0.359186,
+          "total_ranking_cost": 9.252673000000001,
+          "in_tokens": 21563469,
+          "out_tokens": 2466179,
+          "metric_name": "ndcg@10"
+        }
+      }
+    }
+  }
+}

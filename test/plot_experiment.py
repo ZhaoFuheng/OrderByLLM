@@ -12,7 +12,7 @@ Supported datasets (add new entries to _YLIM to extend):
 
 Usage:
     # single file
-    python test/plot_experiment.py --input test/dl20/results_openai-gpt-4.1.json
+    python test/plot_experiment.py --input test/dl20/results_llama3.1-70b.json
 
     # all JSONs in a directory  →  figures written alongside the JSONs
     python test/plot_experiment.py --input-dir test/dl20
@@ -38,9 +38,16 @@ _YLIM = {
     "dl19":           (0.40, 0.90),
     "dl20":           (0.40, 0.80),
     "population":     (0.95, 1.00),
-    "sembench_movie": (0.50, 1.00),
+    "sembench_movie": (0.60, 1.00),
 }
 _YLIM_DEFAULT = (0.10, 1.00)
+
+# Algorithms to drop from the plots (batch sizes 6/8 are no longer studied; old
+# results_*.json may still carry them).
+_EXCLUDED_ALGS = {
+    "external_merge_sort_6", "external_merge_sort_8",
+    "external_bubble_sort_6", "external_bubble_sort_8",
+}
 
 
 # ── Marker / colour helpers ───────────────────────────────────────────────────
@@ -62,7 +69,7 @@ _FAMILY_MARKER = {
     "quick":        "s",
     "quick3":       "h",
     "bubble":       "*",
-    "merge":        "D",
+    "merge":        "X",
 }
 
 
@@ -131,15 +138,13 @@ def _log_fit(xs: np.ndarray, ys: np.ndarray):
 # ── Main plot function ────────────────────────────────────────────────────────
 
 _OPTIMIZER_MARKER = {
-    "borda":     "X",
-    "llm_judge": "P",
-    "ideal":     "H",
+    "rrf_ensemble": "D",
+    "llm_judge":    "P",
 }
 
 _OPTIMIZER_COLOR = {
-    "borda":     "tab:orange",
-    "llm_judge": "tab:cyan",
-    "ideal":     "gold",
+    "rrf_ensemble": "tab:orange",
+    "llm_judge":    "tab:cyan",
 }
 
 
@@ -166,6 +171,11 @@ def _load_optimizer_data(results_dir: Path, model: str) -> list[dict]:
                     if c is not None:
                         cost = c
                         break
+            # Optimizer's TOTAL cost = ranking cost + the optimizer's own sampling
+            # (optimization) overhead, so it's comparable to a standalone algorithm's
+            # full-run price.
+            if cost is not None:
+                cost += rec.get("total_optimization_cost", rec.get("optimization_cost", 0.0)) or 0.0
             if score is not None and cost is not None:
                 dots.append({
                     "policy": policy,
@@ -181,6 +191,7 @@ def plot_payload(payload: dict, output_dir: Path, results_dir: Path | None = Non
     metric_name = payload.get("metric_name", "kendall_tau")
     model       = payload.get("settings", {}).get("model", "")
     points      = payload.get("metrics", [])
+    points      = [p for p in points if str(p.get("algorithm", "")) not in _EXCLUDED_ALGS]
     if not points:
         raise ValueError("No metrics in payload.")
 
@@ -211,7 +222,7 @@ def plot_payload(payload: dict, output_dir: Path, results_dir: Path | None = Non
     # (text labels next to algorithm dots removed for cleaner plots)
 
 
-    # ── Optimizer dots (borda, llm_judge, ideal) ────────────────────────────
+    # ── Optimizer dots (rrf_ensemble→Self-Cons, llm_judge→Judge) ─────────────
     opt_dots = []
     if results_dir and model:
         opt_dots = _load_optimizer_data(results_dir, model)
@@ -229,12 +240,12 @@ def plot_payload(payload: dict, output_dir: Path, results_dir: Path | None = Non
             markeredgecolor="black", markeredgewidth=1.2,
             markersize=13, zorder=5, linestyle="None",
         )
-        if policy not in ("borda", "llm_judge", "ideal"):
+        if policy not in ("rrf_ensemble", "llm_judge"):
             label = f'{policy} ${dot["budget"]}'
             opt_texts.append(ax.text(dot["cost"], dot["score"], label, fontsize=10, fontstyle="italic"))
 
     # Connect optimizer dots with curves, starting from bm25
-    for curve_policy, curve_style in [("borda", "--"), ("llm_judge", "--"), ("ideal", "--")]:
+    for curve_policy, curve_style in [("rrf_ensemble", "--"), ("llm_judge", "--")]:
         curve_dots = sorted([d for d in opt_dots if d["policy"] == curve_policy], key=lambda d: d["cost"])
         if curve_dots:
             cx = [d["cost"] for d in curve_dots]
@@ -273,9 +284,8 @@ def plot_payload(payload: dict, output_dir: Path, results_dir: Path | None = Non
         "merge": "ext_merge_4",
     }
     _OPTIMIZER_LEGEND = {
-        "borda": "Opt(self-cons)",
-        "llm_judge": "Opt(judge)",
-        "ideal": "Opt(ideal)",
+        "rrf_ensemble": "Self-Cons",
+        "llm_judge": "Judge",
     }
     present_families = {_family(a) for a in algs}
     family_entries = [
@@ -332,7 +342,9 @@ def plot_payload(payload: dict, output_dir: Path, results_dir: Path | None = Non
 
     output_dir.mkdir(parents=True, exist_ok=True)
     model_tag = f"_{model.replace('/', '-')}" if model else ""
-    out_path = output_dir / f"{dataset}{model_tag}_{metric_name}.png"
+    # Figure filenames must contain no '_' or '-' (LaTeX-safe): strip both.
+    stem = f"{dataset}{model_tag}_{metric_name}".replace("_", "").replace("-", "")
+    out_path = output_dir / f"{stem}.png"
     fig.savefig(out_path, dpi=180, bbox_inches="tight")
     plt.close(fig)
     return out_path

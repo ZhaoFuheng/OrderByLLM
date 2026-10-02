@@ -1,16 +1,12 @@
 import argparse
-import asyncio
 import json
 import logging
-import os
 import random
-
 import sys
-from collections import Counter, defaultdict
+from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
-import ir_datasets
 import pandas as pd
 import pytrec_eval
 from openai import AsyncOpenAI
@@ -20,8 +16,15 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from benchmarks import PassageBenchmark, load_dl20, load_hellaswag, load_nfcorpus
+from order_by.clients import PROVIDER_HELP, PROVIDERS, build_client, run_async
 from order_by.optimizer import OrderByOptimizer
-from order_by.utils import build_client, kendalltau_distance, load_movie_reviews, tokens2price
+from order_by.utils import (
+    kendalltau_distance,
+    load_env_file,
+    load_movie_reviews,
+    tokens2price,
+)
 from prompts.all_prompts import (
     direct_inquiry_factual_knowledge_prompt,
     llm_judge_prompt,
@@ -50,19 +53,6 @@ _POPULATION_FACTUAL_PROMPT = direct_inquiry_factual_knowledge_prompt.format_map(
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
-
-
-def _load_env_file(env_path: Path) -> None:
-    if not env_path.exists():
-        return
-    for raw in env_path.read_text(encoding="utf-8").splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        key, value = key.strip(), value.strip().strip('"').strip("'")
-        if key and key not in os.environ:
-            os.environ[key] = value
 
 
 def _resolve(p: str) -> Path:
@@ -113,6 +103,8 @@ async def _run_optimizer_population(
         enable_factual_web_search=True,
         external_pointwise_memory_size=args.ext_point_batch,
         wiki_field=POPULATION_WIKI_FIELD,
+        rrf_k=args.rrf_k,
+        ensemble_max_lists=args.ensemble_max_lists,
     )
     (sorted_data, num_calls, in_tok, out_tok), chosen_alg, ranking_cost, opt_cost = \
         await opt.physical_order_by_impl()
@@ -173,46 +165,39 @@ async def run_optimizer_population(args, client: AsyncOpenAI, pbar: tqdm | None 
     }
 
 
-# ── DL20 ──────────────────────────────────────────────────────────────────────
+# ── Passage benchmarks (ndcg@10): DL20, HellaSwag, NFCorpus ──────────────────
 
-def _build_dl20_data(run_path: Path, hit_depth: int):
-    ds = ir_datasets.load("msmarco-passage/trec-dl-2020")
-    docstore = ds.docs_store()
-    query_map = {str(q.query_id): q.text for q in ds.queries_iter()}
-
-    by_qid = defaultdict(list)
-    with run_path.open(encoding="utf-8") as f:
-        for line in f:
-            parts = line.strip().split()
-            if len(parts) != 6:
-                continue
-            qid, _, docid, rank, _, _ = parts
-            if int(rank) > hit_depth or qid not in query_map:
-                continue
-            doc = docstore.get(docid)
-            if doc is None:
-                continue
-            text = (doc.title + " " if getattr(doc, "title", None) else "") + doc.text
-            by_qid[qid].append((int(rank), docid, text))
-
-    first_stage, bm25_by_qid = [], {}
-    for qid, entries in sorted(by_qid.items()):
-        entries.sort(key=lambda x: x[0])
-        ranking = [(docid, text) for _, docid, text in entries]
-        first_stage.append((qid, query_map[qid], ranking))
-        bm25_by_qid[qid] = [docid for _, docid, _ in entries]
-
-    qrels_by_qid = defaultdict(dict)
-    for q in ds.qrels_iter():
-        qrels_by_qid[str(q.query_id)][str(q.doc_id)] = int(q.relevance)
-    qrels_by_qid = dict(qrels_by_qid)
-
-    first_stage = [(qid, q, r) for qid, q, r in first_stage if qid in qrels_by_qid]
-    evaluator = pytrec_eval.RelevanceEvaluator(qrels_by_qid, {"ndcg_cut.10"})
-    return first_stage, evaluator, qrels_by_qid
+def _build_passage_optimizer(query, ranking, client, args, budget, ideal_oracle=None):
+    """Construct an OrderByOptimizer for one passage query."""
+    return OrderByOptimizer(
+        client=client,
+        data=ranking[:],
+        factual_knowledge_prompt_template=direct_inquiry_factual_knowledge_prompt.format_map(
+            {"description": "Rank passages by relevance to a query", "query": query, "example": "```{example}```"}
+        ),
+        pointwise_prompt_template=_safe_prompt(passage_pointwise_prompt_template, question=query),
+        external_pointwise_prompt_template=_safe_prompt(passage_external_pointwise_prompt_template, question=query),
+        pairwise_comparison_prompt_template=_safe_prompt(passage_pairwise_comparison_prompt_template, question=query),
+        external_pairwise_prompt_template=_safe_prompt(passage_external_comparison_prompt_template, question=query),
+        dollar_budget_constraint=budget,
+        model_name=args.model,
+        isPassage=True,
+        llm_judge_prompt_template=llm_judge_prompt.replace("{criteria}", f"Rank passages by relevance to the query: {query}"),
+        judge_model=args.judge_model,
+        judge_client=getattr(args, "judge_client", None),
+        sample_size=min(args.sample_size, len(ranking)),
+        proxy_ground_truth_policy=args.proxy_policy,
+        k=10,
+        enable_factual_web_search=False,
+        external_pointwise_memory_size=args.ext_point_batch,
+        has_id_and_row=True,
+        ideal_oracle=ideal_oracle,
+        rrf_k=args.rrf_k,
+        ensemble_max_lists=args.ensemble_max_lists,
+    )
 
 
-async def _run_optimizer_dl20_query(
+async def _run_optimizer_passage_query(
     qid: str,
     query: str,
     ranking: list[tuple[str, str]],
@@ -221,35 +206,8 @@ async def _run_optimizer_dl20_query(
     budget: float = 0.0,
     ideal_oracle: dict | None = None,
 ) -> dict:
-    """Run optimizer on a single DL20 query with a pre-allocated budget slice."""
-    p_prompt  = _safe_prompt(passage_pointwise_prompt_template,           question=query)
-    ep_prompt = _safe_prompt(passage_external_pointwise_prompt_template,  question=query)
-    pw_prompt = _safe_prompt(passage_pairwise_comparison_prompt_template, question=query)
-    ex_prompt = _safe_prompt(passage_external_comparison_prompt_template, question=query)
-
-    opt = OrderByOptimizer(
-        client=client,
-        data=ranking[:],
-        factual_knowledge_prompt_template=direct_inquiry_factual_knowledge_prompt.format_map(
-            {"description": "Rank passages by relevance to a query", "query": query, "example": "```{example}```"}
-        ),
-        pointwise_prompt_template=p_prompt,
-        external_pointwise_prompt_template=ep_prompt,
-        pairwise_comparison_prompt_template=pw_prompt,
-        external_pairwise_prompt_template=ex_prompt,
-        dollar_budget_constraint=budget,
-        model_name=args.model,
-        isPassage=True,
-        llm_judge_prompt_template=llm_judge_prompt.replace("{criteria}", f"Rank passages by relevance to the query: {query}"),
-        judge_model=args.judge_model,
-        sample_size=min(args.sample_size, len(ranking)),
-        proxy_ground_truth_policy=args.proxy_policy,
-        k=10,
-        enable_factual_web_search=False,
-        external_pointwise_memory_size=args.ext_point_batch,
-        has_id_and_row=True,
-        ideal_oracle=ideal_oracle,
-    )
+    """Run optimizer on a single passage query with a pre-allocated budget slice."""
+    opt = _build_passage_optimizer(query, ranking, client, args, budget, ideal_oracle)
     (sorted_data, num_calls, in_tok, out_tok), chosen_alg, _, opt_cost = \
         await opt.physical_order_by_impl()
 
@@ -299,58 +257,85 @@ def _load_oracle_data(model: str, dataset: str):
                 for qid, cost in seed_costs.items():
                     alg_costs.setdefault(qid, {})
                     alg_costs[qid][alg] = cost
-        oracle_best = {qid: max(scores, key=scores.get) for qid, scores in alg_scores.items()}
+        # oracle_best[qid] = ALL algorithms tied at the best score (multiple
+        # algorithms can achieve the same max ndcg), cheapest-first for display.
+        oracle_best: dict[str, list[str]] = {}
+        for qid, scores in alg_scores.items():
+            best_score = max(scores.values())
+            tied = [a for a, s in scores.items() if s == best_score]
+            costs_q = alg_costs.get(qid, {})
+            tied.sort(key=lambda a: (costs_q.get(a, float("inf")), a))
+            oracle_best[qid] = tied
         return oracle_best, alg_scores, alg_costs
     except Exception as e:
         tqdm.write(f"  [oracle] failed to load results file: {e}")
         return None, None, None
 
 
-async def run_optimizer_dl20(args, client: AsyncOpenAI, pbar: tqdm | None = None) -> dict:
-    first_stage, evaluator, qrels_by_qid = _build_dl20_data(_resolve(args.dl20_run_file), args.hit_depth)
+def _oracle_summary(key: str, oracle_best, alg_scores, alg_costs=None):
+    """Format the oracle-best algorithms for one query/movie id.
+    Returns (best_str, best_ndcg, best_cost). oracle_best[key] is the list of
+    algorithms tied at the max score; best_cost is the cheapest among them.
+    """
+    algs = oracle_best.get(key, [])
+    if not algs:
+        return "?", float("nan"), float("nan")
+    best_str = ",".join(algs)
+    best_ndcg = alg_scores.get(key, {}).get(algs[0], float("nan"))
+    best_cost = float("nan")
+    if alg_costs:
+        costs = alg_costs.get(key, {})
+        best_cost = min((costs[a] for a in algs if a in costs), default=float("nan"))
+    return best_str, best_ndcg, best_cost
 
-    query_items = [(qid, query, ranking, len(ranking)) for qid, query, ranking in first_stage]
 
+async def _run_optimizer_passage_benchmark(
+    dataset: str,
+    bench: PassageBenchmark,
+    settings: dict,
+    args,
+    client: AsyncOpenAI,
+    pbar: tqdm | None = None,
+) -> dict:
+    """Run the optimizer on every query of `bench`, splitting the total budget
+    evenly across queries. `settings` is the dataset-specific part of the
+    payload's settings."""
     # Load oracle best-per-query from the pre-computed results file (optional).
-    oracle_best, oracle_alg_scores, oracle_alg_costs = _load_oracle_data(args.model, "dl20")
+    oracle_best, oracle_alg_scores, oracle_alg_costs = _load_oracle_data(args.model, dataset)
     if oracle_best:
         tqdm.write(f"  [oracle] loaded best-alg reference for {len(oracle_best)} queries from results_{args.model}.json")
 
-    rng = random.Random(0)
+    # Same seeded candidate order as run_experiment.py, so the chosen algorithm's
+    # full run hits the response cache of the standalone runs.
+    prepared = bench.shuffled(args.seed)
+
     run_dict: dict[str, dict[str, float]] = {}
     per_query_records: list[dict] = []
     total_in, total_out, total_opt_budget = 0, 0, 0.0
 
     # Fixed budget per query.
-    per_query_budget = args.total_ranking_budget / len(query_items) if query_items else 0.0
+    per_query_budget = args.total_ranking_budget / len(prepared) if prepared else 0.0
 
     if pbar is not None:
-        pbar.reset(total=len(query_items))
+        pbar.reset(total=len(prepared))
         pbar.set_description(f"[{args.model}]")
 
-    for qid, query, ranking, n_docs in query_items:
-        ranking_budget = per_query_budget
-
-        shuffled = ranking[:]
-        rng.shuffle(shuffled)
-        ideal = qrels_by_qid.get(str(qid)) if args.proxy_policy == "ideal" else None
-        rec = await _run_optimizer_dl20_query(qid, query, shuffled, client, args, budget=ranking_budget, ideal_oracle=ideal)
+    for qid, query, shuffled in prepared:
+        ideal = bench.qrels.get(str(qid)) if args.proxy_policy == "ideal" else None
+        rec = await _run_optimizer_passage_query(
+            qid, query, shuffled, client, args, budget=per_query_budget, ideal_oracle=ideal,
+        )
 
         chosen = rec["chosen_alg"]
-
-        doc_ids = rec["doc_ids"]
-        run_dict[str(qid)] = {str(d): float(i + 1) for i, d in enumerate(doc_ids)}
-
+        run_dict[str(qid)] = {str(d): float(i + 1) for i, d in enumerate(rec["doc_ids"])}
         chosen_ndcg = float(
-            evaluator.evaluate({str(qid): run_dict[str(qid)]})
+            bench.evaluator.evaluate({str(qid): run_dict[str(qid)]})
             .get(str(qid), {})
             .get("ndcg_cut_10", float("nan"))
         )
 
         if oracle_best and oracle_alg_scores:
-            best      = oracle_best.get(str(qid), "?")
-            best_ndcg = oracle_alg_scores.get(str(qid), {}).get(best, float("nan"))
-            best_cost = oracle_alg_costs.get(str(qid), {}).get(best, float("nan")) if oracle_alg_costs else float("nan")
+            best, best_ndcg, best_cost = _oracle_summary(str(qid), oracle_best, oracle_alg_scores, oracle_alg_costs)
             is_match  = chosen_ndcg >= best_ndcg
             color = "\033[32m" if is_match else "\033[34m"
             mark = "✓" if is_match else "✗"
@@ -360,7 +345,6 @@ async def run_optimizer_dl20(args, client: AsyncOpenAI, pbar: tqdm | None = None
                 f"optimizer={chosen:<26s}ndcg={chosen_ndcg:.3f}  "
                 f"oracle_best={best:<26s}ndcg={best_ndcg:.3f}  {cost_str}{mark}\033[0m"
             )
-
         else:
             tqdm.write(f"  qid={qid:<12s}  optimizer={chosen:<26s}ndcg={chosen_ndcg:.3f}")
 
@@ -370,7 +354,8 @@ async def run_optimizer_dl20(args, client: AsyncOpenAI, pbar: tqdm | None = None
         per_query_records.append({
             "qid": qid,
             "chosen_alg": chosen,
-            "ranking_budget": ranking_budget,
+            "ndcg": chosen_ndcg,
+            "ranking_budget": per_query_budget,
             "ranking_cost": rec["ranking_cost"],
             "optimization_cost": rec["optimization_cost"],
         })
@@ -380,25 +365,22 @@ async def run_optimizer_dl20(args, client: AsyncOpenAI, pbar: tqdm | None = None
     if oracle_best and oracle_alg_scores:
         correct = sum(
             1 for r in per_query_records
-            if float(evaluator.evaluate({str(r["qid"]): run_dict[str(r["qid"])]})
-                     .get(str(r["qid"]), {}).get("ndcg_cut_10", -1))
-               >= oracle_alg_scores.get(str(r["qid"]), {}).get(oracle_best.get(str(r["qid"]), ""), float("inf"))
+            if r["ndcg"] >= _oracle_summary(str(r["qid"]), oracle_best, oracle_alg_scores)[1]
         )
         total = len(per_query_records)
         tqdm.write(f"  [oracle accuracy] {correct}/{total} queries matched oracle-best ({correct/total*100:.1f}%)")
 
-    alg_metrics = evaluator.evaluate(run_dict)
+    alg_metrics = bench.evaluator.evaluate(run_dict)
     per_query_scores = {qid: float(m["ndcg_cut_10"]) for qid, m in alg_metrics.items()}
     score = sum(per_query_scores.values()) / len(per_query_scores) if per_query_scores else 0.0
 
     alg_counts = dict(Counter(r["chosen_alg"] for r in per_query_records))
     total_ranking_cost = tokens2price(args.model, total_in, total_out) - total_opt_budget
     return {
-        "dataset": "dl20",
+        "dataset": dataset,
         "generated_at": _now_iso(),
         "settings": {
-            "run_file": args.dl20_run_file,
-            "hit_depth": args.hit_depth,
+            **settings,
             "model": args.model,
             "total_ranking_budget": args.total_ranking_budget,
             "sample_size": args.sample_size,
@@ -417,6 +399,27 @@ async def run_optimizer_dl20(args, client: AsyncOpenAI, pbar: tqdm | None = None
         "out_tokens": total_out,
         "metric_name": "ndcg@10",
     }
+
+
+async def run_optimizer_dl20(args, client: AsyncOpenAI, pbar: tqdm | None = None) -> dict:
+    bench = load_dl20(_resolve(args.dl20_run_file), args.hit_depth)
+    bench.limit(args.query_limit)
+    settings = {"run_file": args.dl20_run_file, "hit_depth": args.hit_depth}
+    return await _run_optimizer_passage_benchmark("dl20", bench, settings, args, client, pbar)
+
+
+async def run_optimizer_hellaswag(args, client: AsyncOpenAI, pbar: tqdm | None = None) -> dict:
+    bench = load_hellaswag(_resolve(args.hellaswag_dir), args.hellaswag_num_queries)
+    bench.limit(args.query_limit)  # pool unchanged; fewer queries run
+    settings = {"hellaswag_dir": str(args.hellaswag_dir), "num_queries": args.hellaswag_num_queries}
+    return await _run_optimizer_passage_benchmark("hellaswag", bench, settings, args, client, pbar)
+
+
+async def run_optimizer_nfcorpus(args, client: AsyncOpenAI, pbar: tqdm | None = None) -> dict:
+    bench = load_nfcorpus(_resolve(args.nfcorpus_dir))
+    bench.limit(args.nfcorpus_limit)
+    settings = {"nfcorpus_dir": str(args.nfcorpus_dir), "nfcorpus_limit": args.nfcorpus_limit}
+    return await _run_optimizer_passage_benchmark("nfcorpus", bench, settings, args, client, pbar)
 
 
 # ── SembenchMovie ─────────────────────────────────────────────────────────────
@@ -461,6 +464,8 @@ async def _run_optimizer_movie(
         external_pointwise_memory_size=args.ext_point_batch,
         has_id_and_row=True,
         ideal_oracle=ideal_oracle,
+        rrf_k=args.rrf_k,
+        ensemble_max_lists=args.ensemble_max_lists,
     )
     (sorted_data, num_calls, in_tok, out_tok), chosen_alg, ranking_budget, opt_budget = \
         await opt.physical_order_by_impl()
@@ -516,7 +521,6 @@ async def run_optimizer_sembench_movie(
         ideal = qrels_by_movie.get(movie_id) if args.proxy_policy == "ideal" else None
         rec = await _run_optimizer_movie(movie_id, shuffled, client, args, budget=ranking_budget, ideal_oracle=ideal)
 
-        n = len(rec["doc_ids"])
         run = {movie_id: {rid: float(i + 1) for i, rid in enumerate(rec["doc_ids"])}}
         movie_evaluator = pytrec_eval.RelevanceEvaluator(
             {movie_id: qrels_by_movie[movie_id]}, {"ndcg_cut.10"}
@@ -527,9 +531,7 @@ async def run_optimizer_sembench_movie(
 
         chosen = rec["chosen_alg"]
         if oracle_best and oracle_alg_scores:
-            best      = oracle_best.get(movie_id, "?")
-            best_ndcg = oracle_alg_scores.get(movie_id, {}).get(best, float("nan"))
-            best_cost = oracle_alg_costs.get(movie_id, {}).get(best, float("nan")) if oracle_alg_costs else float("nan")
+            best, best_ndcg, best_cost = _oracle_summary(movie_id, oracle_best, oracle_alg_scores, oracle_alg_costs)
             is_match  = ndcg_val >= best_ndcg
             color = "\033[32m" if is_match else "\033[34m"
             mark = "✓" if is_match else "✗"
@@ -559,7 +561,7 @@ async def run_optimizer_sembench_movie(
     if oracle_best and oracle_alg_scores:
         correct = sum(
             1 for r in per_movie_records
-            if r["score"] >= oracle_alg_scores.get(r["movie_id"], {}).get(oracle_best.get(r["movie_id"], ""), float("inf"))
+            if r["score"] >= _oracle_summary(r["movie_id"], oracle_best, oracle_alg_scores)[1]
         )
         total = len(per_movie_records)
         tqdm.write(f"  [oracle accuracy] {correct}/{total} movies matched oracle-best ({correct/total*100:.1f}%)")
@@ -596,6 +598,14 @@ async def run_optimizer_sembench_movie(
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 
+_RUNNERS = {
+    "population": run_optimizer_population,
+    "dl20": run_optimizer_dl20,
+    "sembench_movie": run_optimizer_sembench_movie,
+    "hellaswag": run_optimizer_hellaswag,
+    "nfcorpus": run_optimizer_nfcorpus,
+}
+
 
 class _TqdmHandler(logging.Handler):
     def emit(self, record: logging.LogRecord) -> None:
@@ -610,14 +620,15 @@ def main():
     handler.setFormatter(logging.Formatter("%(levelname)s [%(name)s] %(message)s"))
     logging.root.setLevel(logging.WARNING)
     logging.root.handlers = [handler]
-    _load_env_file(PROJECT_ROOT / ".env")
+    load_env_file(PROJECT_ROOT / ".env")
 
     parser = argparse.ArgumentParser(description="Run OrderByOptimizer on benchmark datasets.")
-    parser.add_argument("--dataset", choices=["population", "dl20", "sembench_movie"], required=True)
+    parser.add_argument("--dataset", choices=list(_RUNNERS), required=True)
     parser.add_argument("--models", required=True,
-                        help="Comma-separated list of model names. Example: --models llama3.1-70b,openai-gpt-4.1")
-    parser.add_argument("--judge-model", default="openai-gpt-4.1",
-                        help="Model used as the LLM judge for proxy ground-truth (default: openai-gpt-4.1).")
+                        help="Comma-separated list of model names. Example: --models llama3.1-70b,claude-haiku-4-5")
+    parser.add_argument("--provider", choices=PROVIDERS, default="cortex", help=PROVIDER_HELP)
+    parser.add_argument("--judge-model", default=None,
+                        help="Model used as the LLM judge for proxy ground-truth (default: same as ranking model).")
     parser.add_argument("--budgets", default="0.10",
                         help="Comma-separated list of total dollar budgets to sweep over (default: 0.10). "
                              "Example: --budgets 0.01,0.02,0.05,0.10,0.20")
@@ -627,10 +638,21 @@ def main():
                         help="Number of items to probe during optimization (default: 20).")
     parser.add_argument("--proxy-policies", default="borda",
                         help="Comma-separated list of proxy ground-truth policies to sweep over. "
-                             "Choices: borda, llm_judge, ideal (default: borda). "
-                             "Example: --proxy-policies borda,llm_judge")
+                             "Choices: borda, rrf, ensemble/rrf_ensemble, borda_ensemble, llm_judge, "
+                             "ideal (default: borda). Ensemble = rank candidates by consensus "
+                             "agreement, run the highest-quality subset whose summed est cost stays "
+                             "under budget on the full data, and aggregate them. rrf_ensemble uses "
+                             "rrf for scoring+aggregation; borda_ensemble uses borda. "
+                             "Example: --proxy-policies rrf_ensemble,borda_ensemble")
     parser.add_argument("--ext-point-batch", type=int, default=8,
                         help="Batch size for external-pointwise during optimization (default: 8).")
+    parser.add_argument("--rrf-k", type=int, default=60,
+                        help="Reciprocal-rank-fusion constant k used by rrf scoring/aggregation "
+                             "(default: 60). Only affects rrf-based policies.")
+    parser.add_argument("--ensemble-max-lists", type=int, default=0,
+                        help="In ensemble policies, cap the number of lists fused in the final "
+                             "aggregation to the top-N by proxy quality (0 = no cap). Prevents a "
+                             "runaway best list from being diluted by many weaker ones.")
 
     # Population-specific
     parser.add_argument("--population-csv", default="data/population_by_country_2020.csv")
@@ -641,6 +663,22 @@ def main():
     parser.add_argument("--dl20-run-file",
                         default="data/run.msmarco-v1-passage.bm25-default.dl20.txt")
     parser.add_argument("--hit-depth", type=int, default=100)
+
+    parser.add_argument("--query-limit", type=int, default=None,
+                        help="Cap how many DL20 / HellaSwag queries to run (quick tests). The "
+                             "per-query budget is the total budget divided by the queries run.")
+
+    # HellaSwag-specific (must match the run that produced results_<model>.json)
+    parser.add_argument("--hellaswag-dir", default="data/hellaswag")
+    parser.add_argument("--hellaswag-num-queries", type=int, default=100,
+                        help="Number of pooled HellaSwag questions (default 100 -> 400-doc pool). "
+                             "Must match the --hellaswag-num-queries used for results_<model>.json.")
+
+    # NFCorpus-specific
+    parser.add_argument("--nfcorpus-dir", default="data/nfcorpus")
+    parser.add_argument("--nfcorpus-limit", type=int, default=3,
+                        help="Number of NFCorpus test queries to optimize (default: 3). "
+                             "Each query ranks the full ~3633-doc corpus.")
 
     # SembenchMovie-specific
     parser.add_argument("--movie-csv", default="data/movie/rotten_tomatoes_movie_reviews.csv")
@@ -659,7 +697,7 @@ def main():
     args.budgets = [float(b.strip()) for b in str(args.budgets).split(",") if b.strip()]
     if not args.budgets:
         raise ValueError("At least one budget is required.")
-    valid_policies = {"borda", "llm_judge", "ideal"}
+    valid_policies = {"borda", "rrf", "rrf_ensemble", "borda_ensemble", "llm_judge", "ideal"}
     args.proxy_policies = [p.strip() for p in str(args.proxy_policies).split(",") if p.strip()]
     invalid = set(args.proxy_policies) - valid_policies
     if invalid:
@@ -667,14 +705,16 @@ def main():
     if not args.proxy_policies:
         raise ValueError("At least one proxy policy is required.")
 
-    client = build_client()
+    client = build_client(args.provider)
 
-    unit_map = {"population": "seed", "dl20": "query", "sembench_movie": "movie"}
+    unit_map = {"population": "seed", "sembench_movie": "movie"}
 
     async def _run():
         model_results = {}
+        original_judge_model = args.judge_model
         for model in args.models:
             args.model = model
+            args.judge_model = original_judge_model if original_judge_model is not None else model
             policy_results = {}
             for policy in args.proxy_policies:
                 args.proxy_policy = policy
@@ -689,15 +729,10 @@ def main():
                     pbar = tqdm(
                         total=1,
                         desc=f"[{model}] policy={policy} budget={budget_str} sample_size={args.sample_size}",
-                        unit=unit_map[args.dataset],
+                        unit=unit_map.get(args.dataset, "query"),
                         leave=True,
                     )
-                    if args.dataset == "population":
-                        result = await run_optimizer_population(args, client, pbar=pbar)
-                    elif args.dataset == "dl20":
-                        result = await run_optimizer_dl20(args, client, pbar=pbar)
-                    else:
-                        result = await run_optimizer_sembench_movie(args, client, pbar=pbar)
+                    result = await _RUNNERS[args.dataset](args, client, pbar=pbar)
                     pbar.close()
                     budget_results[budget_str] = result
                     score_mean = float(result.get("score_mean", float("nan")))
@@ -713,7 +748,7 @@ def main():
             model_results[model] = policy_results
         return model_results
 
-    all_results = asyncio.run(_run())
+    all_results = run_async(_run(), client)
 
     payload = {
         "dataset": args.dataset,

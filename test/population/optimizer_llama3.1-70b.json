@@ -7,21 +7,21 @@
     0.1
   ],
   "proxy_policies": [
-    "borda",
+    "rrf_ensemble",
     "llm_judge"
   ],
   "results_by_model": {
     "llama3.1-70b": {
-      "borda": {
+      "rrf_ensemble": {
         "0.1": {
           "dataset": "population",
-          "generated_at": "2026-04-15T17:16:21.286798+00:00",
+          "generated_at": "2026-10-02T22:20:06.247966+00:00",
           "settings": {
             "csv": "data/population_by_country_2020.csv",
             "model": "llama3.1-70b",
             "total_ranking_budget": 0.1,
             "sample_size": 20,
-            "proxy_policy": "borda"
+            "proxy_policy": "rrf_ensemble"
           },
           "score_mean": 0.982,
           "score_std": 0.0,
@@ -36,7 +36,7 @@
       "llm_judge": {
         "0.1": {
           "dataset": "population",
-          "generated_at": "2026-04-15T17:16:21.303239+00:00",
+          "generated_at": "2026-10-02T22:20:06.322525+00:00",
           "settings": {
             "csv": "data/population_by_country_2020.csv",
             "model": "llama3.1-70b",

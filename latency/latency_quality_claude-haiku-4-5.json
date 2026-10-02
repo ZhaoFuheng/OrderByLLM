@@ -1,0 +1,69 @@
+{
+  "model": "claude-haiku-4-5",
+  "queries": 10,
+  "concurrency": 100,
+  "standalone": {
+    "pointwise": {
+      "latency_s": 4.83,
+      "ndcg10": 0.6580866719005196
+    },
+    "external_pointwise_4": {
+      "latency_s": 5.06,
+      "ndcg10": 0.6268054823440413
+    },
+    "external_merge_sort_4": {
+      "latency_s": 108.68,
+      "ndcg10": 0.7173480174084481
+    },
+    "external_bubble_sort_4": {
+      "latency_s": 1125.53,
+      "ndcg10": 0.7041138123985548
+    },
+    "quick_sort": {
+      "latency_s": 42.57,
+      "ndcg10": 0.7004417984721198
+    },
+    "quick_sort3": {
+      "latency_s": 79.15,
+      "ndcg10": 0.7000419397432864
+    }
+  },
+  "optimizer": {
+    "rrf_ensemble": {
+      "14": {
+        "latency_s": 71.3,
+        "ndcg10": 0.707
+      },
+      "28": {
+        "latency_s": 519.7,
+        "ndcg10": 0.71
+      },
+      "42": {
+        "latency_s": 704.1,
+        "ndcg10": 0.715
+      },
+      "56": {
+        "latency_s": 1072.59,
+        "ndcg10": 0.717
+      }
+    },
+    "llm_judge": {
+      "14": {
+        "latency_s": 90.41,
+        "ndcg10": 0.716
+      },
+      "28": {
+        "latency_s": 352.9,
+        "ndcg10": 0.715
+      },
+      "42": {
+        "latency_s": 420.2,
+        "ndcg10": 0.7
+      },
+      "56": {
+        "latency_s": 302.75,
+        "ndcg10": 0.705
+      }
+    }
+  }
+}

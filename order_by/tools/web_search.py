@@ -1,7 +1,6 @@
 import asyncio
 import json
 import logging
-import os
 import re
 import urllib.parse
 import urllib.request
@@ -9,15 +8,13 @@ import urllib.request
 log = logging.getLogger(__name__)
 
 from ddgs import DDGS
-from diskcache import Cache
 from pydantic import BaseModel
 
+from ..cache import cache, open_wiki_cache
 from ..utils import count_tokens, hash_prompt, create_numbered_passages, create_numbered_SQLs, create_numbered_reviews
 from prompts.all_prompts import web_search_system_prompt as _WEB_POINTWISE_SYSTEM_PROMPT
 
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-cache = Cache(os.path.join(PROJECT_ROOT, "sort_cache"), size_limit=50 * 1024**3, eviction_policy='least-recently-used')
-_wiki_cache = Cache(os.path.join(PROJECT_ROOT, "wiki_cache"), size_limit=2 * 1024**3, eviction_policy='least-recently-used')
+_wiki_cache = open_wiki_cache()
 
 _CACHE_VERSION = "v5"
 _WIKI_CACHE_VERSION = "v2"
