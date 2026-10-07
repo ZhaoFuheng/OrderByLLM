@@ -4,65 +4,65 @@
   "concurrency": 100,
   "standalone": {
     "pointwise": {
-      "latency_s": 4.83,
+      "latency_s": 4.69,
       "ndcg10": 0.6580866719005196
     },
     "external_pointwise_4": {
-      "latency_s": 5.06,
+      "latency_s": 5.39,
       "ndcg10": 0.6268054823440413
     },
     "external_merge_sort_4": {
-      "latency_s": 108.68,
+      "latency_s": 109.68,
       "ndcg10": 0.7173480174084481
     },
     "external_bubble_sort_4": {
-      "latency_s": 1125.53,
+      "latency_s": 1113.51,
       "ndcg10": 0.7041138123985548
     },
     "quick_sort": {
-      "latency_s": 42.57,
+      "latency_s": 41.57,
       "ndcg10": 0.7004417984721198
     },
     "quick_sort3": {
-      "latency_s": 79.15,
+      "latency_s": 77.85,
       "ndcg10": 0.7000419397432864
     }
   },
   "optimizer": {
     "rrf_ensemble": {
       "14": {
-        "latency_s": 71.3,
-        "ndcg10": 0.707
+        "latency_s": 153.06,
+        "ndcg10": 0.7
       },
       "28": {
-        "latency_s": 519.7,
-        "ndcg10": 0.71
+        "latency_s": 361.57,
+        "ndcg10": 0.712
       },
       "42": {
-        "latency_s": 704.1,
-        "ndcg10": 0.715
+        "latency_s": 599.4,
+        "ndcg10": 0.72
       },
       "56": {
-        "latency_s": 1072.59,
-        "ndcg10": 0.717
+        "latency_s": 1030.94,
+        "ndcg10": 0.715
       }
     },
     "llm_judge": {
       "14": {
-        "latency_s": 90.41,
-        "ndcg10": 0.716
+        "latency_s": 162.34,
+        "ndcg10": 0.705
       },
       "28": {
-        "latency_s": 352.9,
-        "ndcg10": 0.715
+        "latency_s": 298.34,
+        "ndcg10": 0.707
       },
       "42": {
-        "latency_s": 420.2,
-        "ndcg10": 0.7
+        "latency_s": 304.74,
+        "ndcg10": 0.701
       },
       "56": {
-        "latency_s": 302.75,
-        "ndcg10": 0.705
+        "latency_s": 439.05,
+        "ndcg10": 0.7
       }
     }
   }

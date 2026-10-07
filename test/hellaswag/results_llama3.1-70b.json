@@ -1,6 +1,6 @@
 {
   "dataset": "hellaswag",
-  "generated_at": "2026-10-02T21:59:31.577304+00:00",
+  "generated_at": "2026-10-07T04:03:00.152475+00:00",
   "settings": {
     "data_dir": "data/hellaswag",
     "model": "llama3.1-70b",

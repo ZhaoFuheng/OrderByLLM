@@ -245,7 +245,7 @@ def query_concurrency(model: str, provider: str | None = None) -> int:
     """How many queries of a benchmark the runners rank at once. Each query
     already fans out many concurrent LLM calls, so this only needs to be large
     enough to keep the provider busy without tripping its rate limits."""
-    if provider == "fireworks" or "openai" in model:
+    if provider in ("fireworks", "jev") or "openai" in model:
         return 10
     if "claude" in model:
         return 5
@@ -315,6 +315,7 @@ def tokens2price(model, in_tokens, out_tokens):
         'claude-haiku-4-5': (1.00, 5.00),
         'claude-sonnet-4-5': (3.00, 15.00),
         'claude-sonnet-4-6': (3.00, 15.00),
+        'jev': (0.04, 0.0),  # TypeSafe bills Jev per input token
         'mistral-7b': (0.25, 0.25)
     }
 

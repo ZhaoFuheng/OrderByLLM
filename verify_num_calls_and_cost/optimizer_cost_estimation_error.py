@@ -88,7 +88,10 @@ def _prepared(dataset, args):
         bench = load_dl20(RO._resolve(args.dl20_run_file), 100)
     elif dataset == "nfcorpus":
         bench = load_nfcorpus(RO._resolve(args.nfcorpus_dir))
-        bench.limit(args.nfcorpus_limit)
+        if args.nfcorpus_queries:
+            bench.select(args.nfcorpus_queries)
+        else:
+            bench.limit(args.nfcorpus_limit)
     else:
         bench = load_hellaswag(RO._resolve(args.hellaswag_dir), 100)
     prepared = [(str(qid), query, top) for qid, query, top in bench.shuffled(0)]
@@ -192,8 +195,11 @@ def main():
     ap.add_argument("--dl20-run-file", default="data/run.msmarco-v1-passage.bm25-default.dl20.txt")
     ap.add_argument("--hellaswag-dir", default="data/hellaswag")
     ap.add_argument("--nfcorpus-dir", default="data/nfcorpus")
+    ap.add_argument("--nfcorpus-queries", type=lambda s: [q.strip() for q in s.split(",") if q.strip()],
+                    default="PLAIN-1018,PLAIN-102,PLAIN-1050",
+                    help="NFCorpus query ids (default: the runners' default selection; '' = first --nfcorpus-limit).")
     ap.add_argument("--nfcorpus-limit", type=int, default=3,
-                    help="Number of NFCorpus queries (matches run_optimizer_nfcorpus default 3).")
+                    help="With --nfcorpus-queries '': number of NFCorpus queries in id order (default 3).")
     args = ap.parse_args()
     asyncio.run(run(args))
 

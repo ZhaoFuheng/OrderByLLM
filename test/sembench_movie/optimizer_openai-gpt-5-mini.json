@@ -18,7 +18,7 @@
       "rrf_ensemble": {
         "0.5": {
           "dataset": "sembench_movie",
-          "generated_at": "2026-10-02T22:36:15.524751+00:00",
+          "generated_at": "2026-10-07T04:40:19.649805+00:00",
           "settings": {
             "csv": "data/movie/rotten_tomatoes_movie_reviews.csv",
             "top_k_movies": 5,
@@ -28,24 +28,25 @@
             "sample_size": 20,
             "proxy_policy": "rrf_ensemble"
           },
-          "score_mean": 0.92,
+          "score_mean": 0.921,
           "score_std": 0.0,
           "per_movie_scores": {
             "parasite_2019": 0.9845425660421602,
-            "ant_man_and_the_wasp_quantumania": 0.852586669969135,
+            "ant_man_and_the_wasp_quantumania": 0.8548611981642271,
             "joker_2019": 0.9660532057629181,
             "avengers_endgame": 0.9737059349161536,
             "snow_white_and_the_huntsman": 0.8239291255018004
           },
           "per_movie_chosen_alg": {
             "parasite_2019": "ext_merge_8",
-            "ant_man_and_the_wasp_quantumania": "ext_merge_8",
+            "ant_man_and_the_wasp_quantumania": "ext_merge_6",
             "joker_2019": "ext_merge_8",
             "avengers_endgame": "ext_merge_8",
             "snow_white_and_the_huntsman": "ext_bubble_8"
           },
           "chosen_alg_counts": {
-            "ext_merge_8": 4,
+            "ext_merge_8": 3,
+            "ext_merge_6": 1,
             "ext_bubble_8": 1
           },
           "total_ranking_budget": 0.5,
@@ -56,15 +57,15 @@
             "avengers_endgame": 0.1,
             "snow_white_and_the_huntsman": 0.1
           },
-          "total_optimization_cost": 0.120806,
-          "total_ranking_cost": 0.39291700000000007,
-          "in_tokens": 309525,
-          "out_tokens": 218171,
+          "total_optimization_cost": 0.183387,
+          "total_ranking_cost": 0.413176,
+          "in_tokens": 353230,
+          "out_tokens": 254128,
           "metric_name": "ndcg@10"
         },
         "1": {
           "dataset": "sembench_movie",
-          "generated_at": "2026-10-02T22:36:25.184112+00:00",
+          "generated_at": "2026-10-07T04:40:29.220720+00:00",
           "settings": {
             "csv": "data/movie/rotten_tomatoes_movie_reviews.csv",
             "top_k_movies": 5,
@@ -74,27 +75,28 @@
             "sample_size": 20,
             "proxy_policy": "rrf_ensemble"
           },
-          "score_mean": 0.919,
+          "score_mean": 0.922,
           "score_std": 0.0,
           "per_movie_scores": {
-            "parasite_2019": 0.9804810999209338,
-            "ant_man_and_the_wasp_quantumania": 0.8444734295640313,
-            "joker_2019": 0.979436015462342,
-            "avengers_endgame": 0.9921601731021323,
-            "snow_white_and_the_huntsman": 0.800634786691083
+            "parasite_2019": 0.9861137556126444,
+            "ant_man_and_the_wasp_quantumania": 0.8593260930369603,
+            "joker_2019": 0.9725452110735279,
+            "avengers_endgame": 0.9671560827387342,
+            "snow_white_and_the_huntsman": 0.8231305490401197
           },
           "per_movie_chosen_alg": {
-            "parasite_2019": "ext_bubble_8+ext_merge_8",
-            "ant_man_and_the_wasp_quantumania": "ext_bubble_6",
-            "joker_2019": "ext_bubble_8",
-            "avengers_endgame": "ext_bubble_8",
-            "snow_white_and_the_huntsman": "ext_bubble_8+ext_merge_8+point"
+            "parasite_2019": "ext_merge_4+point",
+            "ant_man_and_the_wasp_quantumania": "ext_merge_4+ext_merge_8",
+            "joker_2019": "ext_merge_6+ext_merge_8",
+            "avengers_endgame": "ext_merge_4",
+            "snow_white_and_the_huntsman": "ext_bubble_8+quick"
           },
           "chosen_alg_counts": {
-            "ext_bubble_8+ext_merge_8": 1,
-            "ext_bubble_6": 1,
-            "ext_bubble_8": 2,
-            "ext_bubble_8+ext_merge_8+point": 1
+            "ext_merge_4+point": 1,
+            "ext_merge_4+ext_merge_8": 1,
+            "ext_merge_6+ext_merge_8": 1,
+            "ext_merge_4": 1,
+            "ext_bubble_8+quick": 1
           },
           "total_ranking_budget": 1.0,
           "per_movie_budget": {
@@ -104,15 +106,15 @@
             "avengers_endgame": 0.2,
             "snow_white_and_the_huntsman": 0.2
           },
-          "total_optimization_cost": 0.207007,
-          "total_ranking_cost": 0.8560240000000001,
-          "in_tokens": 659684,
-          "out_tokens": 449055,
+          "total_optimization_cost": 0.288957,
+          "total_ranking_cost": 0.9519159999999999,
+          "in_tokens": 741852,
+          "out_tokens": 527705,
           "metric_name": "ndcg@10"
         },
         "1.5": {
           "dataset": "sembench_movie",
-          "generated_at": "2026-10-02T22:36:35.230078+00:00",
+          "generated_at": "2026-10-07T04:40:38.802977+00:00",
           "settings": {
             "csv": "data/movie/rotten_tomatoes_movie_reviews.csv",
             "top_k_movies": 5,
@@ -122,28 +124,28 @@
             "sample_size": 20,
             "proxy_policy": "rrf_ensemble"
           },
-          "score_mean": 0.921,
+          "score_mean": 0.918,
           "score_std": 0.0,
           "per_movie_scores": {
             "parasite_2019": 0.9726412730230661,
-            "ant_man_and_the_wasp_quantumania": 0.8548163649680837,
-            "joker_2019": 0.9823699893396571,
-            "avengers_endgame": 0.9853272155801279,
-            "snow_white_and_the_huntsman": 0.8089896175330191
+            "ant_man_and_the_wasp_quantumania": 0.8482923299824344,
+            "joker_2019": 0.9775336623977108,
+            "avengers_endgame": 0.9766349191756895,
+            "snow_white_and_the_huntsman": 0.813740594527601
           },
           "per_movie_chosen_alg": {
             "parasite_2019": "ext_bubble_6+ext_merge_8+point",
-            "ant_man_and_the_wasp_quantumania": "ext_bubble_4",
-            "joker_2019": "ext_bubble_8+ext_merge_8",
-            "avengers_endgame": "ext_bubble_6",
-            "snow_white_and_the_huntsman": "ext_bubble_8+ext_merge_8+quick+point"
+            "ant_man_and_the_wasp_quantumania": "ext_merge_4+ext_merge_6+ext_merge_8",
+            "joker_2019": "ext_merge_6+ext_merge_4",
+            "avengers_endgame": "ext_bubble_8+ext_merge_8",
+            "snow_white_and_the_huntsman": "ext_bubble_8+quick+ext_merge_8+ext_merge_6"
           },
           "chosen_alg_counts": {
             "ext_bubble_6+ext_merge_8+point": 1,
-            "ext_bubble_4": 1,
+            "ext_merge_4+ext_merge_6+ext_merge_8": 1,
+            "ext_merge_6+ext_merge_4": 1,
             "ext_bubble_8+ext_merge_8": 1,
-            "ext_bubble_6": 1,
-            "ext_bubble_8+ext_merge_8+quick+point": 1
+            "ext_bubble_8+quick+ext_merge_8+ext_merge_6": 1
           },
           "total_ranking_budget": 1.5,
           "per_movie_budget": {
@@ -153,15 +155,15 @@
             "avengers_endgame": 0.3,
             "snow_white_and_the_huntsman": 0.3
           },
-          "total_optimization_cost": 0.31027,
-          "total_ranking_cost": 1.355138,
-          "in_tokens": 1021567,
-          "out_tokens": 705008,
+          "total_optimization_cost": 0.39221999999999996,
+          "total_ranking_cost": 1.438769,
+          "in_tokens": 1071523,
+          "out_tokens": 781554,
           "metric_name": "ndcg@10"
         },
         "2": {
           "dataset": "sembench_movie",
-          "generated_at": "2026-10-02T22:36:45.998897+00:00",
+          "generated_at": "2026-10-07T04:40:49.133054+00:00",
           "settings": {
             "csv": "data/movie/rotten_tomatoes_movie_reviews.csv",
             "top_k_movies": 5,
@@ -171,26 +173,27 @@
             "sample_size": 20,
             "proxy_policy": "rrf_ensemble"
           },
-          "score_mean": 0.923,
+          "score_mean": 0.921,
           "score_std": 0.0,
           "per_movie_scores": {
             "parasite_2019": 0.9820068517988828,
-            "ant_man_and_the_wasp_quantumania": 0.8600974321197313,
-            "joker_2019": 0.9740249976693317,
-            "avengers_endgame": 0.9726030579403374,
+            "ant_man_and_the_wasp_quantumania": 0.8449868856791574,
+            "joker_2019": 0.9797516767927493,
+            "avengers_endgame": 0.9748415097673098,
             "snow_white_and_the_huntsman": 0.8246852605589805
           },
           "per_movie_chosen_alg": {
             "parasite_2019": "ext_bubble_4+ext_merge_8",
-            "ant_man_and_the_wasp_quantumania": "ext_bubble_4+ext_merge_8",
-            "joker_2019": "ext_bubble_4",
-            "avengers_endgame": "ext_bubble_6+ext_merge_8",
+            "ant_man_and_the_wasp_quantumania": "ext_merge_4+ext_merge_6+ext_bubble_8+ext_merge_8",
+            "joker_2019": "ext_merge_6+ext_merge_4+ext_merge_8",
+            "avengers_endgame": "ext_bubble_8+ext_merge_8+ext_merge_6",
             "snow_white_and_the_huntsman": "ext_bubble_8+quick_3"
           },
           "chosen_alg_counts": {
-            "ext_bubble_4+ext_merge_8": 2,
-            "ext_bubble_4": 1,
-            "ext_bubble_6+ext_merge_8": 1,
+            "ext_bubble_4+ext_merge_8": 1,
+            "ext_merge_4+ext_merge_6+ext_bubble_8+ext_merge_8": 1,
+            "ext_merge_6+ext_merge_4+ext_merge_8": 1,
+            "ext_bubble_8+ext_merge_8+ext_merge_6": 1,
             "ext_bubble_8+quick_3": 1
           },
           "total_ranking_budget": 2.0,
@@ -201,17 +204,17 @@
             "avengers_endgame": 0.4,
             "snow_white_and_the_huntsman": 0.4
           },
-          "total_optimization_cost": 0.34737799999999996,
-          "total_ranking_cost": 1.7665440000000001,
-          "in_tokens": 1224370,
-          "out_tokens": 903915,
+          "total_optimization_cost": 0.42932799999999993,
+          "total_ranking_cost": 1.8414390000000003,
+          "in_tokens": 1323674,
+          "out_tokens": 969924,
           "metric_name": "ndcg@10"
         }
       },
       "llm_judge": {
         "0.5": {
           "dataset": "sembench_movie",
-          "generated_at": "2026-10-02T22:36:55.350686+00:00",
+          "generated_at": "2026-10-07T04:40:58.064073+00:00",
           "settings": {
             "csv": "data/movie/rotten_tomatoes_movie_reviews.csv",
             "top_k_movies": 5,
@@ -249,15 +252,15 @@
             "avengers_endgame": 0.1,
             "snow_white_and_the_huntsman": 0.1
           },
-          "total_optimization_cost": 0.120806,
-          "total_ranking_cost": 0.39465000000000006,
-          "in_tokens": 310624,
-          "out_tokens": 218900,
+          "total_optimization_cost": 0.183387,
+          "total_ranking_cost": 0.4273,
+          "in_tokens": 345891,
+          "out_tokens": 262107,
           "metric_name": "ndcg@10"
         },
         "1": {
           "dataset": "sembench_movie",
-          "generated_at": "2026-10-02T22:37:04.746390+00:00",
+          "generated_at": "2026-10-07T04:41:06.827430+00:00",
           "settings": {
             "csv": "data/movie/rotten_tomatoes_movie_reviews.csv",
             "top_k_movies": 5,
@@ -267,27 +270,27 @@
             "sample_size": 20,
             "proxy_policy": "llm_judge"
           },
-          "score_mean": 0.916,
+          "score_mean": 0.918,
           "score_std": 0.0,
           "per_movie_scores": {
-            "parasite_2019": 0.9845425660421602,
+            "parasite_2019": 0.9826813366651774,
             "ant_man_and_the_wasp_quantumania": 0.8444734295640313,
-            "joker_2019": 0.979436015462342,
-            "avengers_endgame": 0.9921601731021323,
-            "snow_white_and_the_huntsman": 0.7812739819059966
+            "joker_2019": 0.982052289491418,
+            "avengers_endgame": 0.9737059349161536,
+            "snow_white_and_the_huntsman": 0.8050605968916875
           },
           "per_movie_chosen_alg": {
-            "parasite_2019": "ext_merge_8",
+            "parasite_2019": "ext_merge_6",
             "ant_man_and_the_wasp_quantumania": "ext_bubble_6",
-            "joker_2019": "ext_bubble_8",
-            "avengers_endgame": "ext_bubble_8",
-            "snow_white_and_the_huntsman": "quick"
+            "joker_2019": "ext_merge_4",
+            "avengers_endgame": "ext_merge_8",
+            "snow_white_and_the_huntsman": "ext_merge_8"
           },
           "chosen_alg_counts": {
-            "ext_merge_8": 1,
+            "ext_merge_6": 1,
             "ext_bubble_6": 1,
-            "ext_bubble_8": 2,
-            "quick": 1
+            "ext_merge_4": 1,
+            "ext_merge_8": 2
           },
           "total_ranking_budget": 1.0,
           "per_movie_budget": {
@@ -297,15 +300,15 @@
             "avengers_endgame": 0.2,
             "snow_white_and_the_huntsman": 0.2
           },
-          "total_optimization_cost": 0.207007,
-          "total_ranking_cost": 0.7006220000000001,
-          "in_tokens": 565285,
-          "out_tokens": 383154,
+          "total_optimization_cost": 0.288957,
+          "total_ranking_cost": 0.6138939999999999,
+          "in_tokens": 518107,
+          "out_tokens": 386662,
           "metric_name": "ndcg@10"
         },
         "1.5": {
           "dataset": "sembench_movie",
-          "generated_at": "2026-10-02T22:37:14.316980+00:00",
+          "generated_at": "2026-10-07T04:41:16.353346+00:00",
           "settings": {
             "csv": "data/movie/rotten_tomatoes_movie_reviews.csv",
             "top_k_movies": 5,
@@ -315,27 +318,28 @@
             "sample_size": 20,
             "proxy_policy": "llm_judge"
           },
-          "score_mean": 0.923,
+          "score_mean": 0.929,
           "score_std": 0.0,
           "per_movie_scores": {
-            "parasite_2019": 0.9845425660421602,
-            "ant_man_and_the_wasp_quantumania": 0.8640796006732488,
-            "joker_2019": 0.9660532057629181,
+            "parasite_2019": 0.9826813366651774,
+            "ant_man_and_the_wasp_quantumania": 0.852586669969135,
+            "joker_2019": 0.982052289491418,
             "avengers_endgame": 0.9853272155801279,
-            "snow_white_and_the_huntsman": 0.8141775669214165
+            "snow_white_and_the_huntsman": 0.843273794548618
           },
           "per_movie_chosen_alg": {
-            "parasite_2019": "ext_merge_8",
-            "ant_man_and_the_wasp_quantumania": "quick",
-            "joker_2019": "ext_merge_8",
-            "avengers_endgame": "ext_bubble_6",
-            "snow_white_and_the_huntsman": "ext_bubble_4"
+            "parasite_2019": "ext_merge_6",
+            "ant_man_and_the_wasp_quantumania": "ext_merge_8",
+            "joker_2019": "ext_merge_4",
+            "avengers_endgame": "quick",
+            "snow_white_and_the_huntsman": "ext_bubble_6"
           },
           "chosen_alg_counts": {
-            "ext_merge_8": 2,
+            "ext_merge_6": 1,
+            "ext_merge_8": 1,
+            "ext_merge_4": 1,
             "quick": 1,
-            "ext_bubble_6": 1,
-            "ext_bubble_4": 1
+            "ext_bubble_6": 1
           },
           "total_ranking_budget": 1.5,
           "per_movie_budget": {
@@ -345,15 +349,15 @@
             "avengers_endgame": 0.3,
             "snow_white_and_the_huntsman": 0.3
           },
-          "total_optimization_cost": 0.31027,
-          "total_ranking_cost": 0.710464,
-          "in_tokens": 595743,
-          "out_tokens": 435899,
+          "total_optimization_cost": 0.39221999999999996,
+          "total_ranking_cost": 0.6949240000000001,
+          "in_tokens": 616450,
+          "out_tokens": 466516,
           "metric_name": "ndcg@10"
         },
         "2": {
           "dataset": "sembench_movie",
-          "generated_at": "2026-10-02T22:37:23.935742+00:00",
+          "generated_at": "2026-10-07T04:41:25.347426+00:00",
           "settings": {
             "csv": "data/movie/rotten_tomatoes_movie_reviews.csv",
             "top_k_movies": 5,
@@ -363,27 +367,26 @@
             "sample_size": 20,
             "proxy_policy": "llm_judge"
           },
-          "score_mean": 0.919,
+          "score_mean": 0.918,
           "score_std": 0.0,
           "per_movie_scores": {
-            "parasite_2019": 0.9845425660421602,
-            "ant_man_and_the_wasp_quantumania": 0.8640796006732488,
+            "parasite_2019": 0.9826813366651774,
+            "ant_man_and_the_wasp_quantumania": 0.852586669969135,
             "joker_2019": 0.9660532057629181,
             "avengers_endgame": 0.9853272155801279,
-            "snow_white_and_the_huntsman": 0.7941552844041898
+            "snow_white_and_the_huntsman": 0.8050605968916875
           },
           "per_movie_chosen_alg": {
-            "parasite_2019": "ext_merge_8",
-            "ant_man_and_the_wasp_quantumania": "quick",
+            "parasite_2019": "ext_merge_6",
+            "ant_man_and_the_wasp_quantumania": "ext_merge_8",
             "joker_2019": "ext_merge_8",
-            "avengers_endgame": "ext_bubble_6",
-            "snow_white_and_the_huntsman": "quick_3"
+            "avengers_endgame": "quick",
+            "snow_white_and_the_huntsman": "ext_merge_8"
           },
           "chosen_alg_counts": {
-            "ext_merge_8": 2,
-            "quick": 1,
-            "ext_bubble_6": 1,
-            "quick_3": 1
+            "ext_merge_6": 1,
+            "ext_merge_8": 3,
+            "quick": 1
           },
           "total_ranking_budget": 2.0,
           "per_movie_budget": {
@@ -393,10 +396,10 @@
             "avengers_endgame": 0.4,
             "snow_white_and_the_huntsman": 0.4
           },
-          "total_optimization_cost": 0.34737799999999996,
-          "total_ranking_cost": 0.7542660000000001,
-          "in_tokens": 674194,
-          "out_tokens": 466548,
+          "total_optimization_cost": 0.42932799999999993,
+          "total_ranking_cost": 0.501897,
+          "in_tokens": 553476,
+          "out_tokens": 396428,
           "metric_name": "ndcg@10"
         }
       }

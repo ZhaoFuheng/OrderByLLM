@@ -26,7 +26,7 @@ conda activate llm_order_by
 
 The LLM responses behind the published results are cached, so the experiments can be re-run without any API key and without making a single API call.
 
-1. Import the two cache exports that ship with the repository: `sort_cache_export.jsonl.gz` (the LLM responses; 1.6 GB, about 7.9 million entries) and `wiki_cache_export.jsonl.gz` (the Wikipedia lookups used by the `*_with_search` algorithms):
+1. Import the two cache exports that ship with the repository: `sort_cache_export.jsonl.gz` (the LLM responses; 1.7 GB, about 8.1 million entries) and `wiki_cache_export.jsonl.gz` (the Wikipedia lookups used by the `*_with_search` algorithms):
 
 ```bash
 python cache_tools.py import sort_cache_export.jsonl.gz
@@ -35,7 +35,7 @@ python cache_tools.py import wiki_cache_export.jsonl.gz --cache wiki
 
    The first import takes roughly 40 minutes and the resulting `sort_cache/` uses about 10 GB of disk.
 
-2. Re-run everything from the cache (about 50 minutes):
+2. Re-run everything from the cache (about an hour):
 
 ```bash
 python run_all.py --cache-only
@@ -45,7 +45,7 @@ python run_all.py --cache-only
 
 What to expect:
 
-- The regenerated files are identical to the committed ones apart from their `generated_at` timestamps; the committed files were themselves produced this way.
+- The regenerated files are identical to the committed ones apart from their `generated_at` timestamps; the committed files were themselves produced this way. (Token counts, and therefore the reported prices, of a cached response are those of the response that was recorded; scores do not depend on them.)
 - The first DL19 / DL20 run downloads the MS MARCO passage collection through `ir_datasets`.
 
 A single experiment can be replayed the same way, for example:
@@ -138,14 +138,15 @@ Optimizer policies: `rrf_ensemble` (self-consistency: fuse the best affordable a
 
 - `test/dl20_ablation/`: judge-model ablation (`run_ablation.py`) and optimizer sample-size ablation (`run_samplesize_ablation.py`) on DL20, with their analysis and plot scripts
 - `inquiry_prompt_ablation/`: accuracy of the inquiry prompt at separating parametric from situation-dependent questions (NQ-open + SituatedQA)
-- `latency/`: per-request latency calibration and the estimated DL20 wall-clock latency of each algorithm and of the optimizer
-- `verify_num_calls_and_cost/`: validation of the LLM-call-count formulas and of the optimizer's cost estimates
+- `latency/`: per-request latency calibration and the estimated DL20 wall-clock latency of each algorithm and of the optimizer (Haiku-4.5 and GPT-5 mini)
+- `verify_num_calls_and_cost/`: validation of the optimizer's cost model — `optimizer_call_count_error.py` compares the predicted number of LLM calls with the calls a full run issues, and `optimizer_cost_estimation_error.py` does the same for the estimated monetary cost
 
 Each script's docstring describes its usage. The ablation, inquiry-prompt and cost-verification result files also replay from the cache: those scripts take `--provider cache` (the judge ablation takes it as the ranker's and each judge's provider). The latency study is different: `calibrate_latency.py` measures live request latency and needs a real provider, and the other latency scripts replay from the cache but report simulated wall-clock times, so their JSON files are measurements rather than cache replays.
 
 ## Data
 
 - `nba`, `population`, `sembench_movie`, `hellaswag` and `nfcorpus` data files are under `data/` (`data/movie/` via Git LFS).
+- NFCorpus runs use three test queries by default (`PLAIN-1018`, `PLAIN-102`, `PLAIN-1050`), each ranking the full 3,633-document corpus; `--nfcorpus-queries` selects other ids and `--nfcorpus-queries ''` with `--nfcorpus-limit N` takes the first N queries instead.
 - `dl19` / `dl20` passages are downloaded on first use by `ir_datasets`; the BM25 first-stage runs are under `data/`.
 - `data/hellaswag/prepare.py` regenerates the HellaSwag files (requires `pip install datasets`).
 

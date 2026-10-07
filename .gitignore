@@ -181,8 +181,12 @@ tmp_*
 # local caches; their exports (*_cache_export.jsonl.gz) are tracked instead
 sort_cache
 wiki_cache
+jev_cache
 data/rotten_tomatoes_movie_reviews.csv
 
 # generated figures
 figures/
 figures_with_confidence_interval/
+
+# private working notes
+notes/

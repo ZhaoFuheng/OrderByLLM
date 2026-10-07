@@ -1,0 +1,598 @@
+{
+  "model": "openai-gpt-5-mini",
+  "provider": "openai",
+  "n_samples": 70,
+  "fit": {
+    "median_latency_s": 2.196156490012072,
+    "mean_latency_s": 2.366424976718346,
+    "simple": {
+      "intercept": 1.1006025357698086,
+      "per_total_token": 0.0019781124897619686,
+      "r2": 0.43120633332492075,
+      "formula": "latency_s = intercept + per_total_token * total_tokens"
+    },
+    "split": {
+      "intercept": 1.0417835973238991,
+      "per_output_token": 0.004679824920571211,
+      "per_input_token": 0.0009104568630986001,
+      "r2": 0.46878732086074526,
+      "formula": "latency_s = intercept + per_output_token*out + per_input_token*in"
+    },
+    "out_only": {
+      "intercept": 1.1373397480071434,
+      "per_output_token": 0.006243538897662132,
+      "r2": 0.4477515947712334,
+      "formula": "latency_s = intercept + per_output_token * out_tokens"
+    },
+    "effective": {
+      "intercept": 1.1373397480071434,
+      "per_output_token": 0.006243538897662132,
+      "per_input_token": 0.0,
+      "chosen": "out_only",
+      "r2": 0.4477515947712334,
+      "formula": "latency_s = intercept + per_output_token*out + per_input_token*in"
+    }
+  },
+  "samples": [
+    {
+      "kind": "ext_cmp_m2",
+      "m": 2,
+      "in_tok": 286,
+      "out_tok": 187,
+      "total": 473,
+      "latency": 3.1951779819792137
+    },
+    {
+      "kind": "ext_cmp_m3",
+      "m": 3,
+      "in_tok": 403,
+      "out_tok": 206,
+      "total": 609,
+      "latency": 2.5577148590236902
+    },
+    {
+      "kind": "ext_cmp_m4",
+      "m": 4,
+      "in_tok": 475,
+      "out_tok": 429,
+      "total": 904,
+      "latency": 3.5554905839962885
+    },
+    {
+      "kind": "ext_cmp_m6",
+      "m": 6,
+      "in_tok": 743,
+      "out_tok": 472,
+      "total": 1215,
+      "latency": 4.181820009020157
+    },
+    {
+      "kind": "ext_cmp_m8",
+      "m": 8,
+      "in_tok": 0,
+      "out_tok": 0,
+      "total": 0,
+      "latency": 4.7140342351049185
+    },
+    {
+      "kind": "pairwise",
+      "m": 2,
+      "in_tok": 278,
+      "out_tok": 242,
+      "total": 520,
+      "latency": 2.2835329649969935
+    },
+    {
+      "kind": "pointwise",
+      "m": 1,
+      "in_tok": 249,
+      "out_tok": 78,
+      "total": 327,
+      "latency": 1.0678805659990758
+    },
+    {
+      "kind": "ext_cmp_m2",
+      "m": 2,
+      "in_tok": 263,
+      "out_tok": 148,
+      "total": 411,
+      "latency": 1.6525068890769035
+    },
+    {
+      "kind": "ext_cmp_m3",
+      "m": 3,
+      "in_tok": 340,
+      "out_tok": 205,
+      "total": 545,
+      "latency": 2.3298355599399656
+    },
+    {
+      "kind": "ext_cmp_m4",
+      "m": 4,
+      "in_tok": 409,
+      "out_tok": 232,
+      "total": 641,
+      "latency": 2.1972523520234972
+    },
+    {
+      "kind": "ext_cmp_m6",
+      "m": 6,
+      "in_tok": 527,
+      "out_tok": 188,
+      "total": 715,
+      "latency": 2.195060628000647
+    },
+    {
+      "kind": "ext_cmp_m8",
+      "m": 8,
+      "in_tok": 728,
+      "out_tok": 281,
+      "total": 1009,
+      "latency": 2.672812824952416
+    },
+    {
+      "kind": "pairwise",
+      "m": 2,
+      "in_tok": 257,
+      "out_tok": 88,
+      "total": 345,
+      "latency": 1.3581808360759169
+    },
+    {
+      "kind": "pointwise",
+      "m": 1,
+      "in_tok": 261,
+      "out_tok": 141,
+      "total": 402,
+      "latency": 1.6258007420692593
+    },
+    {
+      "kind": "ext_cmp_m2",
+      "m": 2,
+      "in_tok": 356,
+      "out_tok": 137,
+      "total": 493,
+      "latency": 2.015479255001992
+    },
+    {
+      "kind": "ext_cmp_m3",
+      "m": 3,
+      "in_tok": 489,
+      "out_tok": 205,
+      "total": 694,
+      "latency": 2.61499265790917
+    },
+    {
+      "kind": "ext_cmp_m4",
+      "m": 4,
+      "in_tok": 540,
+      "out_tok": 223,
+      "total": 763,
+      "latency": 2.51602203596849
+    },
+    {
+      "kind": "ext_cmp_m6",
+      "m": 6,
+      "in_tok": 688,
+      "out_tok": 260,
+      "total": 948,
+      "latency": 2.7319543879712
+    },
+    {
+      "kind": "ext_cmp_m8",
+      "m": 8,
+      "in_tok": 916,
+      "out_tok": 333,
+      "total": 1249,
+      "latency": 3.3828089570160955
+    },
+    {
+      "kind": "pairwise",
+      "m": 2,
+      "in_tok": 350,
+      "out_tok": 151,
+      "total": 501,
+      "latency": 1.9361625839956105
+    },
+    {
+      "kind": "pointwise",
+      "m": 1,
+      "in_tok": 271,
+      "out_tok": 103,
+      "total": 374,
+      "latency": 1.7209102620836347
+    },
+    {
+      "kind": "ext_cmp_m2",
+      "m": 2,
+      "in_tok": 321,
+      "out_tok": 159,
+      "total": 480,
+      "latency": 2.0274613150395453
+    },
+    {
+      "kind": "ext_cmp_m3",
+      "m": 3,
+      "in_tok": 428,
+      "out_tok": 217,
+      "total": 645,
+      "latency": 2.1337490030564368
+    },
+    {
+      "kind": "ext_cmp_m4",
+      "m": 4,
+      "in_tok": 494,
+      "out_tok": 247,
+      "total": 741,
+      "latency": 2.42477935901843
+    },
+    {
+      "kind": "ext_cmp_m6",
+      "m": 6,
+      "in_tok": 648,
+      "out_tok": 361,
+      "total": 1009,
+      "latency": 3.1461495709372684
+    },
+    {
+      "kind": "ext_cmp_m8",
+      "m": 8,
+      "in_tok": 862,
+      "out_tok": 344,
+      "total": 1206,
+      "latency": 3.867138246074319
+    },
+    {
+      "kind": "pairwise",
+      "m": 2,
+      "in_tok": 314,
+      "out_tok": 176,
+      "total": 490,
+      "latency": 1.768633664934896
+    },
+    {
+      "kind": "pointwise",
+      "m": 1,
+      "in_tok": 273,
+      "out_tok": 183,
+      "total": 456,
+      "latency": 1.8021166189573705
+    },
+    {
+      "kind": "ext_cmp_m2",
+      "m": 2,
+      "in_tok": 313,
+      "out_tok": 140,
+      "total": 453,
+      "latency": 1.5536475769476965
+    },
+    {
+      "kind": "ext_cmp_m3",
+      "m": 3,
+      "in_tok": 381,
+      "out_tok": 170,
+      "total": 551,
+      "latency": 1.725774827064015
+    },
+    {
+      "kind": "ext_cmp_m4",
+      "m": 4,
+      "in_tok": 440,
+      "out_tok": 158,
+      "total": 598,
+      "latency": 2.06284839194268
+    },
+    {
+      "kind": "ext_cmp_m6",
+      "m": 6,
+      "in_tok": 618,
+      "out_tok": 383,
+      "total": 1001,
+      "latency": 4.132348457002081
+    },
+    {
+      "kind": "ext_cmp_m8",
+      "m": 8,
+      "in_tok": 786,
+      "out_tok": 238,
+      "total": 1024,
+      "latency": 2.6791412569582462
+    },
+    {
+      "kind": "pairwise",
+      "m": 2,
+      "in_tok": 308,
+      "out_tok": 131,
+      "total": 439,
+      "latency": 1.6018642879789695
+    },
+    {
+      "kind": "pointwise",
+      "m": 1,
+      "in_tok": 325,
+      "out_tok": 90,
+      "total": 415,
+      "latency": 1.3501860180404037
+    },
+    {
+      "kind": "ext_cmp_m2",
+      "m": 2,
+      "in_tok": 285,
+      "out_tok": 165,
+      "total": 450,
+      "latency": 1.9675405930029228
+    },
+    {
+      "kind": "ext_cmp_m3",
+      "m": 3,
+      "in_tok": 406,
+      "out_tok": 175,
+      "total": 581,
+      "latency": 2.0959014060208574
+    },
+    {
+      "kind": "ext_cmp_m4",
+      "m": 4,
+      "in_tok": 473,
+      "out_tok": 162,
+      "total": 635,
+      "latency": 1.9394338270649314
+    },
+    {
+      "kind": "ext_cmp_m6",
+      "m": 6,
+      "in_tok": 599,
+      "out_tok": 222,
+      "total": 821,
+      "latency": 2.581596049014479
+    },
+    {
+      "kind": "ext_cmp_m8",
+      "m": 8,
+      "in_tok": 786,
+      "out_tok": 389,
+      "total": 1175,
+      "latency": 3.869351490982808
+    },
+    {
+      "kind": "pairwise",
+      "m": 2,
+      "in_tok": 279,
+      "out_tok": 142,
+      "total": 421,
+      "latency": 1.7065718290396035
+    },
+    {
+      "kind": "pointwise",
+      "m": 1,
+      "in_tok": 270,
+      "out_tok": 109,
+      "total": 379,
+      "latency": 1.3169244609307498
+    },
+    {
+      "kind": "ext_cmp_m2",
+      "m": 2,
+      "in_tok": 254,
+      "out_tok": 129,
+      "total": 383,
+      "latency": 2.020656571025029
+    },
+    {
+      "kind": "ext_cmp_m3",
+      "m": 3,
+      "in_tok": 293,
+      "out_tok": 231,
+      "total": 524,
+      "latency": 2.4259155289037153
+    },
+    {
+      "kind": "ext_cmp_m4",
+      "m": 4,
+      "in_tok": 359,
+      "out_tok": 211,
+      "total": 570,
+      "latency": 2.625908344052732
+    },
+    {
+      "kind": "ext_cmp_m6",
+      "m": 6,
+      "in_tok": 482,
+      "out_tok": 166,
+      "total": 648,
+      "latency": 2.1238872759277
+    },
+    {
+      "kind": "ext_cmp_m8",
+      "m": 8,
+      "in_tok": 762,
+      "out_tok": 229,
+      "total": 991,
+      "latency": 2.5847798651084304
+    },
+    {
+      "kind": "pairwise",
+      "m": 2,
+      "in_tok": 248,
+      "out_tok": 158,
+      "total": 406,
+      "latency": 1.9697659970261157
+    },
+    {
+      "kind": "pointwise",
+      "m": 1,
+      "in_tok": 258,
+      "out_tok": 92,
+      "total": 350,
+      "latency": 1.3598083700053394
+    },
+    {
+      "kind": "ext_cmp_m2",
+      "m": 2,
+      "in_tok": 284,
+      "out_tok": 153,
+      "total": 437,
+      "latency": 1.9169307380216196
+    },
+    {
+      "kind": "ext_cmp_m3",
+      "m": 3,
+      "in_tok": 380,
+      "out_tok": 123,
+      "total": 503,
+      "latency": 2.2029891459969804
+    },
+    {
+      "kind": "ext_cmp_m4",
+      "m": 4,
+      "in_tok": 476,
+      "out_tok": 168,
+      "total": 644,
+      "latency": 1.9915810809470713
+    },
+    {
+      "kind": "ext_cmp_m6",
+      "m": 6,
+      "in_tok": 605,
+      "out_tok": 171,
+      "total": 776,
+      "latency": 1.9665440330281854
+    },
+    {
+      "kind": "ext_cmp_m8",
+      "m": 8,
+      "in_tok": 778,
+      "out_tok": 198,
+      "total": 976,
+      "latency": 4.911064892075956
+    },
+    {
+      "kind": "pairwise",
+      "m": 2,
+      "in_tok": 278,
+      "out_tok": 172,
+      "total": 450,
+      "latency": 2.0755386309465393
+    },
+    {
+      "kind": "pointwise",
+      "m": 1,
+      "in_tok": 271,
+      "out_tok": 94,
+      "total": 365,
+      "latency": 1.2421553729800507
+    },
+    {
+      "kind": "ext_cmp_m2",
+      "m": 2,
+      "in_tok": 311,
+      "out_tok": 196,
+      "total": 507,
+      "latency": 2.0120713459327817
+    },
+    {
+      "kind": "ext_cmp_m3",
+      "m": 3,
+      "in_tok": 429,
+      "out_tok": 153,
+      "total": 582,
+      "latency": 2.1988958690781146
+    },
+    {
+      "kind": "ext_cmp_m4",
+      "m": 4,
+      "in_tok": 476,
+      "out_tok": 231,
+      "total": 707,
+      "latency": 2.566590133938007
+    },
+    {
+      "kind": "ext_cmp_m6",
+      "m": 6,
+      "in_tok": 658,
+      "out_tok": 293,
+      "total": 951,
+      "latency": 3.0153161049820483
+    },
+    {
+      "kind": "ext_cmp_m8",
+      "m": 8,
+      "in_tok": 836,
+      "out_tok": 311,
+      "total": 1147,
+      "latency": 3.084033089922741
+    },
+    {
+      "kind": "pairwise",
+      "m": 2,
+      "in_tok": 305,
+      "out_tok": 180,
+      "total": 485,
+      "latency": 2.364077531034127
+    },
+    {
+      "kind": "pointwise",
+      "m": 1,
+      "in_tok": 282,
+      "out_tok": 87,
+      "total": 369,
+      "latency": 1.3281490459339693
+    },
+    {
+      "kind": "ext_cmp_m2",
+      "m": 2,
+      "in_tok": 351,
+      "out_tok": 184,
+      "total": 535,
+      "latency": 2.238153037033044
+    },
+    {
+      "kind": "ext_cmp_m3",
+      "m": 3,
+      "in_tok": 429,
+      "out_tok": 159,
+      "total": 588,
+      "latency": 2.1989318099804223
+    },
+    {
+      "kind": "ext_cmp_m4",
+      "m": 4,
+      "in_tok": 504,
+      "out_tok": 221,
+      "total": 725,
+      "latency": 2.876300886971876
+    },
+    {
+      "kind": "ext_cmp_m6",
+      "m": 6,
+      "in_tok": 719,
+      "out_tok": 199,
+      "total": 918,
+      "latency": 2.4956456020008773
+    },
+    {
+      "kind": "ext_cmp_m8",
+      "m": 8,
+      "in_tok": 925,
+      "out_tok": 354,
+      "total": 1279,
+      "latency": 3.8325427970848978
+    },
+    {
+      "kind": "pairwise",
+      "m": 2,
+      "in_tok": 345,
+      "out_tok": 133,
+      "total": 478,
+      "latency": 2.059574799030088
+    },
+    {
+      "kind": "pointwise",
+      "m": 1,
+      "in_tok": 278,
+      "out_tok": 114,
+      "total": 392,
+      "latency": 1.7033510491019115
+    }
+  ]
+}

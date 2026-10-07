@@ -31,27 +31,41 @@ class PassageBenchmark:
 
     def __post_init__(self):
         self.evaluator = pytrec_eval.RelevanceEvaluator(self.qrels, {"ndcg_cut.10"})
+        # The full query list: `shuffled` always draws its shuffles over this, in
+        # order, so a query's candidate order does not depend on which other
+        # queries `limit` / `select` kept (and its cached responses stay valid).
+        self._all_queries = self.first_stage
 
     def limit(self, num_queries: int | None) -> None:
         """Keep only the first `num_queries` queries (candidates are unchanged)."""
         if num_queries is not None:
             self.first_stage = self.first_stage[:num_queries]
 
+    def select(self, query_ids: list[str]) -> None:
+        """Keep only these queries, in benchmark order."""
+        missing = set(query_ids) - {qid for qid, _, _ in self.first_stage}
+        if missing:
+            raise ValueError(f"unknown query ids: {sorted(missing)}")
+        keep = set(query_ids)
+        self.first_stage = [q for q in self.first_stage if q[0] in keep]
+
     def shuffled(self, seed: int) -> list[tuple[str, str, list[tuple[str, str]]]]:
-        """Each query with its candidates in the seeded random order the
+        """Each kept query with its candidates in the seeded random order the
         algorithms are given. A shared pool is shuffled once, so every query
         ranks the same input order; otherwise one rng shuffles each query's
-        candidates in turn."""
+        candidates in turn (over the full benchmark, see __post_init__)."""
         rng = random.Random(seed)
+        kept = {qid for qid, _, _ in self.first_stage}
         if self.shared_pool:
-            pool = self.first_stage[0][2][:] if self.first_stage else []
+            pool = self._all_queries[0][2][:] if self._all_queries else []
             rng.shuffle(pool)
             return [(qid, query, pool[:]) for qid, query, _ in self.first_stage]
         prepared = []
-        for qid, query, ranking in self.first_stage:
+        for qid, query, ranking in self._all_queries:
             candidates = ranking[:]
             rng.shuffle(candidates)
-            prepared.append((qid, query, candidates))
+            if qid in kept:
+                prepared.append((qid, query, candidates))
         return prepared
 
 

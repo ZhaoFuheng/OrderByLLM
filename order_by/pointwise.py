@@ -5,6 +5,7 @@ from typing import Generic, TypeVar
 # from pydantic.generics import GenericModel
 from .utils import *
 from .cache import cache
+from . import jev
 from .clients import cortex_extra_body, pydantic_to_response_format, reasoning_tokens
 import os
 import asyncio
@@ -157,6 +158,9 @@ class PointwiseRelevanceKey:
             self.schema = SQLPointwiseReasoning
 
     async def value(self, client, modelname, output_type):
+        if jev.is_jev(client):
+            value, calls, in_t, out_t = await jev.pointwise_value(client, self.prompt_template, self.key)
+            return output_type(value), calls, in_t, out_t
         api_calls = 0
         total_tokens = 0
         prompt = self.prompt_template.format(key=self.key)
@@ -253,6 +257,9 @@ class PointwiseRelevanceKey:
 
 
 async def external_values(data, client, prompt_template, modelname, output_type, schema = ExternalPointwiseReasoning):
+    if jev.is_jev(client):
+        values, calls, in_t, out_t = await jev.external_values(client, prompt_template, list(data))
+        return [output_type(v) for v in values], calls, in_t, out_t
     api_call = 0 
     total_tokens = 0
     if schema == PassageExternalPointwiseReasoning:

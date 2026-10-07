@@ -6,6 +6,7 @@ Two caches exist (see order_by/cache.py):
   sort  the LLM response cache, sort_cache/ (or SORT_CACHE_DIR)   [default]
   wiki  the Wikipedia / web search lookups used by the *_with_search
         algorithms, wiki_cache/ (or WIKI_CACHE_DIR)
+  jev   the responses of TypeSafe's Jev model, jev_cache/ (or JEV_CACHE_DIR)
 
 Usage:
     # Export the LLM response cache to sort_cache_export.jsonl.gz
@@ -36,7 +37,7 @@ import sys
 import time
 from pathlib import Path
 
-from order_by.cache import cache as sort_cache, open_wiki_cache
+from order_by.cache import cache as sort_cache, open_jev_cache, open_wiki_cache
 
 
 IMPORT_BATCH = 10_000  # entries written per transaction
@@ -47,8 +48,11 @@ IMPORT_BATCH = 10_000  # entries written per transaction
 IMPORT_SETTINGS = {"cull_limit": 0, "sqlite_cache_size": 2**18}
 
 
+_OPENERS = {"sort": lambda: sort_cache, "wiki": open_wiki_cache, "jev": open_jev_cache}
+
+
 def _cache(name: str):
-    return sort_cache if name == "sort" else open_wiki_cache()
+    return _OPENERS[name]()
 
 
 def _open_writer(output: str, fmt: str):
@@ -158,7 +162,7 @@ def main():
     sub = parser.add_subparsers(dest="command")
 
     exp = sub.add_parser("export", help="Export cache to compressed JSONL")
-    exp.add_argument("--cache", choices=["sort", "wiki"], default="sort",
+    exp.add_argument("--cache", choices=["sort", "wiki", "jev"], default="sort",
                      help="Which cache to export (default: sort, the LLM response cache)")
     exp.add_argument("-o", "--output", default=None, help="Output file path")
     exp.add_argument("--format", choices=["gzip", "zstd"], default="gzip",
@@ -166,7 +170,7 @@ def main():
 
     imp = sub.add_parser("import", help="Import cache from compressed JSONL")
     imp.add_argument("file", help="Path to the compressed JSONL file")
-    imp.add_argument("--cache", choices=["sort", "wiki"], default="sort",
+    imp.add_argument("--cache", choices=["sort", "wiki", "jev"], default="sort",
                      help="Which cache to import into (default: sort, the LLM response cache)")
     imp.add_argument("--no-overwrite", action="store_true",
                      help="Skip entries that already exist in cache")

@@ -1,0 +1,171 @@
+{
+  "dataset": "nfcorpus",
+  "generated_at": "2026-10-04T22:07:16.774707+00:00",
+  "settings": {
+    "data_dir": "data/nfcorpus",
+    "queries": [
+      "PLAIN-1018",
+      "PLAIN-102",
+      "PLAIN-1050"
+    ],
+    "model": "jev",
+    "seeds": [
+      0
+    ],
+    "algorithms": [
+      "pointwise",
+      "quick_sort",
+      "quick_sort3",
+      "external_pointwise_4",
+      "external_merge_sort_4",
+      "external_bubble_sort_4"
+    ]
+  },
+  "metrics": [
+    {
+      "algorithm": "pointwise",
+      "seed_scores": {
+        "0": 0.229697286539585
+      },
+      "per_query_scores": {
+        "0": {
+          "PLAIN-1018": 0.33013764944712026,
+          "PLAIN-102": 0.0,
+          "PLAIN-1050": 0.3589542101716347
+        }
+      },
+      "per_query_costs": {
+        "0": {
+          "PLAIN-1018": 0.111728,
+          "PLAIN-102": 0.112164,
+          "PLAIN-1050": 0.112164
+        }
+      },
+      "score_mean": 0.229697286539585,
+      "score_std": 0.0,
+      "price": 0.336056,
+      "tokens": 8586684
+    },
+    {
+      "algorithm": "quick_sort",
+      "seed_scores": {
+        "0": 0.4026392051577305
+      },
+      "per_query_scores": {
+        "0": {
+          "PLAIN-1018": 0.4826366372598628,
+          "PLAIN-102": 0.4916301699702233,
+          "PLAIN-1050": 0.23365080824310533
+        }
+      },
+      "per_query_costs": {
+        "0": {
+          "PLAIN-1018": 0.51234,
+          "PLAIN-102": 0.39496,
+          "PLAIN-1050": 0.794723
+        }
+      },
+      "score_mean": 0.4026392051577305,
+      "score_std": 0.0,
+      "price": 1.702022,
+      "tokens": 44817869
+    },
+    {
+      "algorithm": "quick_sort3",
+      "seed_scores": {
+        "0": 0.49235801325955747
+      },
+      "per_query_scores": {
+        "0": {
+          "PLAIN-1018": 0.6023277671368327,
+          "PLAIN-102": 0.3358605804590333,
+          "PLAIN-1050": 0.5388856921828065
+        }
+      },
+      "per_query_costs": {
+        "0": {
+          "PLAIN-1018": 1.068253,
+          "PLAIN-102": 1.170378,
+          "PLAIN-1050": 2.133026
+        }
+      },
+      "score_mean": 0.49235801325955747,
+      "score_std": 0.0,
+      "price": 4.371657,
+      "tokens": 114970598
+    },
+    {
+      "algorithm": "external_pointwise_4",
+      "seed_scores": {
+        "0": 0.6386153064836549
+      },
+      "per_query_scores": {
+        "0": {
+          "PLAIN-1018": 0.7280855459907165,
+          "PLAIN-102": 0.5282800663700055,
+          "PLAIN-1050": 0.6594803070902429
+        }
+      },
+      "per_query_costs": {
+        "0": {
+          "PLAIN-1018": 0.08329,
+          "PLAIN-102": 0.083399,
+          "PLAIN-1050": 0.083399
+        }
+      },
+      "score_mean": 0.6386153064836549,
+      "score_std": 0.0,
+      "price": 0.250088,
+      "tokens": 6415686
+    },
+    {
+      "algorithm": "external_merge_sort_4",
+      "seed_scores": {
+        "0": 0.6581506189051226
+      },
+      "per_query_scores": {
+        "0": {
+          "PLAIN-1018": 0.7133080652109929,
+          "PLAIN-102": 0.5514035764739394,
+          "PLAIN-1050": 0.7097402150304354
+        }
+      },
+      "per_query_costs": {
+        "0": {
+          "PLAIN-1018": 0.361567,
+          "PLAIN-102": 0.367864,
+          "PLAIN-1050": 0.367587
+        }
+      },
+      "score_mean": 0.6581506189051226,
+      "score_std": 0.0,
+      "price": 1.097019,
+      "tokens": 28137028
+    },
+    {
+      "algorithm": "external_bubble_sort_4",
+      "seed_scores": {
+        "0": 0.6700599689650537
+      },
+      "per_query_scores": {
+        "0": {
+          "PLAIN-1018": 0.7564477297898766,
+          "PLAIN-102": 0.5282800663700055,
+          "PLAIN-1050": 0.725452110735279
+        }
+      },
+      "per_query_costs": {
+        "0": {
+          "PLAIN-1018": 0.882888,
+          "PLAIN-102": 0.810608,
+          "PLAIN-1050": 0.822065
+        }
+      },
+      "score_mean": 0.6700599689650537,
+      "score_std": 0.0,
+      "price": 2.515561,
+      "tokens": 64521579
+    }
+  ],
+  "metric_name": "ndcg@10"
+}

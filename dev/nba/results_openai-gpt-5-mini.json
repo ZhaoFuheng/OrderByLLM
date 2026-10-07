@@ -1,6 +1,6 @@
 {
   "dataset": "nba",
-  "generated_at": "2026-10-02T21:53:04.240653+00:00",
+  "generated_at": "2026-10-07T03:47:53.322540+00:00",
   "settings": {
     "csv": "data/nba_heights_200.csv",
     "model": "openai-gpt-5-mini",

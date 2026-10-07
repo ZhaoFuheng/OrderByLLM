@@ -17,6 +17,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from benchmarks import PassageBenchmark, load_dl20, load_hellaswag, load_nfcorpus
+from order_by import jev
 from order_by.clients import PROVIDER_HELP, PROVIDERS, build_client, run_async
 from order_by.optimizer import OrderByOptimizer
 from order_by.utils import (
@@ -41,6 +42,7 @@ from prompts.all_prompts import (
     population_pairwise_comparison_prompt_template,
     population_pointwise_prompt_template,
 )
+from prompts.jev_questions import PASSAGE, REVIEW, JevPrompt
 
 POPULATION_WIKI_FIELD = "population_estimate"
 
@@ -74,6 +76,19 @@ def _safe_prompt(template: str, **kwargs) -> str:
         def __missing__(self, key):
             return "{" + key + "}"
     return template.format_map(_Partial(**kwargs))
+
+
+def _ranking_prompts(client, jev_prompt: JevPrompt, pointwise, external_pointwise, pairwise, external_pairwise) -> dict:
+    """The four prompt templates the optimizer hands to the ranking algorithms:
+    the LLM prompt strings, or the one JevPrompt for all four when ranking with Jev."""
+    if jev.is_jev(client):
+        pointwise = external_pointwise = pairwise = external_pairwise = jev_prompt
+    return {
+        "pointwise_prompt_template": pointwise,
+        "external_pointwise_prompt_template": external_pointwise,
+        "pairwise_comparison_prompt_template": pairwise,
+        "external_pairwise_prompt_template": external_pairwise,
+    }
 
 
 # ── Population ────────────────────────────────────────────────────────────────
@@ -175,10 +190,13 @@ def _build_passage_optimizer(query, ranking, client, args, budget, ideal_oracle=
         factual_knowledge_prompt_template=direct_inquiry_factual_knowledge_prompt.format_map(
             {"description": "Rank passages by relevance to a query", "query": query, "example": "```{example}```"}
         ),
-        pointwise_prompt_template=_safe_prompt(passage_pointwise_prompt_template, question=query),
-        external_pointwise_prompt_template=_safe_prompt(passage_external_pointwise_prompt_template, question=query),
-        pairwise_comparison_prompt_template=_safe_prompt(passage_pairwise_comparison_prompt_template, question=query),
-        external_pairwise_prompt_template=_safe_prompt(passage_external_comparison_prompt_template, question=query),
+        **_ranking_prompts(
+            client, JevPrompt(PASSAGE, query),
+            _safe_prompt(passage_pointwise_prompt_template, question=query),
+            _safe_prompt(passage_external_pointwise_prompt_template, question=query),
+            _safe_prompt(passage_pairwise_comparison_prompt_template, question=query),
+            _safe_prompt(passage_external_comparison_prompt_template, question=query),
+        ),
         dollar_budget_constraint=budget,
         model_name=args.model,
         isPassage=True,
@@ -417,8 +435,12 @@ async def run_optimizer_hellaswag(args, client: AsyncOpenAI, pbar: tqdm | None =
 
 async def run_optimizer_nfcorpus(args, client: AsyncOpenAI, pbar: tqdm | None = None) -> dict:
     bench = load_nfcorpus(_resolve(args.nfcorpus_dir))
-    bench.limit(args.nfcorpus_limit)
-    settings = {"nfcorpus_dir": str(args.nfcorpus_dir), "nfcorpus_limit": args.nfcorpus_limit}
+    if args.nfcorpus_queries:
+        bench.select(args.nfcorpus_queries)
+    else:
+        bench.limit(args.nfcorpus_limit)
+    settings = {"nfcorpus_dir": str(args.nfcorpus_dir), "nfcorpus_limit": args.nfcorpus_limit,
+                "queries": [qid for qid, _, _ in bench.first_stage]}
     return await _run_optimizer_passage_benchmark("nfcorpus", bench, settings, args, client, pbar)
 
 
@@ -447,10 +469,13 @@ async def _run_optimizer_movie(
         factual_knowledge_prompt_template=direct_inquiry_factual_knowledge_prompt.format_map(
             {"description": "Rank movie reviews by positivity", "query": "positivity of the review", "example": "```{example}```"}
         ),
-        pointwise_prompt_template=movie_pointwise_prompt_template,
-        external_pointwise_prompt_template=movie_external_pointwise_prompt_template,
-        pairwise_comparison_prompt_template=movie_pairwise_comparison_prompt_template,
-        external_pairwise_prompt_template=movie_external_comparison_prompt_template,
+        **_ranking_prompts(
+            client, JevPrompt(REVIEW),
+            movie_pointwise_prompt_template,
+            movie_external_pointwise_prompt_template,
+            movie_pairwise_comparison_prompt_template,
+            movie_external_comparison_prompt_template,
+        ),
         dollar_budget_constraint=budget,
         model_name=args.model,
         isPassage=False,
@@ -676,6 +701,9 @@ def main():
 
     # NFCorpus-specific
     parser.add_argument("--nfcorpus-dir", default="data/nfcorpus")
+    parser.add_argument("--nfcorpus-queries", type=lambda s: [q.strip() for q in s.split(",") if q.strip()], default="PLAIN-1018,PLAIN-102,PLAIN-1050",
+                        help="Comma-separated NFCorpus query ids (default: the three of results_<model>.json; "
+                             "pass '' to run the first --nfcorpus-limit queries in id order).")
     parser.add_argument("--nfcorpus-limit", type=int, default=3,
                         help="Number of NFCorpus test queries to optimize (default: 3). "
                              "Each query ranks the full ~3633-doc corpus.")

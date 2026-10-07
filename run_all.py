@@ -40,23 +40,23 @@ _PROXY = "rrf_ensemble,llm_judge"
 # across the dataset's queries.
 OPTIMIZER_RUNS = (
     # ── HellaSwag ──
-    {"dataset": "hellaswag",      "model": HAIKU,    "budgets": "110,330,550,770,990", "proxy_policies": _PROXY},
-    {"dataset": "hellaswag",      "model": LLAMA,    "budgets": "4,12,20,28,36",       "proxy_policies": _PROXY},
-    {"dataset": "hellaswag",      "model": GPT5MINI, "budgets": "7,23,39,55,71",       "proxy_policies": _PROXY},
+    {"dataset": "hellaswag",      "model": HAIKU,    "budgets": "110,330,550,650,800", "proxy_policies": _PROXY},
+    {"dataset": "hellaswag",      "model": LLAMA,    "budgets": "12,16,20,24,32",      "proxy_policies": _PROXY},
+    {"dataset": "hellaswag",      "model": GPT5MINI, "budgets": "20,35,50,65,80",       "proxy_policies": _PROXY},
 
     # ── NFCorpus ──
     {"dataset": "nfcorpus",       "model": HAIKU,    "budgets": "10,40,70,100,160",    "proxy_policies": _PROXY},
-    {"dataset": "nfcorpus",       "model": LLAMA,    "budgets": "5,10,18,26",          "proxy_policies": _PROXY},
+    {"dataset": "nfcorpus",       "model": LLAMA,    "budgets": "4,10,18,25",          "proxy_policies": _PROXY},
     {"dataset": "nfcorpus",       "model": GPT5MINI, "budgets": "10,16,22,28,34",      "proxy_policies": _PROXY},
 
     # ── DL20 ──
     {"dataset": "dl20",           "model": HAIKU,    "budgets": "14,28,42,56",         "proxy_policies": _PROXY},
     {"dataset": "dl20",           "model": LLAMA,    "budgets": "1,2,4,6",             "proxy_policies": _PROXY},
-    {"dataset": "dl20",           "model": GPT5MINI, "budgets": "3,6,9,12",            "proxy_policies": _PROXY},
+    {"dataset": "dl20",           "model": GPT5MINI, "budgets": "4,6,10,13",            "proxy_policies": _PROXY},
 
     # ── SembenchMovie ──
-    {"dataset": "sembench_movie", "model": HAIKU,    "budgets": "2,6,12,18",           "proxy_policies": _PROXY},
-    {"dataset": "sembench_movie", "model": LLAMA,    "budgets": ".1,.25,.5,.75",       "proxy_policies": _PROXY},
+    {"dataset": "sembench_movie", "model": HAIKU,    "budgets": "2,6,8,12",           "proxy_policies": _PROXY},
+    {"dataset": "sembench_movie", "model": LLAMA,    "budgets": ".15,.25,.5,.75",      "proxy_policies": _PROXY},
     {"dataset": "sembench_movie", "model": GPT5MINI, "budgets": ".5,1,1.5,2",          "proxy_policies": _PROXY},
 
     # ── Population ──

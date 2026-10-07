@@ -7,6 +7,7 @@ import random
 from typing import Any, List, Optional, Sequence
 from pydantic import BaseModel
 from .cache import cache
+from . import jev
 import asyncio
 import math
 import pytrec_eval
@@ -336,6 +337,16 @@ class OrderByOptimizer:
             if len(candidate_algs) == 1:
                 return candidate_algs[0]
 
+            judge_client = self.judge_client if self.judge_client is not None else self.client
+            if jev.is_jev(judge_client):
+                # Jev judges the rankings as one Choice question posed on the ranking
+                # task's JevPrompt (the same object held in every *_prompt_template).
+                best, _, input_tokens, output_tokens = await jev.judge_rankings(
+                    judge_client, self.pairwise_comparison_prompt_template, sampled_data, rankings)
+                self.total_input_tokens += input_tokens
+                self.total_output_tokens += output_tokens
+                return candidate_algs[best]
+
             if type(sampled_data[0]) == tuple:
                 sampled_data_new_ids = []
                 map_old_to_new = {}
@@ -422,7 +433,12 @@ class OrderByOptimizer:
 
     async def physical_order_by_impl(self, seed=42):
         self.rng = random.Random(seed)
-        factual_knowledge, input_tokens, output_tokens, web_search_query = await self.is_factual_knowledge()
+        if jev.is_jev(self.client):
+            # Jev tasks judge the text they are given (prompts/jev_questions.py), so the
+            # factual-knowledge inquiry and the web-search algorithms do not apply.
+            factual_knowledge, input_tokens, output_tokens, web_search_query = False, 0, 0, ''
+        else:
+            factual_knowledge, input_tokens, output_tokens, web_search_query = await self.is_factual_knowledge()
         self.total_input_tokens += input_tokens
         self.total_output_tokens += output_tokens
 
@@ -487,24 +503,24 @@ class OrderByOptimizer:
                 most_expensive_bubble_batch = b
                 break
 
-        # Record the estimated full-run price of each ext_merge batch size
-        # (kept in self.alg_cost_est). NOTE: no extra ext_merge batch sizes are
-        # probed on the sample -- only ext_merge_{base_batch} from init_algs. In
-        # the runs behind the published results the affordable batch found by
-        # this sweep was never used, and that behavior is kept so the results
-        # (and the cached LLM calls they rely on) stay reproducible.
+        # Same for external merge sort: the smallest affordable batch size and
+        # every larger one up to the base batch join the candidate pool.
+        most_expensive_merge_batch = -1
         for b in range(self.batch_space[0], self.batch_space[1]+1, 2):
             scaled_price = b8_price * (b / base_batch)
             est_price = self.estimated_total_price(f'ext_merge_{b}', scaled_price, sample_size, actual_sample_api_calls=b8_calls)
             if est_price <= self.ranking_budget:
+                most_expensive_merge_batch = b
                 break
 
         batch_algs = []
-        if most_expensive_bubble_batch > 0:
-            for bubble_b in range(most_expensive_bubble_batch, self.batch_space[-1]+1, 2):
-                batch_algs.append(f'ext_bubble_{bubble_b}')
-                if f'ext_bubble_{bubble_b}' not in init_algs:
-                    init_algs.append(f'ext_bubble_{bubble_b}')
+        for prefix, smallest in (('ext_merge', most_expensive_merge_batch), ('ext_bubble', most_expensive_bubble_batch)):
+            if smallest > 0:
+                for b in range(smallest, self.batch_space[-1]+1, 2):
+                    name = f'{prefix}_{b}'
+                    if name not in init_algs:   # ext_merge_{base_batch} was already sampled
+                        batch_algs.append(name)
+                        init_algs.append(name)
 
         results, names, additional_invoked_budget = await self.invoke_all_on_samples(
             sampled_data[:], batch_algs

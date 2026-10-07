@@ -3,6 +3,7 @@ import logging
 from pydantic import BaseModel
 from .utils import *
 from .cache import cache
+from . import jev
 from .clients import cortex_extra_body, pydantic_to_response_format, reasoning_tokens
 from typing import List, Callable, Dict, Tuple
 import asyncio
@@ -296,8 +297,11 @@ class Pair_Comparison_Key:
         possibles = {str(self.key), str(other.key)}
         if self.schema == PassageComparisonReasoning or self.schema == SQLComparisonReasoning or self.schema == ReviewComparisonReasoning:
             possibles = {'A', 'B'}
-        prompt1 = prompt_template.format(key1=str(self.key), key2=str(other.key))
-        greater_key, num, input_tokens, output_tokens = await self.get_greater(client, prompt1, modelname, possibles)
+        if jev.is_jev(client):
+            greater_key, num, input_tokens, output_tokens = await jev.compare(client, prompt_template, self.key, other.key)
+        else:
+            prompt1 = prompt_template.format(key1=str(self.key), key2=str(other.key))
+            greater_key, num, input_tokens, output_tokens = await self.get_greater(client, prompt1, modelname, possibles)
 
         if greater_key == self.key or greater_key == str(self.key) or greater_key == 'A':
             return 1, num, input_tokens, output_tokens
@@ -321,7 +325,9 @@ async def external_comparisons(data, client, prompt_template, modelname, isPassa
 
     if len(data) == 0:
         return data, 0, 0, 0
-    
+    if jev.is_jev(client):
+        return await jev.external_comparisons(client, prompt_template, list(data))
+
     api_call = 0 
     total_tokens = 0
     best_effort = None

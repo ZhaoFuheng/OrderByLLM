@@ -19,359 +19,408 @@
       "rrf_ensemble": {
         "10": {
           "dataset": "nfcorpus",
-          "generated_at": "2026-10-02T22:33:43.945885+00:00",
+          "generated_at": "2026-10-07T04:38:01.202358+00:00",
           "settings": {
             "nfcorpus_dir": "data/nfcorpus",
             "nfcorpus_limit": 3,
+            "queries": [
+              "PLAIN-1018",
+              "PLAIN-102",
+              "PLAIN-1050"
+            ],
             "model": "openai-gpt-5-mini",
             "total_ranking_budget": 10.0,
             "sample_size": 20,
             "proxy_policy": "rrf_ensemble"
           },
-          "score_mean": 0.197,
+          "score_mean": 0.436,
           "score_std": 0.0,
           "per_query_scores": {
-            "PLAIN-1008": 0.0,
             "PLAIN-1018": 0.16421958630632802,
-            "PLAIN-102": 0.4260967530293622
+            "PLAIN-102": 0.4260967530293622,
+            "PLAIN-1050": 0.716485063693381
           },
           "per_query_chosen_alg": {
-            "PLAIN-1008": "ext_merge_8+point",
-            "PLAIN-1018": "point+ext_merge_8",
-            "PLAIN-102": "ext_merge_8+point"
+            "PLAIN-1018": "ext_merge_8+point",
+            "PLAIN-102": "ext_merge_8+point",
+            "PLAIN-1050": "ext_merge_6+point"
           },
           "chosen_alg_counts": {
             "ext_merge_8+point": 2,
-            "point+ext_merge_8": 1
+            "ext_merge_6+point": 1
           },
           "total_ranking_budget": 10.0,
           "per_query_budget": 3.3333333333333335,
-          "total_optimization_cost": 0.147343,
-          "total_ranking_cost": 9.962142,
-          "in_tokens": 18045181,
-          "out_tokens": 2799095,
+          "total_optimization_cost": 0.21370099999999997,
+          "total_ranking_cost": 10.557811,
+          "in_tokens": 19034513,
+          "out_tokens": 3006442,
           "metric_name": "ndcg@10"
         },
         "16": {
           "dataset": "nfcorpus",
-          "generated_at": "2026-10-02T22:33:49.462985+00:00",
+          "generated_at": "2026-10-07T04:38:08.138724+00:00",
           "settings": {
             "nfcorpus_dir": "data/nfcorpus",
             "nfcorpus_limit": 3,
+            "queries": [
+              "PLAIN-1018",
+              "PLAIN-102",
+              "PLAIN-1050"
+            ],
             "model": "openai-gpt-5-mini",
             "total_ranking_budget": 16.0,
             "sample_size": 20,
             "proxy_policy": "rrf_ensemble"
           },
-          "score_mean": 0.225,
+          "score_mean": 0.464,
           "score_std": 0.0,
           "per_query_scores": {
-            "PLAIN-1008": 0.0,
             "PLAIN-1018": 0.24966402870278917,
-            "PLAIN-102": 0.4260967530293622
+            "PLAIN-102": 0.4260967530293622,
+            "PLAIN-1050": 0.7162874455029682
           },
           "per_query_chosen_alg": {
-            "PLAIN-1008": "ext_bubble_8+ext_merge_8",
             "PLAIN-1018": "quick+point",
-            "PLAIN-102": "ext_merge_8+point"
+            "PLAIN-102": "ext_merge_8+point",
+            "PLAIN-1050": "ext_merge_6+ext_merge_8+point"
           },
           "chosen_alg_counts": {
-            "ext_bubble_8+ext_merge_8": 1,
             "quick+point": 1,
-            "ext_merge_8+point": 1
+            "ext_merge_8+point": 1,
+            "ext_merge_6+ext_merge_8+point": 1
           },
           "total_ranking_budget": 16.0,
           "per_query_budget": 5.333333333333333,
-          "total_optimization_cost": 0.258551,
-          "total_ranking_cost": 13.898897999999999,
-          "in_tokens": 24593102,
-          "out_tokens": 4004587,
+          "total_optimization_cost": 0.325102,
+          "total_ranking_cost": 13.611145,
+          "in_tokens": 23880389,
+          "out_tokens": 3983075,
           "metric_name": "ndcg@10"
         },
         "22": {
           "dataset": "nfcorpus",
-          "generated_at": "2026-10-02T22:33:57.677997+00:00",
+          "generated_at": "2026-10-07T04:38:18.983541+00:00",
           "settings": {
             "nfcorpus_dir": "data/nfcorpus",
             "nfcorpus_limit": 3,
+            "queries": [
+              "PLAIN-1018",
+              "PLAIN-102",
+              "PLAIN-1050"
+            ],
             "model": "openai-gpt-5-mini",
             "total_ranking_budget": 22.0,
             "sample_size": 20,
             "proxy_policy": "rrf_ensemble"
           },
-          "score_mean": 0.364,
+          "score_mean": 0.619,
           "score_std": 0.0,
           "per_query_scores": {
-            "PLAIN-1008": 0.0,
-            "PLAIN-1018": 0.5113553108118986,
-            "PLAIN-102": 0.5812945619833637
+            "PLAIN-1018": 0.4954588824701808,
+            "PLAIN-102": 0.5812945619833637,
+            "PLAIN-1050": 0.7799082337019199
           },
           "per_query_chosen_alg": {
-            "PLAIN-1008": "ext_bubble_8+ext_merge_8+point",
-            "PLAIN-1018": "quick+ext_merge_8+point",
-            "PLAIN-102": "ext_merge_8+quick+point"
+            "PLAIN-1018": "ext_bubble_6+ext_merge_8",
+            "PLAIN-102": "ext_merge_8+quick+point",
+            "PLAIN-1050": "ext_merge_6+ext_merge_8+ext_bubble_8"
           },
           "chosen_alg_counts": {
-            "ext_bubble_8+ext_merge_8+point": 1,
-            "quick+ext_merge_8+point": 1,
-            "ext_merge_8+quick+point": 1
+            "ext_bubble_6+ext_merge_8": 1,
+            "ext_merge_8+quick+point": 1,
+            "ext_merge_6+ext_merge_8+ext_bubble_8": 1
           },
           "total_ranking_budget": 22.0,
           "per_query_budget": 7.333333333333333,
-          "total_optimization_cost": 0.360143,
-          "total_ranking_cost": 21.722042,
-          "in_tokens": 37218043,
-          "out_tokens": 6388837,
+          "total_optimization_cost": 0.42803100000000005,
+          "total_ranking_cost": 24.372341,
+          "in_tokens": 45124745,
+          "out_tokens": 6759593,
           "metric_name": "ndcg@10"
         },
         "28": {
           "dataset": "nfcorpus",
-          "generated_at": "2026-10-02T22:34:06.545885+00:00",
+          "generated_at": "2026-10-07T04:38:30.310024+00:00",
           "settings": {
             "nfcorpus_dir": "data/nfcorpus",
             "nfcorpus_limit": 3,
+            "queries": [
+              "PLAIN-1018",
+              "PLAIN-102",
+              "PLAIN-1050"
+            ],
             "model": "openai-gpt-5-mini",
             "total_ranking_budget": 28.0,
             "sample_size": 20,
             "proxy_policy": "rrf_ensemble"
           },
-          "score_mean": 0.38,
+          "score_mean": 0.61,
           "score_std": 0.0,
           "per_query_scores": {
-            "PLAIN-1008": 0.0,
-            "PLAIN-1018": 0.557780405761987,
-            "PLAIN-102": 0.5812945619833637
+            "PLAIN-1018": 0.5384313152574521,
+            "PLAIN-102": 0.5812945619833637,
+            "PLAIN-1050": 0.7104770117651426
           },
           "per_query_chosen_alg": {
-            "PLAIN-1008": "ext_bubble_8+ext_merge_8+quick",
-            "PLAIN-1018": "quick+ext_bubble_8+ext_merge_8",
-            "PLAIN-102": "ext_merge_8+quick+point"
+            "PLAIN-1018": "ext_bubble_6+ext_bubble_8",
+            "PLAIN-102": "ext_merge_8+quick+point",
+            "PLAIN-1050": "ext_merge_6+ext_merge_8+quick+point"
           },
           "chosen_alg_counts": {
-            "ext_bubble_8+ext_merge_8+quick": 1,
-            "quick+ext_bubble_8+ext_merge_8": 1,
-            "ext_merge_8+quick+point": 1
+            "ext_bubble_6+ext_bubble_8": 1,
+            "ext_merge_8+quick+point": 1,
+            "ext_merge_6+ext_merge_8+quick+point": 1
           },
           "total_ranking_budget": 28.0,
           "per_query_budget": 9.333333333333334,
-          "total_optimization_cost": 0.360143,
-          "total_ranking_cost": 26.001846,
-          "in_tokens": 45234803,
-          "out_tokens": 7526644,
+          "total_optimization_cost": 0.42803100000000005,
+          "total_ranking_cost": 28.563549,
+          "in_tokens": 50472280,
+          "out_tokens": 8186755,
           "metric_name": "ndcg@10"
         },
         "34": {
           "dataset": "nfcorpus",
-          "generated_at": "2026-10-02T22:34:17.176755+00:00",
+          "generated_at": "2026-10-07T04:38:43.235522+00:00",
           "settings": {
             "nfcorpus_dir": "data/nfcorpus",
             "nfcorpus_limit": 3,
+            "queries": [
+              "PLAIN-1018",
+              "PLAIN-102",
+              "PLAIN-1050"
+            ],
             "model": "openai-gpt-5-mini",
             "total_ranking_budget": 34.0,
             "sample_size": 20,
             "proxy_policy": "rrf_ensemble"
           },
-          "score_mean": 0.401,
+          "score_mean": 0.673,
           "score_std": 0.0,
           "per_query_scores": {
-            "PLAIN-1008": 0.0,
             "PLAIN-1018": 0.6214011939609386,
-            "PLAIN-102": 0.5812945619833637
+            "PLAIN-102": 0.6166903350185349,
+            "PLAIN-1050": 0.7799082337019199
           },
           "per_query_chosen_alg": {
-            "PLAIN-1008": "ext_bubble_8+ext_merge_8+quick+point",
-            "PLAIN-1018": "quick+ext_bubble_6+ext_merge_8",
-            "PLAIN-102": "ext_merge_8+quick+point"
+            "PLAIN-1018": "ext_bubble_6+quick+ext_merge_8",
+            "PLAIN-102": "ext_merge_8+quick+ext_merge_4+point",
+            "PLAIN-1050": "ext_merge_6+ext_merge_8+quick+ext_bubble_8"
           },
           "chosen_alg_counts": {
-            "ext_bubble_8+ext_merge_8+quick+point": 1,
-            "quick+ext_bubble_6+ext_merge_8": 1,
-            "ext_merge_8+quick+point": 1
+            "ext_bubble_6+quick+ext_merge_8": 1,
+            "ext_merge_8+quick+ext_merge_4+point": 1,
+            "ext_merge_6+ext_merge_8+quick+ext_bubble_8": 1
           },
           "total_ranking_budget": 34.0,
           "per_query_budget": 11.333333333333334,
-          "total_optimization_cost": 0.360143,
-          "total_ranking_cost": 28.800092,
-          "in_tokens": 50221950,
-          "out_tokens": 8302374,
+          "total_optimization_cost": 0.42803100000000005,
+          "total_ranking_cost": 36.169038,
+          "in_tokens": 62560054,
+          "out_tokens": 10478528,
           "metric_name": "ndcg@10"
         }
       },
       "llm_judge": {
         "10": {
           "dataset": "nfcorpus",
-          "generated_at": "2026-10-02T22:34:18.712548+00:00",
+          "generated_at": "2026-10-07T04:38:46.589839+00:00",
           "settings": {
             "nfcorpus_dir": "data/nfcorpus",
             "nfcorpus_limit": 3,
+            "queries": [
+              "PLAIN-1018",
+              "PLAIN-102",
+              "PLAIN-1050"
+            ],
             "model": "openai-gpt-5-mini",
             "total_ranking_budget": 10.0,
             "sample_size": 20,
             "proxy_policy": "llm_judge"
           },
-          "score_mean": 0.314,
+          "score_mean": 0.564,
           "score_std": 0.0,
           "per_query_scores": {
-            "PLAIN-1008": 0.0,
             "PLAIN-1018": 0.521098444712307,
-            "PLAIN-102": 0.42030891980709917
+            "PLAIN-102": 0.4634153650075699,
+            "PLAIN-1050": 0.7065443116025598
           },
           "per_query_chosen_alg": {
-            "PLAIN-1008": "ext_merge_8",
             "PLAIN-1018": "ext_merge_8",
-            "PLAIN-102": "ext_merge_8"
+            "PLAIN-102": "ext_merge_6",
+            "PLAIN-1050": "ext_merge_6"
           },
           "chosen_alg_counts": {
-            "ext_merge_8": 3
+            "ext_merge_8": 1,
+            "ext_merge_6": 2
           },
           "total_ranking_budget": 10.0,
           "per_query_budget": 3.3333333333333335,
-          "total_optimization_cost": 0.147343,
-          "total_ranking_cost": 6.293731999999999,
-          "in_tokens": 12239035,
-          "out_tokens": 1690658,
+          "total_optimization_cost": 0.21370099999999997,
+          "total_ranking_cost": 7.488899,
+          "in_tokens": 13978775,
+          "out_tokens": 2103953,
           "metric_name": "ndcg@10"
         },
         "16": {
           "dataset": "nfcorpus",
-          "generated_at": "2026-10-02T22:34:21.118458+00:00",
+          "generated_at": "2026-10-07T04:38:49.976460+00:00",
           "settings": {
             "nfcorpus_dir": "data/nfcorpus",
             "nfcorpus_limit": 3,
+            "queries": [
+              "PLAIN-1018",
+              "PLAIN-102",
+              "PLAIN-1050"
+            ],
             "model": "openai-gpt-5-mini",
             "total_ranking_budget": 16.0,
             "sample_size": 20,
             "proxy_policy": "llm_judge"
           },
-          "score_mean": 0.327,
+          "score_mean": 0.579,
           "score_std": 0.0,
           "per_query_scores": {
-            "PLAIN-1008": 0.0,
-            "PLAIN-1018": 0.521098444712307,
-            "PLAIN-102": 0.45995532871129513
+            "PLAIN-1018": 0.5684579545875155,
+            "PLAIN-102": 0.4634153650075699,
+            "PLAIN-1050": 0.7065443116025598
           },
           "per_query_chosen_alg": {
-            "PLAIN-1008": "ext_merge_8",
-            "PLAIN-1018": "ext_merge_8",
-            "PLAIN-102": "ext_bubble_8"
+            "PLAIN-1018": "ext_merge_4",
+            "PLAIN-102": "ext_merge_6",
+            "PLAIN-1050": "ext_merge_6"
           },
           "chosen_alg_counts": {
-            "ext_merge_8": 2,
-            "ext_bubble_8": 1
+            "ext_merge_4": 1,
+            "ext_merge_6": 2
           },
           "total_ranking_budget": 16.0,
           "per_query_budget": 5.333333333333333,
-          "total_optimization_cost": 0.258551,
-          "total_ranking_cost": 8.308117,
-          "in_tokens": 16210290,
-          "out_tokens": 2257048,
+          "total_optimization_cost": 0.325102,
+          "total_ranking_cost": 9.130333,
+          "in_tokens": 16252461,
+          "out_tokens": 2696160,
           "metric_name": "ndcg@10"
         },
         "22": {
           "dataset": "nfcorpus",
-          "generated_at": "2026-10-02T22:34:25.532972+00:00",
+          "generated_at": "2026-10-07T04:38:54.095305+00:00",
           "settings": {
             "nfcorpus_dir": "data/nfcorpus",
             "nfcorpus_limit": 3,
+            "queries": [
+              "PLAIN-1018",
+              "PLAIN-102",
+              "PLAIN-1050"
+            ],
             "model": "openai-gpt-5-mini",
             "total_ranking_budget": 22.0,
             "sample_size": 20,
             "proxy_policy": "llm_judge"
           },
-          "score_mean": 0.376,
+          "score_mean": 0.57,
           "score_std": 0.0,
           "per_query_scores": {
-            "PLAIN-1008": 0.0,
-            "PLAIN-1018": 0.6683063269107928,
-            "PLAIN-102": 0.45995532871129513
+            "PLAIN-1018": 0.542042305486879,
+            "PLAIN-102": 0.45995532871129513,
+            "PLAIN-1050": 0.7065443116025598
           },
           "per_query_chosen_alg": {
-            "PLAIN-1008": "ext_bubble_6",
-            "PLAIN-1018": "ext_bubble_6",
-            "PLAIN-102": "ext_bubble_8"
+            "PLAIN-1018": "ext_bubble_8",
+            "PLAIN-102": "ext_bubble_8",
+            "PLAIN-1050": "ext_merge_6"
           },
           "chosen_alg_counts": {
-            "ext_bubble_6": 2,
-            "ext_bubble_8": 1
+            "ext_bubble_8": 2,
+            "ext_merge_6": 1
           },
           "total_ranking_budget": 22.0,
           "per_query_budget": 7.333333333333333,
-          "total_optimization_cost": 0.360143,
-          "total_ranking_cost": 15.915015,
-          "in_tokens": 30274680,
-          "out_tokens": 4353244,
+          "total_optimization_cost": 0.42803100000000005,
+          "total_ranking_cost": 10.907877,
+          "in_tokens": 21619864,
+          "out_tokens": 2965471,
           "metric_name": "ndcg@10"
         },
         "28": {
           "dataset": "nfcorpus",
-          "generated_at": "2026-10-02T22:34:29.740788+00:00",
+          "generated_at": "2026-10-07T04:38:56.841877+00:00",
           "settings": {
             "nfcorpus_dir": "data/nfcorpus",
             "nfcorpus_limit": 3,
+            "queries": [
+              "PLAIN-1018",
+              "PLAIN-102",
+              "PLAIN-1050"
+            ],
             "model": "openai-gpt-5-mini",
             "total_ranking_budget": 28.0,
             "sample_size": 20,
             "proxy_policy": "llm_judge"
           },
-          "score_mean": 0.369,
+          "score_mean": 0.566,
           "score_std": 0.0,
           "per_query_scores": {
-            "PLAIN-1008": 0.0,
             "PLAIN-1018": 0.521098444712307,
-            "PLAIN-102": 0.5859702139790067
+            "PLAIN-102": 0.5282800663700055,
+            "PLAIN-1050": 0.6500332220485792
           },
           "per_query_chosen_alg": {
-            "PLAIN-1008": "ext_bubble_6",
             "PLAIN-1018": "ext_merge_8",
-            "PLAIN-102": "ext_bubble_4"
+            "PLAIN-102": "ext_merge_4",
+            "PLAIN-1050": "ext_merge_8"
           },
           "chosen_alg_counts": {
-            "ext_bubble_6": 1,
-            "ext_merge_8": 1,
-            "ext_bubble_4": 1
+            "ext_merge_8": 2,
+            "ext_merge_4": 1
           },
           "total_ranking_budget": 28.0,
           "per_query_budget": 9.333333333333334,
-          "total_optimization_cost": 0.360143,
-          "total_ranking_cost": 15.864083,
-          "in_tokens": 28635057,
-          "out_tokens": 4532731,
+          "total_optimization_cost": 0.42803100000000005,
+          "total_ranking_cost": 7.827927,
+          "in_tokens": 14849425,
+          "out_tokens": 2271801,
           "metric_name": "ndcg@10"
         },
         "34": {
           "dataset": "nfcorpus",
-          "generated_at": "2026-10-02T22:34:33.942735+00:00",
+          "generated_at": "2026-10-07T04:38:59.725628+00:00",
           "settings": {
             "nfcorpus_dir": "data/nfcorpus",
             "nfcorpus_limit": 3,
+            "queries": [
+              "PLAIN-1018",
+              "PLAIN-102",
+              "PLAIN-1050"
+            ],
             "model": "openai-gpt-5-mini",
             "total_ranking_budget": 34.0,
             "sample_size": 20,
             "proxy_policy": "llm_judge"
           },
-          "score_mean": 0.369,
+          "score_mean": 0.566,
           "score_std": 0.0,
           "per_query_scores": {
-            "PLAIN-1008": 0.0,
             "PLAIN-1018": 0.521098444712307,
-            "PLAIN-102": 0.5859702139790067
+            "PLAIN-102": 0.5282800663700055,
+            "PLAIN-1050": 0.6500332220485792
           },
           "per_query_chosen_alg": {
-            "PLAIN-1008": "ext_bubble_6",
             "PLAIN-1018": "ext_merge_8",
-            "PLAIN-102": "ext_bubble_4"
+            "PLAIN-102": "ext_merge_4",
+            "PLAIN-1050": "ext_merge_8"
           },
           "chosen_alg_counts": {
-            "ext_bubble_6": 1,
-            "ext_merge_8": 1,
-            "ext_bubble_4": 1
+            "ext_merge_8": 2,
+            "ext_merge_4": 1
           },
           "total_ranking_budget": 34.0,
           "per_query_budget": 11.333333333333334,
-          "total_optimization_cost": 0.360143,
-          "total_ranking_cost": 15.864083,
-          "in_tokens": 28635057,
-          "out_tokens": 4532731,
+          "total_optimization_cost": 0.42803100000000005,
+          "total_ranking_cost": 7.827927,
+          "in_tokens": 14849425,
+          "out_tokens": 2271801,
           "metric_name": "ndcg@10"
         }
       }

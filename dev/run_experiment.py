@@ -28,6 +28,7 @@ from order_by.sorting import (
     pointwise_sort,
     quick_sort,
 )
+from order_by import jev
 from order_by.clients import PROVIDER_HELP, PROVIDERS, build_client, run_async
 from order_by.utils import (
     PhaseTracker,
@@ -37,6 +38,7 @@ from order_by.utils import (
     query_concurrency,
     tokens2price,
 )
+from prompts import jev_questions
 from prompts.all_prompts import (
     nba_external_comparison_prompt_template,
     nba_external_pointwise_prompt_template,
@@ -328,10 +330,14 @@ async def _run_dl19_algorithms_once(
 
     assert len(ranking) == 100, print(len(ranking), 'not 100 for DL19')
     outputs = {}
-    p_prompt  = _safe_prompt(passage_pointwise_prompt_template,           question=query)
-    ep_prompt = _safe_prompt(passage_external_pointwise_prompt_template,  question=query)
-    pw_prompt = _safe_prompt(passage_pairwise_comparison_prompt_template, question=query)
-    ex_prompt = _safe_prompt(passage_external_comparison_prompt_template, question=query)
+    if jev.is_jev(client):
+        # Jev takes typed questions about the query and passages, not prompts.
+        p_prompt = ep_prompt = pw_prompt = ex_prompt = jev_questions.JevPrompt(jev_questions.PASSAGE, query)
+    else:
+        p_prompt  = _safe_prompt(passage_pointwise_prompt_template,           question=query)
+        ep_prompt = _safe_prompt(passage_external_pointwise_prompt_template,  question=query)
+        pw_prompt = _safe_prompt(passage_pairwise_comparison_prompt_template, question=query)
+        ex_prompt = _safe_prompt(passage_external_comparison_prompt_template, question=query)
 
     # pointwise — capture scores directly for use in run scoring
     p_ids, p_scores, _, p_in, p_out = await tracker.run("pointwise", pointwise_sort(

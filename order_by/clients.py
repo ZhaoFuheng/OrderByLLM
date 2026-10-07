@@ -574,8 +574,15 @@ def run_async(coro, client):
         raise
 
 
+def build_jev_client():
+    """TypeSafe's Jev model; see order_by/jev.py."""
+    from .jev import build_jev_client
+    return build_jev_client()
+
+
 _BUILDERS = {
     "cache": NoNetworkClient,
+    "jev": build_jev_client,
     "cortex": build_cortex_client,
     "fireworks": build_fireworks_client,
     "hf": build_hf_client,
@@ -590,7 +597,8 @@ PROVIDERS = tuple(_BUILDERS)
 PROVIDER_HELP = (
     "LLM provider/client (default: cortex). 'cache' answers only from the "
     "response cache and never calls an API; 'cortex', 'openai', 'anthropic', "
-    "'fireworks' and 'hf' call that service. Model names stay the same across "
+    "'fireworks' and 'hf' call that service; 'jev' is TypeSafe's System One "
+    "model (use with --models jev). Model names stay the same across "
     "providers, so the response cache is shared."
 )
 

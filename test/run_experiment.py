@@ -18,6 +18,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from benchmarks import PassageBenchmark, load_dl20, load_hellaswag, load_nfcorpus
+from order_by import jev
 from order_by.clients import PROVIDER_HELP, PROVIDERS, build_client, run_async
 from order_by.pair_comparison import external_comparisons
 from order_by.pointwise import PointwiseRelevanceKey, external_values
@@ -37,6 +38,7 @@ from order_by.utils import (
     query_concurrency,
     tokens2price,
 )
+from prompts import jev_questions
 from prompts.all_prompts import (
     movie_external_comparison_prompt_template,
     movie_external_pointwise_prompt_template,
@@ -285,6 +287,9 @@ def passage_algorithm(name: str, ranking: list[tuple[str, str]], query: str, cli
     of PASSAGE_ALGORITHMS; batch size 4, LIMIT 10). It resolves to whatever the
     underlying sort function returns."""
     def prompt(template):
+        # Jev takes typed questions about the query and passages, not prompts.
+        if jev.is_jev(client):
+            return jev_questions.JevPrompt(jev_questions.PASSAGE, query)
         return _safe_prompt(template, question=query)
 
     if name == "pointwise":
@@ -317,8 +322,14 @@ async def _run_passage_algorithms_once(
     client: AsyncOpenAI,
     model: str,
     tracker: "PhaseTracker | None" = None,
+    concurrent_sorts: bool = False,
 ):
-    """Rank one query's candidates with every algorithm in PASSAGE_ALGORITHMS."""
+    """Rank one query's candidates with every algorithm in PASSAGE_ALGORITHMS.
+
+    quick_sort normally runs before the other comparison sorts so that
+    quick_sort3 finds its first vote's comparisons in the cache; with
+    `concurrent_sorts` all four comparison sorts run at once (faster wall-clock
+    on a dedicated deployment, at the cost of those duplicate requests)."""
     tracker = tracker or PhaseTracker(None, 0)  # no-op when disabled
 
     def run(name):
@@ -334,18 +345,27 @@ async def _run_passage_algorithms_once(
     outputs["external_pointwise_4"] = (ep_ids, ep_scores, ep_in, ep_out)
 
     # Comparison-based algorithms return worst-to-best order (no direct scores).
-    q1_sorted, _, q1_in, q1_out = await run("quick_sort")
-    outputs["quick_sort"] = (_normalize_docids(q1_sorted), None, q1_in, q1_out)
-
-    # The remaining three run concurrently to reduce total wall-clock time.
-    (
-        (q3_sorted, _, q3_in, q3_out),
-        (eb4_sorted, _, eb4_in, eb4_out),
-        (em4_sorted, _, em4_in, em4_out),
-    ) = await asyncio.gather(
-        run("quick_sort3"), run("external_bubble_sort_4"), run("external_merge_sort_4"),
-    )
-    outputs["quick_sort3"]            = (_normalize_docids(q3_sorted), None, q3_in, q3_out)
+    if concurrent_sorts:
+        (
+            (q1_sorted, _, q1_in, q1_out),
+            (q3_sorted, _, q3_in, q3_out),
+            (eb4_sorted, _, eb4_in, eb4_out),
+            (em4_sorted, _, em4_in, em4_out),
+        ) = await asyncio.gather(
+            run("quick_sort"), run("quick_sort3"), run("external_bubble_sort_4"), run("external_merge_sort_4"),
+        )
+    else:
+        q1_sorted, _, q1_in, q1_out = await run("quick_sort")
+        # The remaining three run concurrently to reduce total wall-clock time.
+        (
+            (q3_sorted, _, q3_in, q3_out),
+            (eb4_sorted, _, eb4_in, eb4_out),
+            (em4_sorted, _, em4_in, em4_out),
+        ) = await asyncio.gather(
+            run("quick_sort3"), run("external_bubble_sort_4"), run("external_merge_sort_4"),
+        )
+    outputs["quick_sort"]  = (_normalize_docids(q1_sorted), None, q1_in, q1_out)
+    outputs["quick_sort3"] = (_normalize_docids(q3_sorted), None, q3_in, q3_out)
     outputs["external_bubble_sort_4"] = (_normalize_docids(eb4_sorted), None, eb4_in, eb4_out)
     outputs["external_merge_sort_4"]  = (_normalize_docids(em4_sorted), None, em4_in, em4_out)
 
@@ -386,6 +406,7 @@ async def _run_passage_benchmark(
         async def _rank_query(qid, query, top_ranking):
             outputs = await _run_passage_algorithms_once(
                 top_ranking, query, client, args.model, tracker=tracker,
+                concurrent_sorts=getattr(args, "concurrent_sorts", False),
             )
             if pbar is not None:
                 pbar.update(1)
@@ -466,8 +487,11 @@ async def run_hellaswag(args, client: AsyncOpenAI, pbar: tqdm | None = None, alg
 
 async def run_nfcorpus(args, client: AsyncOpenAI, pbar: tqdm | None = None, alg_pbar: tqdm | None = None) -> dict:
     bench = load_nfcorpus(_resolve(args.nfcorpus_dir))
-    bench.limit(args.nfcorpus_limit)
-    settings = {"data_dir": str(args.nfcorpus_dir)}
+    if args.nfcorpus_queries:
+        bench.select(args.nfcorpus_queries)
+    else:
+        bench.limit(args.nfcorpus_limit)
+    settings = {"data_dir": str(args.nfcorpus_dir), "queries": [qid for qid, _, _ in bench.first_stage]}
     return await _run_passage_benchmark("nfcorpus", bench, settings, args, client, pbar, alg_pbar)
 
 
@@ -506,22 +530,29 @@ async def _run_sembench_movie_algorithms_once(
 ):
     tracker = tracker or PhaseTracker(None, 0)  # no-op when disabled
 
+    if jev.is_jev(client):
+        # Jev takes typed questions about the reviews, not prompts.
+        p_prompt = ep_prompt = pw_prompt = ex_prompt = jev_questions.JevPrompt(jev_questions.REVIEW)
+    else:
+        p_prompt, ep_prompt = movie_pointwise_prompt_template, movie_external_pointwise_prompt_template
+        pw_prompt, ex_prompt = movie_pairwise_comparison_prompt_template, movie_external_comparison_prompt_template
+
     outputs = {}
 
     p_ids, p_scores, _, p_in, p_out = await tracker.run("pointwise", pointwise_sort(
-        ranking[:], client, movie_pointwise_prompt_template, model, float,
+        ranking[:], client, p_prompt, model, float,
         key_class=PointwiseRelevanceKey, isPassage=False, isReview=True,
     ))
     outputs["pointwise"] = (p_ids, p_scores, p_in, p_out)
 
     ep_ids, ep_scores, _, ep_in, ep_out, _ = await tracker.run("external_pointwise_4", external_pointwise_sort(
-        ranking[:], external_values, client, movie_external_pointwise_prompt_template,
+        ranking[:], external_values, client, ep_prompt,
         model, float, isPassage=False, isReview=True, memory_size=4,
     ))
     outputs["external_pointwise_4"] = (ep_ids, ep_scores, ep_in, ep_out)
 
     q1_sorted, _, q1_in, q1_out = await tracker.run("quick_sort", quick_sort(
-        ranking[:], client, movie_pairwise_comparison_prompt_template,
+        ranking[:], client, pw_prompt,
         model, isPassage=False, vote=1, isReview=True, limit_k=10,
     ))
     outputs["quick_sort"] = (_normalize_docids(q1_sorted), None, q1_in, q1_out)
@@ -530,7 +561,7 @@ async def _run_sembench_movie_algorithms_once(
         fn = external_merge_sort if kind == "merge" else external_bubble_sort
         return tracker.run(f"external_{kind}_sort_{m}", fn(
             ranking[:], external_comparisons, m, client,
-            movie_external_comparison_prompt_template, model,
+            ex_prompt, model,
             isPassage=False, isReview=True, limit_k=10))
 
     (
@@ -538,7 +569,7 @@ async def _run_sembench_movie_algorithms_once(
         (em4_sorted, _, em4_in, em4_out),
         (eb4_sorted, _, eb4_in, eb4_out),
     ) = await asyncio.gather(
-        tracker.run("quick_sort3", quick_sort(ranking[:], client, movie_pairwise_comparison_prompt_template,
+        tracker.run("quick_sort3", quick_sort(ranking[:], client, pw_prompt,
                    model, isPassage=False, vote=3, isReview=True, limit_k=10)),
         _ext("merge", 4),
         _ext("bubble", 4),
@@ -717,6 +748,11 @@ def main():
     parser.add_argument("--dl20-run-file", default="data/run.msmarco-v1-passage.bm25-default.dl20.txt")
     parser.add_argument("--hit-depth", type=int, default=100)
     parser.add_argument("--seeds", default="0")
+    parser.add_argument(
+        "--concurrent-sorts", action="store_true",
+        help="Run quick_sort together with the other comparison sorts instead of first "
+             "(faster on a dedicated deployment; quick_sort3 then cannot reuse quick_sort's cached comparisons).",
+    )
     parser.add_argument("--population-csv", default="data/population_by_country_2020.csv")
     parser.add_argument(
         "--population-limit",
@@ -752,10 +788,18 @@ def main():
         help="Path to the NFCorpus data directory (default: data/nfcorpus).",
     )
     parser.add_argument(
+        "--nfcorpus-queries",
+        type=lambda s: [q.strip() for q in s.split(",") if q.strip()],
+        default="PLAIN-1018,PLAIN-102,PLAIN-1050",
+        help="Comma-separated NFCorpus query ids to run (default: DHA, Stopping Heart Disease in "
+             "Childhood, Dr. Dean Ornish -- the first three test queries with at least 20 judged "
+             "documents). Pass '' to run the first --nfcorpus-limit queries in id order instead.",
+    )
+    parser.add_argument(
         "--nfcorpus-limit",
         type=int,
         default=3,
-        help="Query limit for NFCorpus (default: 3).",
+        help="With --nfcorpus-queries '': how many NFCorpus queries to run, in id order (default: 3).",
     )
     parser.add_argument(
         "--hellaswag-dir",

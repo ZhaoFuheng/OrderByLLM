@@ -1,6 +1,6 @@
 {
   "dataset": "hellaswag",
-  "generated_at": "2026-10-02T22:05:56.472823+00:00",
+  "generated_at": "2026-10-07T04:08:30.767322+00:00",
   "settings": {
     "data_dir": "data/hellaswag",
     "model": "claude-haiku-4-5",

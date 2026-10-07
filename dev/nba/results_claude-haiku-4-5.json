@@ -1,6 +1,6 @@
 {
   "dataset": "nba",
-  "generated_at": "2026-10-02T21:50:23.784142+00:00",
+  "generated_at": "2026-10-07T03:45:34.425897+00:00",
   "settings": {
     "csv": "data/nba_heights_200.csv",
     "model": "claude-haiku-4-5",
